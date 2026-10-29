@@ -2,10 +2,12 @@
 /**
  * Keycaps for a shortcut, e.g. `keys={["⌃", "⌥"]} label="Control Option"`.
  * Modifier keycaps sink while the visitor holds that key (src/scripts/keys.ts).
+ * With a `label` the caps read as one image of that name; without one (inside
+ * decorative art that is already hidden) they are hidden too.
  */
 interface Props {
   keys: string[];
-  label: string;
+  label?: string;
   size?: "md" | "lg" | "xl";
 }
 
@@ -19,7 +21,12 @@ const names: Record<string, string> = {
 };
 ---
 
-<span class:list={["keys", size !== "md" && `keys-${size}`]} aria-label={label}>
+<span
+  class:list={["keys", size !== "md" && `keys-${size}`]}
+  role={label ? "img" : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : "true"}
+>
   {keys.map((key) => (
     <kbd aria-hidden="true" data-key={names[key]}>
       {key}

@@ -8,14 +8,14 @@ export const en: PageCopy = {
     related: "Related guides",
   },
   notFound: {
-    title: "Page not found — Airdraft",
+    title: "Page not found | Airdraft",
     heading: "This page doesn’t exist",
     action: "Go to the homepage",
   },
   hub: {
     title: "Mac dictation setup and model guides | Airdraft",
     description:
-      "Practical Airdraft guides for offline Mac dictation in your language, mixed Chinese and English, dictating into Claude Code and terminals, local and cloud models, private meeting transcription, comparisons with other apps, and the free source build or official app.",
+      "Airdraft guides: offline dictation, mixed Chinese and English, coding agents, local or cloud models, private transcription, app comparisons and editions.",
     heading: "Dictation guides",
     help: [
       "Already set up and something is wrong?",
@@ -25,19 +25,19 @@ export const en: PageCopy = {
     changes: "See What Changed",
   },
   support: {
-    title: "Support — Airdraft",
+    title: "Airdraft support: permissions, shortcuts and models",
     description:
       "Fix common Airdraft problems with permissions, shortcuts and models, or report a bug.",
     heading: "Support",
   },
   privacy: {
-    title: "Privacy | Airdraft",
+    title: "Airdraft privacy: what stays on your Mac",
     description:
       "How Airdraft handles dictation data, optional app usage data and website analytics, and how to change either choice.",
     heading: "Privacy",
   },
   changelog: {
-    title: "Changelog — Airdraft",
+    title: "Airdraft changelog: every release, newest first",
     description:
       "Airdraft release history, from the first source build to speech models per profile, local intelligence and a new native interface.",
     heading: "Changelog",
@@ -58,21 +58,22 @@ export const en: PageCopy = {
     "offline-dictation-on-mac": {
       title: "Set up offline dictation on your Mac",
       description:
-        "Set up Airdraft with local speech recognition and optional local AI cleanup. Check Mac requirements, which model to choose, Airdraft's own English, Japanese and Korean measurement, permissions and profiles.",
+        "Set up Airdraft with local speech recognition and optional local cleanup: Mac requirements, which model to choose, permissions and profiles.",
       summary:
         "Choose a speech model for your language, keep cleanup local, and make your first dictation.",
     },
     "mixed-chinese-english-dictation": {
       title: "Dictate mixed Chinese and English on a Mac",
       description:
-        "Choose a local speech model for sentences that mix Mandarin and English terms. Airdraft's own measurement compares errors, English terms kept, size, memory and speed.",
+        "Choose a local speech model for Mandarin mixed with English terms, with Airdraft’s own measurement of errors, terms kept, size, memory and speed.",
       summary:
         "Pick a local model for mixed Mandarin and English, with Airdraft's own measured trade-offs.",
     },
     "dictate-to-claude-code-and-terminals": {
       title: "Dictate prompts into Claude Code, Codex and terminals",
+      metaTitle: "Dictate prompts into Claude Code, Codex and terminals",
       description:
-        "Speak prompts into Claude Code, Codex and terminal apps on a Mac. See how pasting works in self-drawing terminals, refinement on your existing plan, and what leaves your Mac.",
+        "Speak prompts into Claude Code, Codex and terminals on a Mac: how pasting works in self-drawing terminals, refinement on your plan, and what leaves your Mac.",
       summary:
         "Speak prompts into coding agents and terminals, and refine them on the plan you already pay for.",
     },
@@ -100,8 +101,9 @@ export const en: PageCopy = {
     "compare-mac-dictation-apps": {
       title:
         "Compare Airdraft with VoiceInk, Handy, Typeless and Apple Dictation",
+      metaTitle: "Airdraft vs VoiceInk, Handy, Typeless and Apple Dictation",
       description:
-        "A dated comparison of Airdraft, VoiceInk, Handy, Typeless and Apple Dictation on macOS 27: price, source, where speech runs, recording and file transcription, and where each is better.",
+        "A dated comparison of Airdraft, VoiceInk, Handy, Typeless and Apple Dictation: price, source, where speech runs, file transcription and where each is better.",
       summary:
         "See prices, data flow and transcription of recordings and files side by side, including where others are better.",
     },

@@ -1,16 +1,17 @@
 // The homepage bento's graphics (HomePage.astro, #features) do what their
 // tile says, and answer the visitor.
 //
-//   loop      while a tile is mostly on screen its graphic keeps performing:
-//             the first time the tiles of a row start one after another
-//             from the left, then each repeats on its own rhythm (a choice
-//             tile walks through its choices). Off screen nothing runs.
+//   loop      while a tile is mostly on screen its graphic performs: the
+//             first time the tiles of a row start one after another from
+//             the left, then each repeats twice on its own rhythm (a choice
+//             tile walks through its choices) and rests. Off screen nothing
+//             runs.
 //   poke      hovering a tile (a mouse) or tapping it performs at once; a
 //             choice tile tries its next choice. Touching a tile holds its
 //             loop for a while, so the visitor's choice stays put
 //   touch     the parts that are controls in the app work: the shortcut's
-//             keycaps (and the visitor's own ⌃⌥ while that tile is on
-//             screen) record in the cursor tile while held and insert on
+//             keycaps (and the visitor's own ⌃⌥ while the pointer or focus
+//             is on that tile) record in the cursor tile while held and insert on
 //             release; segmented choices and the subscription chips select
 //
 // Resting CSS is every graphic's final frame, so the bento reads the same
@@ -183,8 +184,8 @@ function cursor(art: HTMLElement, keys: () => HTMLElement | null): Recorder {
 
 /** The shortcut tile drives the cursor tile. Its keycaps record while held
  *  by the pointer; the visitor's own ⌃⌥ does the same while the tile is on
- *  screen (keys.ts already sinks the keycaps). Any third key cancels, so
- *  VoiceOver's ⌃⌥ commands never type. */
+ *  screen and the visitor is at the tile (keys.ts already sinks the
+ *  keycaps). Any third key cancels, so VoiceOver's ⌃⌥ commands never type. */
 function shortcut(
   art: HTMLElement,
   recorder: Recorder | undefined,
@@ -496,7 +497,12 @@ function setup(bento: HTMLElement) {
           art,
           recorder,
           () => Boolean(cursorTile && visible.get(cursorTile)),
-          () => Boolean(visible.get(tile)),
+          // The visitor's ⌃⌥ drives it only while they are at the tile
+          // (pointer over it or focus inside), never from VoiceOver's
+          // commands elsewhere on the page.
+          () =>
+            Boolean(visible.get(tile)) &&
+            (tile.matches(":hover") || tile.contains(document.activeElement)),
         );
         break;
       case "profiles":
@@ -525,8 +531,13 @@ function setup(bento: HTMLElement) {
   bento.classList.add("is-live");
 
   // The loop: while a tile is mostly on screen its graphic repeats every
-  // `period` seconds (a little jitter keeps the grid from beating in step).
-  // Touching a tile holds its loop for eight seconds.
+  // `period` seconds (a little jitter keeps the grid from beating in step),
+  // at most `repeats` times per visit, then rests on its final frame, so
+  // nothing moves for long without the visitor asking (WCAG 2.2.2). Coming
+  // back on screen or poking a tile allows another round. Touching a tile
+  // holds its loop for eight seconds.
+  const repeats = 2;
+  const beats = new Map<HTMLElement, number>();
   const loops = new Map<HTMLElement, gsap.core.Tween>();
   const stopLoop = (tile: HTMLElement) => {
     loops.get(tile)?.kill();
@@ -541,6 +552,9 @@ function setup(bento: HTMLElement) {
       gsap.delayedCall(delay, () => {
         if (!visible.get(tile) || document.hidden) return stopLoop(tile);
         (performer.loop ?? performer.arrive).call(performer);
+        const beat = (beats.get(tile) ?? 0) + 1;
+        beats.set(tile, beat);
+        if (beat > repeats) return stopLoop(tile);
         schedule(tile, (performer.period ?? 5) + gsap.utils.random(0, 0.8));
       }),
     );
@@ -555,6 +569,7 @@ function setup(bento: HTMLElement) {
     if (now - (lastPoke.get(tile) ?? -Infinity) < 1000) return;
     lastPoke.set(tile, now);
     performers.get(tile)?.poke();
+    beats.set(tile, 1);
     if (visible.get(tile)) schedule(tile, 8);
   };
   for (const tile of performers.keys()) {
@@ -596,6 +611,7 @@ function setup(bento: HTMLElement) {
         }
         visible.set(tile, true);
         if (reduced.matches || !onScreen || loops.has(tile)) continue;
+        beats.set(tile, 0);
         const first = !arrived.has(tile);
         arrived.add(tile);
         lastPoke.set(tile, performance.now());

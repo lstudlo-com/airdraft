@@ -8,33 +8,33 @@ export const zhCn: PageCopy = {
     related: "相关指南",
   },
   notFound: {
-    title: "找不到页面 — Airdraft",
+    title: "找不到页面 | Airdraft",
     heading: "这个页面不存在",
     action: "返回首页",
   },
   hub: {
     title: "Mac 听写设置与模型指南 | Airdraft",
     description:
-      "Airdraft 实用指南：用你的语言在 Mac 上离线听写、中英混说、对 Claude Code 和终端听写、本机与云端模型、在本机转录会议、与其他 App 的对比，以及免费源代码编译与官方版的区别。",
+      "Airdraft 实用指南：离线听写、中英混说、Claude Code 和终端、本机或云端模型、会议转录、App 对比，以及免费源代码编译与官方版怎么选。",
     heading: "听写指南",
     help: ["已经设置好却出了问题？", "检查权限、快捷键和常见问题。"],
     pricing: "比较价格",
     changes: "查看更新内容",
   },
   support: {
-    title: "支持 — Airdraft",
+    title: "Airdraft 支持：权限、快捷键与模型",
     description:
       "解决 Airdraft 在权限、快捷键和模型方面的常见问题，或者报告错误。",
     heading: "支持",
   },
   privacy: {
-    title: "隐私 | Airdraft",
+    title: "Airdraft 隐私：哪些数据留在 Mac",
     description:
       "Airdraft 如何处理听写数据、可选的 App 使用数据和网站分析，以及如何更改这两项选择。",
     heading: "隐私",
   },
   changelog: {
-    title: "更新日志 — Airdraft",
+    title: "Airdraft 更新日志：每个版本的变化",
     description:
       "Airdraft 的版本历史：从第一个源代码版本，到按模式选择语音模型、本机智能和全新的原生界面。",
     heading: "更新日志",
@@ -90,6 +90,7 @@ export const zhCn: PageCopy = {
     },
     "compare-mac-dictation-apps": {
       title: "Airdraft 与 VoiceInk、Handy、Typeless、Apple 听写对比",
+      metaTitle: "Airdraft 与 VoiceInk、Handy、Typeless、Apple 听写对比",
       description:
         "附核查日期，对比 Airdraft、VoiceInk、Handy、Typeless 和 macOS 27 的 Apple 听写：价格、源代码、语音在哪里处理、录音和文件转录，以及各自的长处。",
       summary:

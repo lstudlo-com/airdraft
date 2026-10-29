@@ -1,7 +1,8 @@
 // Fails when a colour with a hue appears in the website's source. The site
 // uses the app window's neutral grays only; the three status dots
 // (--status-ok, --status-attention, --status-busy), as in the app, and the
-// one accent token (--accent, the app's system accent) are the exceptions. Run from apps/marketing: node scripts/check-neutral.mjs
+// one accent (--accent, the app's system accent, and --accent-strong, its
+// deeper shade under white text) are the exceptions. Run from apps/marketing: node scripts/check-neutral.mjs
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -33,7 +34,8 @@ const problems = [];
 for (const path of files(root)) {
   const lines = readFileSync(path, "utf8").split("\n");
   lines.forEach((line, index) => {
-    if (/--(status-(ok|attention|busy)|accent)\s*:/.test(line)) return;
+    if (/--(status-(ok|attention|busy)|accent|accent-strong)\s*:/.test(line))
+      return;
     const where = `${relative(root, path)}:${index + 1}`;
     for (const match of line.matchAll(
       /(?<=[\s:(,"'])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})(?=[\s;,)"'])/g,

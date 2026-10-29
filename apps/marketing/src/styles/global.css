@@ -90,6 +90,28 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   :root {
     color-scheme: light dark;
 
+    /* Spacing on a 4-point grid: --space-n is n × 4px. Margins, paddings
+       and gaps use these; the odd steps between (6, 10, 14, 18, 22px) are
+       deliberate per-component values translated from the app. */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-7: 28px;
+    --space-8: 32px;
+    --space-9: 36px;
+    --space-10: 40px;
+    --space-11: 44px;
+    --space-12: 48px;
+    --space-13: 52px;
+    --space-14: 56px;
+    --space-15: 60px;
+    --space-16: 64px;
+    --space-18: 72px;
+    --space-21: 84px;
+
     /* Theme.chromeBackground and Theme.islandBackground. */
     --chrome: #f2f2f2; /* white 0.95 */
     --island: #e6e6e6; /* white 0.90 */
@@ -119,10 +141,23 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     --key-hover-bottom: #222222;
     --key-ink: rgb(255 255 255 / 0.95);
     --key-rim: rgb(255 255 255 / 0.2);
+    /* The recording pill (IndicatorPanel) is always dark, in both
+       appearances, so these are never redefined for dark mode. */
+    --hud-top: #2b2b2b;
+    --hud-bottom: #1a1a1a;
+    --hud-ink: rgb(255 255 255 / 0.95);
+    --hud-rim: rgb(255 255 255 / 0.2);
+    --hud-well: #141414;
+    --hud-bar: rgb(255 255 255 / 0.92);
+    /* Close and minimize of an inactive window, as each appearance draws
+       them; the showcase's light and dark faces keep their own. */
+    --window-button-light: #d4d4d4;
+    --window-button-dark: #555555;
 
     --ink: #222222;
     --muted: #5c5c5c;
-    --quiet: #666666;
+    /* At least 4.5:1 on every surface it sits on, the well included. */
+    --quiet: #5e5e5e;
     --status-ok: #34c759;
     --status-attention: #ff9500;
     --status-busy: #ffcc00;
@@ -130,6 +165,10 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
        current step of a story only. Never text, fills of controls, glows
        or focus rings. */
     --accent: #007aff;
+    /* The accent under white text (the sample's current step number): a
+       deeper shade of the same blue, 5.6:1 with white in both appearances,
+       where the system blue gives 4.0:1 (light) and 3.6:1 (dark). */
+    --accent-strong: #0064d2;
 
     /* Light and shade, at the hero's strength in every elevation. */
     --light: rgb(255 255 255);
@@ -257,7 +296,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
 
       --ink: #dedede;
       --muted: #a3a3a3;
-      --quiet: #9a9a9a;
+      --quiet: #a3a3a3;
       --status-ok: #30d158;
       --status-attention: #ff9f0a;
       --status-busy: #ffd60a;
@@ -506,7 +545,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .text-link {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     min-height: 44px;
     font-size: var(--step-0);
     font-weight: 500;
@@ -520,9 +559,9 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     min-height: 44px;
-    padding: 0 20px;
+    padding: 0 var(--space-5);
     border: 0;
     border-radius: var(--radius-control);
     background: var(--fill-control);
@@ -571,7 +610,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   }
   .key-lg {
     min-height: 48px;
-    padding-inline: 24px;
+    padding-inline: var(--space-6);
   }
   .key-icon {
     width: 44px;
@@ -634,7 +673,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     top: 12px;
     left: 12px;
     z-index: 10;
-    padding: 12px 20px;
+    padding: var(--space-3) var(--space-5);
     border-radius: 999px;
     background: var(--fill-control);
     box-shadow: var(--edge), var(--raise-control);
@@ -661,7 +700,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     min-height: var(--header);
-    gap: 24px;
+    gap: var(--space-6);
   }
   .site-header-inner > .brand {
     justify-self: start;
@@ -987,7 +1026,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     width: 34px;
   }
   .nav-cta {
-    padding-inline: 16px;
+    padding-inline: var(--space-4);
   }
   /* The language key, a raised globe key like GitHub's, is styled in
      languages.css. */
@@ -1067,7 +1106,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     height: var(--menu-h);
     max-width: none;
     margin: 0;
-    padding: 4px var(--gutter) 0;
+    padding: var(--space-1) var(--gutter) 0;
     overflow: visible;
     border: 0;
     background: none;
@@ -1080,7 +1119,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: grid;
     grid-template-rows: repeat(3, 44px) 14px 44px 44px;
     align-content: start;
-    gap: 4px;
+    gap: var(--space-1);
   }
   .site-menu > * {
     opacity: 0;
@@ -1141,14 +1180,14 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 32px;
-    padding-block: 32px 48px;
+    gap: var(--space-8);
+    padding-block: var(--space-8) var(--space-12);
   }
   .footer-links {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 4px 24px;
+    gap: var(--space-1) var(--space-6);
     max-width: 760px;
   }
   .footer-links a {
@@ -1177,7 +1216,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     justify-content: center;
     align-items: center;
     min-height: calc(100svh - var(--header) - var(--island-inset));
-    padding-block: 56px 48px;
+    padding-block: var(--space-14) var(--space-12);
   }
   .hero-copy {
     position: relative;
@@ -1198,20 +1237,36 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .hero h1:lang(zh) {
     word-break: keep-all;
   }
+  /* What Airdraft is, in one sentence under the promise. */
+  .hero-lede {
+    max-width: 38rem;
+    margin: var(--space-6) auto 0;
+    font-size: var(--step-1);
+    line-height: 1.45;
+    color: var(--muted);
+    text-wrap: balance;
+  }
+  /* Availability, under the keys, until the official app is on sale. */
+  .hero-note {
+    margin-top: 18px;
+    font-size: var(--step--1);
+    color: var(--muted);
+    text-wrap: balance;
+  }
   .hero-actions {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: 14px 24px;
-    margin-top: 36px;
+    gap: 14px var(--space-6);
+    margin-top: var(--space-9);
   }
   .hero-meta {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 4px 0;
-    margin-top: 20px;
+    gap: var(--space-1) 0;
+    margin-top: var(--space-5);
     padding: 0;
     list-style: none;
     font-size: var(--step--1);
@@ -1223,7 +1278,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: inline-block;
     width: 3px;
     height: 3px;
-    margin: 0 12px;
+    margin: 0 var(--space-3);
     border-radius: 50%;
     background: currentColor;
     opacity: 0.6;
@@ -1234,8 +1289,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
      faint top-left sheen, holding the waveform well and its caption. */
   .hero-card {
     width: min(100%, 880px);
-    margin-top: 84px;
-    padding: 32px 32px 22px;
+    margin-top: var(--space-21);
+    padding: var(--space-8) var(--space-8) 22px;
     border-radius: var(--radius-card);
     background:
       radial-gradient(
@@ -1256,7 +1311,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: grid;
     place-items: center;
     min-height: 44px;
-    margin-top: 12px;
+    margin-top: var(--space-3);
   }
   .hero-status > * {
     grid-area: 1 / 1;
@@ -1324,7 +1379,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     align-items: center;
     gap: var(--bar-gap);
     height: 104px;
-    padding-inline: 40px;
+    padding-inline: var(--space-10);
     border-radius: 999px;
     background: var(--well);
     box-shadow: var(--sink-hero);
@@ -1427,7 +1482,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
 
   /* Dictation sample: the homepage's one telling of how dictation works. */
   .preview {
-    padding: 24px;
+    padding: var(--space-6);
     text-align: left;
   }
   /* Its three steps run along the top and follow the sample's state: hold
@@ -1438,15 +1493,15 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .preview-steps {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-    margin: 0 0 20px;
-    padding: 4px 4px 0;
+    gap: var(--space-4);
+    margin: 0 0 var(--space-5);
+    padding: var(--space-1) var(--space-1) 0;
     list-style: none;
   }
   .preview-steps li {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-3);
     min-width: 0;
     color: var(--muted);
     font-size: var(--step-0);
@@ -1458,7 +1513,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px 8px;
+    gap: 6px var(--space-2);
   }
   .step-index {
     display: grid;
@@ -1502,7 +1557,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .preview:is([data-state="typing"], [data-state="done"])
     [data-step="2"]
     .step-index {
-    background: var(--accent);
+    background: var(--accent-strong);
     box-shadow: var(--raise-small);
     color: #fff;
   }
@@ -1518,7 +1573,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   }
   .spoken,
   .written {
-    padding: 20px;
+    padding: var(--space-5);
     border-radius: var(--radius-well);
   }
   .field-label {
@@ -1696,12 +1751,12 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .preview-controls {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--space-4);
     margin-top: 22px;
   }
   .run-button {
     min-height: 44px;
-    padding: 0 18px 0 16px;
+    padding: 0 18px 0 var(--space-4);
   }
   .stop-symbol {
     display: none;
@@ -1737,10 +1792,10 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     gap: 10px;
     padding: 6px 14px 6px 6px;
     border-radius: 20px;
-    background: linear-gradient(135deg, #2b2b2b, #1a1a1a);
-    color: rgb(255 255 255 / 0.95);
+    background: linear-gradient(135deg, var(--hud-top), var(--hud-bottom));
+    color: var(--hud-ink);
     box-shadow:
-      inset 1px 1px 0 rgb(255 255 255 / 0.2),
+      inset 1px 1px 0 var(--hud-rim),
       inset 0 0 0 0.75px rgb(255 255 255 / 0.05),
       2px 3px 8px rgb(0 0 0 / 0.3);
     transition: opacity 320ms ease;
@@ -1752,9 +1807,9 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .hud-well {
     display: flex;
     align-items: center;
-    padding: 4px 8px;
+    padding: var(--space-1) var(--space-2);
     border-radius: 999px;
-    background: #141414;
+    background: var(--hud-well);
     box-shadow:
       inset 1px 1.5px 3px rgb(0 0 0 / 0.65),
       inset -1px -1px 3px rgb(255 255 255 / 0.1);
@@ -1769,7 +1824,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     width: 3px;
     height: 20px;
     border-radius: 2px;
-    background: rgb(255 255 255 / 0.92);
+    background: var(--hud-bar);
     transform: scaleY(var(--level, 0.14));
     transition:
       transform 90ms linear,
@@ -1801,7 +1856,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
 
   /* Sections */
   .section-first {
-    padding-top: 56px;
+    padding-top: var(--space-14);
   }
   .section-heading {
     max-width: 44rem;
@@ -1813,7 +1868,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     color: var(--muted);
   }
   .section-heading + * {
-    margin-top: 44px;
+    margin-top: var(--space-11);
   }
   /* The homepage centers every section's title and intro over its content;
      subpages keep them at the leading edge. */
@@ -1842,7 +1897,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     letter-spacing: -0.015em;
   }
   .subpage .section-heading + * {
-    margin-top: 32px;
+    margin-top: var(--space-8);
   }
   .actions {
     display: flex;
@@ -1855,7 +1910,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--space-2);
     padding: 0;
     list-style: none;
   }
@@ -1865,8 +1920,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .tag {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
+    gap: var(--space-2);
+    padding: 6px var(--space-3);
     border-radius: 999px;
     background: var(--well-soft);
     box-shadow: var(--sink-chip);
@@ -1908,12 +1963,12 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .bento {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
+    gap: var(--space-6);
   }
   .tile {
     display: flex;
     flex-direction: column;
-    padding: 12px 12px 22px;
+    padding: var(--space-3) var(--space-3) 22px;
   }
   .tile-wide {
     grid-column: span 2;
@@ -1922,8 +1977,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: grid;
     place-items: center;
     height: 232px;
-    margin-bottom: 20px;
-    padding: 20px;
+    margin-bottom: var(--space-5);
+    padding: var(--space-5);
     overflow: hidden;
   }
   .tile-art > * {
@@ -1957,12 +2012,12 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 32px;
+    gap: var(--space-8);
     width: 100%;
     max-width: 500px;
   }
   .keys-xl {
-    gap: 16px;
+    gap: var(--space-4);
   }
   .keys-xl kbd {
     min-width: 88px;
@@ -2002,7 +2057,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .art-output {
     width: 100%;
     min-height: 3.2em;
-    padding: 12px 16px;
+    padding: var(--space-3) var(--space-4);
     border-radius: var(--radius-field);
     background: var(--fill-control);
     box-shadow: var(--edge), var(--raise-control);
@@ -2036,7 +2091,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-3);
     color: var(--muted);
   }
   .art-wrong {
@@ -2046,7 +2101,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       calc(var(--strike, 1) * 100%) 2px;
   }
   .art-right {
-    padding: 8px 20px;
+    padding: var(--space-2) var(--space-5);
     font-size: var(--step-2);
     color: var(--ink);
   }
@@ -2055,7 +2110,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     width: 100%;
     max-width: 300px;
     height: 136px;
-    margin-top: 16px;
+    margin-top: var(--space-4);
   }
   .art-card {
     position: absolute;
@@ -2075,8 +2130,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .art-card-front {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: var(--space-3);
+    padding: 14px var(--space-4);
     text-align: left;
   }
   .art-card-front p {
@@ -2095,7 +2150,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .art-mac {
     position: relative;
     flex: 1;
-    padding: 34px 20px 22px;
+    padding: 34px var(--space-5) 22px;
     border-radius: 14px;
     background: var(--fill-card);
     box-shadow: var(--edge), var(--raise-control);
@@ -2117,7 +2172,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     place-items: center;
     min-width: 44px;
     height: 40px;
-    padding: 0 12px;
+    padding: 0 var(--space-3);
     border-radius: 10px;
     background: var(--well-soft);
     box-shadow: var(--sink-chip);
@@ -2169,7 +2224,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     position: relative;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    padding: 8px;
+    padding: var(--space-2);
   }
   .pipe-stage {
     position: relative;
@@ -2178,7 +2233,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     align-items: flex-start;
     gap: 14px;
     min-width: 0;
-    padding: 22px 20px 18px;
+    padding: 22px var(--space-5) 18px;
   }
   /* RowDivider turned on its side: shade on the left, highlight just right. */
   .pipe-stage + .pipe-stage {
@@ -2192,7 +2247,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     letter-spacing: -0.01em;
   }
   .pipe-stage .segmented > label {
-    padding: 0 12px;
+    padding: 0 var(--space-3);
   }
   /* Insertion has no choice to make; its place sits where the others' picker
      does, at the picker's height. */
@@ -2265,7 +2320,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: flex;
     align-items: center;
     height: var(--row-h);
-    padding: 0 44px 0 12px;
+    padding: 0 var(--space-11) 0 var(--space-3);
     font-size: var(--step-0);
     font-weight: 500;
     color: var(--muted);
@@ -2305,7 +2360,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   }
   .fix-field {
     align-self: stretch;
-    padding: 16px 18px;
+    padding: var(--space-4) 18px;
     border-radius: var(--radius-field);
     background: var(--fill-control);
     box-shadow: var(--edge), var(--raise-control);
@@ -2351,14 +2406,14 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: auto auto 1fr auto;
-    gap: 0 28px;
+    gap: 0 var(--space-7);
   }
   .offer {
     display: grid;
     grid-row: span 4;
     grid-template-rows: subgrid;
     row-gap: 0;
-    padding: 32px;
+    padding: var(--space-8);
   }
   .offer-featured {
     box-shadow: var(--edge), var(--raise-hero);
@@ -2369,21 +2424,25 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    gap: 12px 16px;
+    gap: var(--space-3) var(--space-4);
     min-height: 38px;
   }
   .offer h3 {
     font-size: var(--step-1);
     letter-spacing: 0;
   }
-  .offer-price {
-    margin-top: 18px;
+  /* A price, wherever it shows (Get Airdraft, LicenseCard, Pricing), with
+     its unit ("one-time") in body type beside it. */
+  .price {
     font-size: var(--step-4);
     font-weight: 600;
     line-height: 1.05;
     letter-spacing: -0.025em;
   }
-  .offer-price > .price-unit {
+  .offer .price {
+    margin-top: 18px;
+  }
+  .price > .price-unit {
     margin-left: 0.15em;
     font-size: var(--step-0);
     font-weight: 400;
@@ -2391,16 +2450,44 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     color: var(--muted);
   }
   .offer-note {
-    margin-top: 12px;
+    margin-top: var(--space-3);
     font-size: var(--step-0);
     line-height: 1.55;
     color: var(--muted);
   }
   /* The action sits below a groove, at the card's foot. */
   .offer-foot {
-    margin-top: 28px;
-    padding-top: 24px;
+    margin-top: var(--space-7);
+    padding-top: var(--space-6);
     box-shadow: var(--groove);
+  }
+
+  /* NotifyRow: until the official app is on sale, how to hear when it is,
+     as one line of text and two quiet links under the offers. */
+  .notify {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-1) var(--space-5);
+    margin-top: var(--space-8);
+    font-size: var(--step--1);
+    color: var(--muted);
+    text-align: center;
+  }
+  .notify-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-1) var(--space-5);
+  }
+  .subpage .notify {
+    justify-content: flex-start;
+    margin-top: var(--space-5);
+    text-align: start;
+  }
+  .subpage .notify-actions {
+    justify-content: flex-start;
   }
 
   /* The license card (LicenseCard.astro): a title with the Mac choice beside
@@ -2433,9 +2520,19 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       visibility 0s linear 140ms;
   }
 
+  /* Text for screen readers and text extraction only. */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   /* Questions: rows inside a raised card, divided by grooves. */
   .question-list {
-    padding: 4px 24px;
+    padding: var(--space-1) var(--space-6);
   }
   details + details {
     box-shadow: var(--groove);
@@ -2456,7 +2553,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
+    gap: var(--space-6);
     min-height: 64px;
     padding-block: 18px;
     font-size: var(--step-1);
@@ -2490,7 +2587,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   }
   .details-body {
     max-width: 62ch;
-    padding: 0 40px 22px 0;
+    padding: 0 var(--space-10) 22px 0;
   }
   .details-body p {
     font-size: var(--step-0);
@@ -2515,15 +2612,15 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 20px;
-    margin-top: 28px;
+    gap: var(--space-5);
+    margin-top: var(--space-7);
   }
   /* Component reference (/design/) */
   .ds-group + .ds-group {
-    margin-top: 48px;
+    margin-top: var(--space-12);
   }
   .ds-group > h2 {
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5);
     font-size: var(--step-3);
     letter-spacing: -0.015em;
   }
@@ -2531,15 +2628,15 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 20px;
+    gap: var(--space-5);
   }
   .ds-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
+    gap: var(--space-6);
   }
   .ds-sample {
-    padding: 28px;
+    padding: var(--space-7);
   }
   .ds-wave {
     margin-top: 0;
@@ -2548,13 +2645,13 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .ds-swatches {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 16px;
+    gap: var(--space-4);
     padding: 0;
     list-style: none;
   }
   .ds-swatches li {
     display: grid;
-    gap: 8px;
+    gap: var(--space-2);
     font-size: var(--step--1);
     color: var(--muted);
   }
@@ -2571,10 +2668,10 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24px;
+    gap: var(--space-6);
     min-height: calc(100svh - 2 * var(--island-inset));
     margin-block: var(--island-inset);
-    padding-block: 48px;
+    padding-block: var(--space-12);
     text-align: center;
   }
   .not-found h1 {
@@ -2595,7 +2692,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .offers {
       grid-template-columns: minmax(0, 1fr);
       grid-template-rows: none;
-      row-gap: 24px;
+      row-gap: var(--space-6);
       max-width: 560px;
     }
     .offer {
@@ -2603,7 +2700,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       flex-direction: column;
     }
     .offer-foot {
-      margin-top: 24px;
+      margin-top: var(--space-6);
     }
     /* The hero's oldest bars leave first, so the newest stay by the caret. */
     .hero .wave-bar:nth-child(-n + 12) {
@@ -2635,24 +2732,28 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       --radius-island: 18px;
     }
     .site-header-inner {
-      gap: 12px;
+      gap: var(--space-3);
     }
     .header-links,
     .header-actions {
-      gap: 4px;
+      gap: var(--space-1);
     }
     .hero-stage {
-      padding-block: 40px 36px;
+      padding-block: var(--space-10) var(--space-9);
     }
     .hero h1 {
       line-height: 1.08;
     }
+    .hero-lede {
+      margin-top: 18px;
+      font-size: var(--step-0);
+    }
     .hero-actions {
-      margin-top: 28px;
+      margin-top: var(--space-7);
     }
     .hero-card {
-      margin-top: 60px;
-      padding: 20px 16px 16px;
+      margin-top: var(--space-15);
+      padding: var(--space-5) var(--space-4) var(--space-4);
     }
     .wave {
       --bar-gap: 9px;
@@ -2666,12 +2767,12 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       height: 52px;
     }
     .preview {
-      padding: 16px;
+      padding: var(--space-4);
     }
     .preview-steps {
       grid-template-columns: minmax(0, 1fr);
       gap: 10px;
-      margin-bottom: 16px;
+      margin-bottom: var(--space-4);
     }
     .preview-stage {
       grid-template-columns: minmax(0, 1fr);
@@ -2691,36 +2792,36 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     }
     .preview-controls {
       flex-wrap: wrap;
-      gap: 12px;
+      gap: var(--space-3);
       margin-top: 18px;
     }
     .hud-bars span:nth-child(n + 11) {
       display: none;
     }
     .island:not(.subpage) .section-first {
-      padding-top: 32px;
+      padding-top: var(--space-8);
     }
     .section-heading + * {
-      margin-top: 32px;
+      margin-top: var(--space-8);
     }
     .bento {
       grid-template-columns: minmax(0, 1fr);
-      gap: 20px;
+      gap: var(--space-5);
     }
     .tile-wide {
       grid-column: auto;
     }
     .tile-art {
       height: 210px;
-      padding: 16px;
+      padding: var(--space-4);
     }
     .art-node {
       min-width: 36px;
-      padding: 0 8px;
+      padding: 0 var(--space-2);
     }
     .art-link {
       min-width: 8px;
-      margin-inline: 4px;
+      margin-inline: var(--space-1);
     }
     .art-privacy {
       flex-direction: column;
@@ -2738,27 +2839,27 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       width: 100%;
     }
     .pipe-stage {
-      padding: 22px 16px 18px;
+      padding: 22px var(--space-4) 18px;
     }
     .offer {
       padding: 22px;
     }
     .question-list {
-      padding: 4px 18px;
+      padding: var(--space-1) 18px;
     }
     summary {
       font-size: var(--step-0);
     }
     .details-body {
-      padding-right: 8px;
+      padding-right: var(--space-2);
     }
     .ds-grid {
       grid-template-columns: minmax(0, 1fr);
     }
     .site-footer {
       flex-direction: column;
-      gap: 20px;
-      padding-block: 28px 40px;
+      gap: var(--space-5);
+      padding-block: var(--space-7) var(--space-10);
     }
     .footer-links {
       justify-content: flex-start;

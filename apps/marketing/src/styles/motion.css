@@ -309,9 +309,13 @@
       animation: line-up 1000ms var(--ease-out) both;
       animation-delay: calc(80ms + var(--line, 0) * 120ms);
     }
+    .hero-lede {
+      animation: rise 900ms var(--ease-out) 280ms both;
+    }
     .hero-actions {
       animation: rise 900ms var(--ease-out) 360ms both;
     }
+    .hero-note,
     .hero-meta {
       animation: rise 900ms var(--ease-out) 480ms both;
     }

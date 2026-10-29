@@ -11,8 +11,17 @@ or making claims about search features.
   Use normal links, descriptive headings and stable section IDs. Interactive
   samples supplement the text; they must not be the only description of a feature.
 - Every indexable page needs a unique title, useful description, canonical URL
-  on `https://airdraft.app`, and an internal link from a relevant page. The
+  on `https://airdraft.app`, and an internal link from a relevant page. Titles
+  are at most 60 and descriptions at most 160 wide, a wide (Chinese or
+  Japanese) character counting two; `check-search.py` enforces both. A
+  subpage title names Airdraft and what the page answers ("Airdraft pricing:
+  free source build or one-time license"); the homepage and guides use
+  `<title> | Airdraft` (`｜` in Traditional Chinese), and a guide whose title
+  would be too wide sets `metaTitle` in its language's `pages.ts`. The
   sitemap contains canonical HTML pages, excluding the 404 and utility files.
+  Each entry's `<lastmod>` is the last Git commit of that page's own sources
+  (its view and that language's copy; `src/lib/source-dates.mjs`), never the
+  build time.
 - `public/_redirects` permanently redirects slashless and `index.html` aliases
   to canonical pages. Update those explicit routes when adding an indexable page;
   leave assets and missing URLs outside the redirect rules.
@@ -40,6 +49,14 @@ or making claims about search features.
   is a notarized public installer.
 - Structured data describes real entities and the page's visible content.
   Never invent ratings, reviews, offers or benchmark results to satisfy a test.
+  Every language's homepage carries the WebSite, an Organization (Airdraft,
+  the publisher) and the SoftwareApplication in that language, with the
+  latest changelog version, the GPL-3.0 license and offers for what can be
+  had now: the free source build at `0`, and the paid licenses only once
+  `siteLinks.checkout` is set; `check-search.py` rejects any other offer.
+  Guides add a TechArticle whose `datePublished` and `dateModified` come from
+  the guide body's Git history, and `og:type` article. Pricing, Support,
+  Privacy, Changelog and the guide hub carry BreadcrumbList data.
   Google's software-app rich result requires `name`, `offers.price`, and either
   `aggregateRating` or `review`. Describing the app without all those fields does
   not establish rich-result eligibility. See [Google's software-app contract](https://developers.google.com/search/docs/appearance/structured-data/software-app).
@@ -60,7 +77,11 @@ label with the "(English)" mark and `hreflang="en"`. The hub links each guide
 by its full title.
 
 The optional `/llms.txt` is a compact directory for agents that use it. Keep it
-factual and link to maintained pages. It is not a sitemap, an access control, or
+factual and link to maintained pages. Its Facts section (platform, license,
+price and availability, latest release, where speech and text go) and the
+longer `/llms-full.txt` (the facts plus the homepage and pricing questions
+with their answers, in English) are generated from `src/data` and the
+messages through `src/lib/llms.ts`, so they never drift from the pages. It is not a sitemap, an access control, or
 a promise of inclusion. The [llms.txt proposal](https://llmstxt.org/) describes
 agent navigation; [Lighthouse](https://developer.chrome.com/docs/lighthouse/agentic-browsing/llms-txt)
 treats the file as optional. Publishing it is an implementation choice, not

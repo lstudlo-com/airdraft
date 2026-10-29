@@ -2,6 +2,7 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import languages from "./src/i18n/locales.json" with { type: "json" };
+import { lastCommitted, sourcesOf } from "./src/lib/source-dates.mjs";
 
 // The production domain is also the canonical URL for local previews.
 const configuredSite = process.env.SITE_URL?.trim() || "https://airdraft.app";
@@ -34,6 +35,15 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => !excludedPaths.has(new URL(page).pathname),
+      // <lastmod>: when the page's own sources last changed in Git.
+      serialize(item) {
+        const files = sourcesOf(
+          new URL(item.url).pathname,
+          languages.map((language) => language.code),
+        );
+        const date = files.length ? lastCommitted(files) : "";
+        return date ? { ...item, lastmod: date } : item;
+      },
       // Pairs each translated page with its English original by path
       // (src/i18n/locales.json), as xhtml:link alternates in the sitemap.
       i18n: {

@@ -40,16 +40,67 @@ export const zhTw: Messages = {
   home: {
     title: "Airdraft｜Mac 中英混合聽寫與錄音逐字稿",
     description:
-      "開放原始碼的 Mac 聽寫 App：中英混著講，說完就貼上；會議、課程等錄音或影音檔，也能整理成標出講者的逐字稿。語音辨識與潤稿可各自選本機或雲端。自行編譯免費，官方版一次買斷。",
+      "開放原始碼的 Mac 聽寫 App：中英混著講，說完就貼上；錄音和影音檔也能轉成標出講者的逐字稿。語音與潤稿可選本機或雲端。",
     // Phrases wrap as wholes (.hero h1 span), so phones break at commas.
     headline: ["中英混著講，", "說完就打好。"],
     headlineGap: "",
+    lede: "Mac 上的聽寫 App：按住快捷鍵說話，放開後整理好的文字就出現在游標位置。錄音和影音檔也能轉成逐字稿。",
+    notOnSale: "官方版目前尚未開賣；從原始碼自行編譯免費，所有功能都有。",
     get: "取得 Airdraft",
     source: "查看原始碼",
     sample: "試試範例",
     facts: ["開放原始碼", "可完全在本機處理", "Apple 晶片、macOS 15 以上"],
     guidesTitle: "設定指南",
     featuresTitle: "Airdraft 替你做的事",
+    faqTitle: "常見問題",
+    faq: {
+      price: [
+        "Airdraft 免費嗎？",
+        [
+          "是的。從原始碼自行編譯免費，所有功能都有，需要 Xcode。官方版一次買斷：一台 Mac US$29，最多三台 Mac US$49。詳見",
+          { link: "pricing", text: "價格" },
+          "。",
+        ],
+      ],
+      priceNotOnSale: [
+        "Airdraft 免費嗎？",
+        [
+          "是的。從原始碼自行編譯免費，所有功能都有，需要 Xcode。官方版將一次買斷：一台 Mac US$29，最多三台 Mac US$49，目前尚未開賣。詳見",
+          { link: "pricing", text: "價格" },
+          "。",
+        ],
+      ],
+      macs: [
+        "哪些 Mac 可以用？",
+        [
+          "搭載 Apple 晶片、macOS 15 以上的 Mac。本機語音模型下載一次就能在 Mac 上執行，下載前會先顯示每個模型的大小。",
+        ],
+      ],
+      offline: [
+        "可以離線使用嗎？",
+        [
+          "可以。用本機語音模型，加上 Apple Intelligence 或 LM Studio 潤稿，聽寫就完全在你的 Mac 上完成。看看",
+          { link: "offlineGuide", text: "哪個模型適合你的語言" },
+          "。",
+        ],
+      ],
+      data: [
+        "哪些資料會離開我的 Mac？",
+        [
+          "用本機模型時，聲音和文字都留在 Mac 上。若語音辨識或潤稿選了雲端服務，那一步的聲音或文字會用你自己的 API 金鑰送到該服務，金鑰存在鑰匙圈。詳見",
+          { link: "localGuide", text: "本機或雲端聽寫" },
+          "。",
+        ],
+      ],
+      apple: [
+        "和 Apple 聽寫有什麼不同？",
+        [
+          "可以自選語音模型，用可編輯的模式整理你說的話，記住人名和專有名詞，還有可搜尋的歷史紀錄。請看附日期的",
+          { link: "comparison", text: "比較" },
+          "，也寫了其他 App 比較好的地方。",
+        ],
+      ],
+    },
     spoken: "呃，跟 Maya 說那個 draft 明天會好。",
     outputs: [
       "跟 Maya 說 draft 明天會好。",
@@ -141,7 +192,6 @@ export const zhTw: Messages = {
     press: ["按得下去的鍵", "按住鍵盤上的 ⌃⌥，它們也會壓下。"],
     select: ["會滑動的選取框", "凹槽先移動，圖示底座隨後跟上。"],
     travel: ["有行程的控制項", "旋鈕與滑塊在軌道裡滑動。"],
-    keysLabel: "Control Option",
     callouts: {
       "Carved mark": ["刻出的標誌", "波形是刻進去的。"],
       "Pressed well": ["下沉的凹槽", "目前所在的頁面會下沉。"],
@@ -178,6 +228,11 @@ export const zhTw: Messages = {
     free: "免費",
     note: "所有功能，需在 Apple 晶片 Mac 上用 Xcode 編譯。",
     action: "編譯說明",
+    notify: {
+      lead: "想在官方版開賣時知道：",
+      releases: "在 GitHub 關注版本發布",
+      feed: "訂閱更新紀錄 RSS",
+    },
   },
   license: {
     title: "官方版 App",
@@ -210,7 +265,7 @@ export const zhTw: Messages = {
     },
   },
   pricing: {
-    title: "價格 — Airdraft",
+    title: "Airdraft 價格：免費自行編譯或一次買斷",
     description:
       "Airdraft 可從原始碼免費編譯；免編譯的官方版一次買斷：一台 Mac US$29，最多三台 Mac US$49。",
     heading: "價格",

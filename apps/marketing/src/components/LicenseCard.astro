@@ -12,7 +12,9 @@ import { messages } from "../i18n/messages";
  *
  * The choice is a native radio group, and CSS `:has()` shows the chosen
  * license's price, so it works without JavaScript; src/scripts/segmented.ts
- * only adds the sliding thumb.
+ * only adds the sliding thumb. Every license's price stays in the HTML, each
+ * named by a hidden plan label, so text extraction reads "$29 (1 Mac)
+ * $49 (3 Macs)" rather than "$29$49".
  */
 interface Props {
   name: string;
@@ -47,10 +49,13 @@ const copy = { ...text, rest: onSale ? text.rest : text.restNotOnSale };
       ))}
     </div>
   </div>
-  <p class="offer-price">
+  <p class="price">
     <span class="license-swap">
       {plans.map((plan) => (
-        <span data-plan={plan.id}>{plan.price}</span>
+        <span data-plan={plan.id}>
+          {plan.price}
+          <span class="visually-hidden"> ({plan.name}) </span>
+        </span>
       ))}
     </span>
     <span class="price-unit">{copy.once}</span>
@@ -58,7 +63,7 @@ const copy = { ...text, rest: onSale ? text.rest : text.restNotOnSale };
   <p class="offer-note">
     <span class="license-swap">
       {plans.map((plan) => (
-        <span data-plan={plan.id}>{copy.use(plan.macs)}</span>
+        <span data-plan={plan.id}>{copy.use(plan.macs)} </span>
       ))}
     </span>
     {copy.rest}
@@ -66,7 +71,7 @@ const copy = { ...text, rest: onSale ? text.rest : text.restNotOnSale };
   <div class="offer-foot">
     <Button
       href={href("/pricing/", locale)}
-      variant="primary"
+      variant={onSale ? "primary" : "secondary"}
       size="lg"
       icon="right"
     >

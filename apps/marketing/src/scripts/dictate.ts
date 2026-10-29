@@ -159,7 +159,11 @@ function setup(card: HTMLElement) {
     resetMeter();
   }
 
-  // Keyboard: ⌃⌥ alone, while the card is on screen.
+  // Keyboard: ⌃⌥ alone, while the card is on screen and the visitor is at
+  // it (the pointer over it or focus inside), so VoiceOver's ⌃⌥ commands
+  // elsewhere on the page never start a pretend dictation.
+  const engaged = () =>
+    card.matches(":hover") || card.contains(document.activeElement);
   const held = new Set<string>();
   const shortcutOnly = () =>
     [...held].every((key) => key === "Control" || key === "Alt");
@@ -172,7 +176,8 @@ function setup(card: HTMLElement) {
       !event.metaKey &&
       !event.shiftKey &&
       shortcutOnly() &&
-      visible
+      visible &&
+      engaged()
     ) {
       start();
     }

@@ -8,14 +8,14 @@ export const ja: PageCopy = {
     related: "関連するガイド",
   },
   notFound: {
-    title: "ページが見つかりません — Airdraft",
+    title: "ページが見つかりません | Airdraft",
     heading: "このページは存在しません",
     action: "ホームページへ",
   },
   hub: {
     title: "Mac の音声入力の設定とモデルのガイド | Airdraft",
     description:
-      "Airdraft の実用ガイド。お使いの言語での Mac のオフライン音声入力、中国語と英語の混在、Claude Code やターミナルへの音声入力、ローカルとクラウドのモデル、会議のプライベートな文字起こし、ほかのアプリとの比較、無料のソースビルドと公式アプリの違いを解説します。",
+      "Airdraft のガイド。オフライン音声入力、中国語と英語の混在、コーディングエージェント、ローカルとクラウド、文字起こし、アプリの比較を解説します。",
     heading: "音声入力ガイド",
     help: [
       "設定は済んだのに、うまく動きませんか？",
@@ -25,19 +25,19 @@ export const ja: PageCopy = {
     changes: "変更点を見る",
   },
   support: {
-    title: "サポート — Airdraft",
+    title: "Airdraft サポート：権限、ショートカット、モデル",
     description:
       "権限、ショートカット、モデルに関する Airdraft のよくある問題を解決するか、不具合を報告できます。",
     heading: "サポート",
   },
   privacy: {
-    title: "プライバシー | Airdraft",
+    title: "Airdraft のプライバシー：Mac に残るもの",
     description:
       "Airdraft が音声入力のデータ、任意のアプリの使用状況データ、ウェブサイト分析をどう扱うか、またそれぞれの選択を変更する方法を説明します。",
     heading: "プライバシー",
   },
   changelog: {
-    title: "更新履歴 — Airdraft",
+    title: "Airdraft の更新履歴：すべてのリリース",
     description:
       "Airdraft のリリース履歴。最初のソースビルドから、モードごとの音声モデル、ローカルのインテリジェンス、新しいネイティブのインターフェイスまで。",
     heading: "更新履歴",
@@ -59,7 +59,7 @@ export const ja: PageCopy = {
     "offline-dictation-on-mac": {
       title: "Mac でオフライン音声入力を設定する",
       description:
-        "ローカルの音声認識と任意のローカル AI による整形で Airdraft を設定します。Mac の要件、選ぶべきモデル、Airdraft 独自の英語・日本語・韓国語の計測、権限、モードを確認できます。",
+        "ローカルの音声認識と任意のローカル整形で Airdraft を設定。Mac の要件、モデルの選び方、権限、モードを確認できます。",
       summary:
         "お使いの言語に合う音声モデルを選び、整形もローカルにして、最初の音声入力をします。",
     },
@@ -72,8 +72,9 @@ export const ja: PageCopy = {
     },
     "dictate-to-claude-code-and-terminals": {
       title: "Claude Code、Codex、ターミナルにプロンプトを音声入力する",
+      metaTitle: "Claude Code、Codex、ターミナルに音声入力 | Airdraft",
       description:
-        "Mac で Claude Code、Codex、ターミナルアプリにプロンプトを話して入力します。自前でテキストを描画するターミナルへのペーストの仕組み、契約中のプランでの整形、Mac の外に出るものを確認できます。",
+        "Claude Code、Codex、ターミナルにプロンプトを話して入力。ペーストの仕組み、契約中のプランでの整形、Mac の外に出るものを確認できます。",
       summary:
         "コーディングエージェントやターミナルにプロンプトを話して入力し、契約中のプランで整形します。",
     },
@@ -86,21 +87,22 @@ export const ja: PageCopy = {
     "free-source-or-official-app": {
       title: "無料のソースビルドか公式アプリかを選ぶ",
       description:
-        "すべての機能を備えた Airdraft の無料のソースビルドと、買い切りの公式アプリのライセンスを比べます。セットアップ、アップデート、Mac の台数の上限、現在の提供状況を確認できます。",
+        "無料のソースビルドと買い切りの公式アプリを比較。セットアップ、アップデート、Mac の台数、現在の提供状況を確認できます。",
       summary:
         "セットアップ、アップデート、ライセンスの条件と、いま入手できるものを比べます。",
     },
     "private-meeting-transcription": {
       title: "Mac で会議をプライベートに文字起こしする",
       description:
-        "「文字起こし」ページで会議のアプリ音声とマイクを録音するかファイルを読み込み、Mac 上で文字起こしします。話者ラベルも任意で付けられます。権限、制限、書き出しを確認できます。",
+        "会議のアプリ音声とマイクを録音、またはファイルを読み込み、Mac 上で文字起こし。話者ラベルや書き出しも確認できます。",
       summary:
         "通話を録音するかファイルを読み込み、話者を分けて、字幕を書き出します。",
     },
     "compare-mac-dictation-apps": {
       title: "Airdraft と VoiceInk、Handy、Typeless、Apple の音声入力を比較",
+      metaTitle: "Airdraft、VoiceInk、Handy、Typeless、Apple を比較",
       description:
-        "macOS 27 での Airdraft、VoiceInk、Handy、Typeless、Apple の音声入力の日付つきの比較。価格、ソース、音声の処理場所、録音とファイルの文字起こし、それぞれが優れている点を確認できます。",
+        "Airdraft、VoiceInk、Handy、Typeless、Apple の音声入力を日付つきで比較。価格、ソース、音声の処理場所、それぞれが優れている点。",
       summary:
         "価格、データの流れ、録音の文字起こしへの対応を並べて比べます。ほかのアプリが優れている点も含みます。",
     },

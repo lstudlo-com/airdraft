@@ -1,4 +1,5 @@
 ---
+import Chip from "./ui/Chip.astro";
 import Button from "./ui/Button.astro";
 import Section from "./ui/Section.astro";
 import Surface from "./ui/Surface.astro";
@@ -154,10 +155,10 @@ const formats = ["TXT", "JSON", "SRT", "VTT"];
     <ol class="turns">
       {turns.map((turn) => (
         <li data-at={turn.at}>
-          <span class="turn-speaker chip-muted" data-speaker={turn.speaker}>
+          <Chip class="turn-speaker" data-speaker={turn.speaker}>
             <i aria-hidden="true"></i>
             {app.speaker(turn.speaker)}
-          </span>
+          </Chip>
           <span class="turn-time" data-seek={turn.at}>
             {turn.time}
           </span>

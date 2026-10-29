@@ -50,7 +50,7 @@
     display: flex;
     align-items: baseline;
     min-height: 40px;
-    padding: 10px 16px;
+    padding: 10px var(--space-4);
     border-radius: var(--radius-well);
     font-size: var(--step-0);
     font-weight: 500;
@@ -89,7 +89,7 @@
      direction turn round. */
   [dir="rtl"] .skip-link {
     left: auto;
-    inset-inline-start: 12px;
+    inset-inline-start: var(--space-3);
   }
   [dir="rtl"] .brand-caret {
     margin-left: 0;
@@ -107,7 +107,7 @@
   [dir="rtl"] .wave-caret {
     margin-inline-start: 6px;
   }
-  [dir="rtl"] .offer-price > .price-unit {
+  [dir="rtl"] .price > .price-unit {
     margin-left: 0;
     margin-inline-start: 0.15em;
   }
@@ -117,7 +117,7 @@
   }
   [dir="rtl"] .details-body {
     padding-right: 0;
-    padding-inline-end: 8px;
+    padding-inline-end: var(--space-2);
   }
   [dir="rtl"] .choice-island {
     right: auto;

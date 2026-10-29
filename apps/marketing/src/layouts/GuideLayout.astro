@@ -6,6 +6,7 @@ import GuideLinks from "../components/GuideLinks.astro";
 import Section from "../components/ui/Section.astro";
 import type { Guide } from "../data/guides";
 import { localeOf, localizedPath } from "../i18n";
+import { firstCommitted, lastCommitted } from "../lib/source-dates.mjs";
 import { pages } from "../locales";
 import "../styles/guides.css";
 
@@ -26,12 +27,19 @@ const breadcrumbs = [
   { name: copy.guides, path: localizedPath("/guides/", locale) },
   { name: guide.title, path: guide.href },
 ];
+// The guide's body file dates it (Article data, og:type article).
+const source = `src/locales/${locale}/guides/${guide.slug}.astro`;
+const article = {
+  published: firstCommitted(source),
+  modified: lastCommitted([source]),
+};
 ---
 
 <Layout
-  title={`${guide.title} | Airdraft`}
+  title={guide.metaTitle ?? `${guide.title} | Airdraft`}
   description={guide.description}
   breadcrumbs={breadcrumbs}
+  article={article}
 >
   <SiteHeader />
   <main id="main" class="island subpage">

@@ -15,6 +15,7 @@ export type LinkTarget =
   | "mixedGuide"
   | "agentGuide"
   | "offlineGuide"
+  | "localGuide"
   | "comparison";
 
 /** A sentence with optional links, rendered by components/Rich.astro. */
@@ -64,12 +65,22 @@ export interface Messages {
     headline: string[];
     /** Between headline phrases: " " in spaced scripts. */
     headlineGap: string;
+    /** The sentence under the headline that says what Airdraft is. */
+    lede: string;
+    /** Under the hero's actions until the official app is on sale. */
+    notOnSale: string;
     get: string;
     source: string;
     sample: string;
     facts: string[];
     guidesTitle: string;
     featuresTitle: string;
+    /** The homepage questions, before Get Airdraft (also FAQPage data). */
+    faqTitle: string;
+    faq: Record<
+      "price" | "priceNotOnSale" | "macs" | "offline" | "data" | "apple",
+      [string, Rich]
+    >;
     spoken: string;
     outputs: string[];
     typed: string;
@@ -142,7 +153,6 @@ export interface Messages {
     press: [string, string];
     select: [string, string];
     travel: [string, string];
-    keysLabel: string;
     callouts: Record<
       | "Carved mark"
       | "Pressed well"
@@ -181,6 +191,8 @@ export interface Messages {
     free: string;
     note: string;
     action: string;
+    /** How to hear when the official app goes on sale (NotifyRow). */
+    notify: { lead: string; releases: string; feed: string };
   };
   license: {
     title: string;

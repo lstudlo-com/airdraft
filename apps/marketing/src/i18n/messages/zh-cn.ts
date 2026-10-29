@@ -36,12 +36,14 @@ export const zhCn: Messages = {
     allow: "允许分析",
   },
   home: {
-    title: "Airdraft｜中英混合听写与录音转录的 Mac App",
+    title: "Airdraft | 中英混合听写与录音转录的 Mac App",
     description:
-      "Airdraft 是开源的 Mac App：中文里夹着英文术语照样说，说完就粘贴到任何 App；会议、课程等录音或音视频文件，也能整理成标出发言人的转录稿。语音识别和润色可以在本机运行，也可以用你自己的服务商。自行编译免费，官方版一次买断。",
+      "开源的 Mac 听写 App：中文夹着英文术语照样说，说完就粘贴；录音和音视频文件也能转成标出发言人的转录稿。语音和润色可选本机或云端。",
     // Phrases wrap as wholes (.hero h1 span), so phones break at commas.
     headline: ["中英混着讲，", "说完就打好。"],
     headlineGap: "",
+    lede: "Mac 上的听写 App：按住快捷键说话，松开后整理好的文字就出现在光标位置。录音和音视频文件也能转成文字稿。",
+    notOnSale: "官方版目前尚未开售；从源代码自行编译免费，所有功能都有。",
     get: "获取 Airdraft",
     source: "查看源代码",
     sample: "试试示例",
@@ -52,6 +54,55 @@ export const zhCn: Messages = {
     ],
     guidesTitle: "设置指南",
     featuresTitle: "Airdraft 帮你处理的事",
+    faqTitle: "常见问题",
+    faq: {
+      price: [
+        "Airdraft 免费吗？",
+        [
+          "是的。从源代码自行编译免费，所有功能都有，需要 Xcode。官方版一次买断：一台 Mac 29 美元，最多三台 Mac 49 美元。详见",
+          { link: "pricing", text: "价格" },
+          "。",
+        ],
+      ],
+      priceNotOnSale: [
+        "Airdraft 免费吗？",
+        [
+          "是的。从源代码自行编译免费，所有功能都有，需要 Xcode。官方版将一次买断：一台 Mac 29 美元，最多三台 Mac 49 美元，目前尚未开售。详见",
+          { link: "pricing", text: "价格" },
+          "。",
+        ],
+      ],
+      macs: [
+        "哪些 Mac 可以用？",
+        [
+          "搭载 Apple 芯片、macOS 15 或更高版本的 Mac。本机语音模型下载一次就能在 Mac 上运行，下载前会先显示每个模型的大小。",
+        ],
+      ],
+      offline: [
+        "可以离线使用吗？",
+        [
+          "可以。用本机语音模型，加上 Apple Intelligence 或 LM Studio 润色，听写就完全在你的 Mac 上完成。看看",
+          { link: "offlineGuide", text: "哪个模型适合你的语言" },
+          "。",
+        ],
+      ],
+      data: [
+        "哪些数据会离开我的 Mac？",
+        [
+          "用本机模型时，声音和文字都留在 Mac 上。如果语音识别或润色选了云端服务，那一步的声音或文字会用你自己的 API 密钥发送到该服务，密钥保存在钥匙串里。详见",
+          { link: "localGuide", text: "本机或云端听写" },
+          "。",
+        ],
+      ],
+      apple: [
+        "和 Apple 听写有什么不同？",
+        [
+          "可以自选语音模型，用可编辑的模式整理你说的话，记住人名和专有名词，还有可搜索的历史记录。请看附日期的",
+          { link: "comparison", text: "对比" },
+          "，也写了其他 App 更好的地方。",
+        ],
+      ],
+    },
     spoken: "呃，跟 Maya 说那个 draft 明天会好。",
     outputs: [
       "跟 Maya 说 draft 明天会好。",
@@ -149,7 +200,6 @@ export const zhCn: Messages = {
     press: ["按得下去的键", "在键盘上按住 ⌃⌥，它们也会跟着按下。"],
     select: ["会滑动的选中效果", "凹槽先移动，图标底座随后跟上。"],
     travel: ["有行程的控件", "旋钮和滑块在轨道里滑动。"],
-    keysLabel: "Control Option",
     callouts: {
       "Carved mark": ["刻出的标志", "波形是刻进去的。"],
       "Pressed well": ["按下的凹槽", "当前页面沉进去。"],
@@ -186,6 +236,11 @@ export const zhCn: Messages = {
     free: "免费",
     note: "全部功能。需要在 Apple 芯片的 Mac 上使用 Xcode。",
     action: "自行编译说明",
+    notify: {
+      lead: "想在官方版开售时知道：",
+      releases: "在 GitHub 关注版本发布",
+      feed: "订阅更新记录 RSS",
+    },
   },
   license: {
     title: "现成可用的 App",
@@ -216,7 +271,7 @@ export const zhCn: Messages = {
     },
   },
   pricing: {
-    title: "价格 — Airdraft",
+    title: "Airdraft 价格：免费自行编译或一次买断",
     description:
       "Airdraft 可以免费从源代码编译。现成可用的官方 App 是一次买断的许可证：一台 Mac 29 美元，最多三台 Mac 49 美元。",
     heading: "价格",

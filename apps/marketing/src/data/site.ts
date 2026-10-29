@@ -4,6 +4,8 @@ export const siteLinks = {
   source: repository,
   build: `${repository}#build`,
   issues: `${repository}/issues`,
+  // GitHub's Watch menu (Custom ▸ Releases) notifies on each release.
+  releases: `${repository}/releases`,
   // The production Polar checkout link (scripts/licensing-config.json
   // `checkout_url`). Leave empty while the merchant account is in test mode:
   // until it is set, license actions read "Not on sale yet" and are disabled.

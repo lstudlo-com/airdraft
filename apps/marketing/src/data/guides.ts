@@ -8,6 +8,7 @@ export { guideSlugs, type GuideSlug };
 export interface Guide {
   slug: GuideSlug;
   title: string;
+  metaTitle?: string;
   description: string;
   summary: string;
   href: string;

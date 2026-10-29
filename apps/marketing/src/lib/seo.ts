@@ -1,4 +1,4 @@
-import { siteLinks } from "../data/site";
+import { license, licenses, siteLinks } from "../data/site";
 import { languageTag, locales, type Locale } from "../i18n";
 
 export interface Breadcrumb {
@@ -8,16 +8,19 @@ export interface Breadcrumb {
 
 export const siteName = "Airdraft";
 export const defaultTitle =
-  "Airdraft | Mac dictation and audio transcription, local or cloud";
+  "Airdraft | Mac dictation and transcription, local or cloud";
 export const defaultDescription =
-  "Airdraft is an open-source Mac app that types what you say into any app, in your language with English and technical terms mixed in, and transcribes recordings and audio or video files. Speech and refinement run on your Mac or with your own provider. Free to build from source.";
+  "Open-source Mac dictation: speak into any app, mix English terms into your language, and transcribe recordings. Runs on your Mac or your own provider.";
+/** Each language's sharing image (scripts/render-social-card.swift). */
+export const socialImagePath = (locale: Locale) =>
+  locale === "en" ? "/social-card.png" : `/social-card-${locale}.png`;
 /** The social card's text, described in each page's language. */
 export const socialImageAlt: Record<Locale, string> = {
   en: "Airdraft: Speak into any app. Transcribe anything. Keep it on your Mac. Open source, with local or cloud models.",
   "zh-tw":
     "Airdraft：在任何 App 裡用說的輸入，什麼聲音都能轉成逐字稿，資料留在你的 Mac。開放原始碼，可用本機或雲端模型。",
   "zh-cn":
-    "Airdraft：在任何 App 里用说的输入，什么声音都能转成文字稿，数据留在你的 Mac。开源，可用本地或云端模型。",
+    "Airdraft：在任何 App 里用说的输入，什么声音都能转成文字稿，数据留在你的 Mac。开源，可用本机或云端模型。",
   es: "Airdraft: habla en cualquier app, transcribe lo que sea y mantenlo en tu Mac. Código abierto, con modelos locales o en la nube.",
   ja: "Airdraft：どのアプリにも話して入力し、なんでも文字起こし。データは Mac に。オープンソースで、ローカルまたはクラウドのモデルを使えます。",
 };
@@ -42,26 +45,42 @@ export function serializeStructuredData(value: unknown): string {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
+/** A guide's dates (ISO 8601), from Git (src/lib/source-dates.mjs). */
+export interface ArticleDates {
+  published?: string;
+  modified?: string;
+}
+
 export function pageStructuredData({
   canonical,
   title,
   description,
   breadcrumbs = [],
   locale = "en",
+  home: isHome = false,
+  version,
+  article,
 }: {
   canonical: URL;
   title: string;
   description: string;
   breadcrumbs?: Breadcrumb[];
   locale?: Locale;
+  /** A homepage in any language: names the site and the app. */
+  home?: boolean;
+  /** The latest published app version (src/data/changelog.ts). */
+  version?: string;
+  article?: ArticleDates;
 }) {
   const home = new URL("/", canonical);
   const websiteID = new URL("#website", home).href;
   const applicationID = new URL("#application", home).href;
+  const publisherID = new URL("#publisher", home).href;
   const breadcrumbID = new URL("#breadcrumbs", canonical).href;
+  const pageID = new URL("#webpage", canonical).href;
   const graph: Record<string, unknown>[] = [];
 
-  if (canonical.pathname === "/") {
+  if (isHome) {
     graph.push(
       {
         "@type": "WebSite",
@@ -69,18 +88,54 @@ export function pageStructuredData({
         name: siteName,
         url: home.href,
         inLanguage: locales.map((entry) => languageTag[entry]),
+        publisher: { "@id": publisherID },
+      },
+      {
+        "@type": "Organization",
+        "@id": publisherID,
+        name: siteName,
+        url: home.href,
+        logo: new URL("/airdraft-icon.png", home).href,
+        sameAs: [siteLinks.source],
       },
       {
         "@type": "SoftwareApplication",
         "@id": applicationID,
         name: siteName,
-        url: home.href,
-        description: defaultDescription,
+        url: canonical.href,
+        description,
+        inLanguage: languageTag[locale],
         image: new URL("/airdraft-icon.png", home).href,
         applicationCategory: "UtilitiesApplication",
         operatingSystem: "macOS 15 or later",
         processorRequirements: "Apple silicon",
+        ...(version && { softwareVersion: version }),
+        license: license?.url,
+        isAccessibleForFree: true,
+        publisher: { "@id": publisherID },
         sameAs: [siteLinks.source],
+        // The free source build is the edition available today; the
+        // official app's licenses join once checkout opens.
+        offers: [
+          {
+            "@type": "Offer",
+            name: "Source build",
+            price: "0",
+            priceCurrency: "USD",
+            url: siteLinks.build,
+            availability: "https://schema.org/InStock",
+          },
+          ...(siteLinks.checkout
+            ? licenses.map((plan) => ({
+                "@type": "Offer",
+                name: plan.title,
+                price: plan.price.replace(/[^0-9.]/g, ""),
+                priceCurrency: "USD",
+                url: siteLinks.checkout,
+                availability: "https://schema.org/InStock",
+              }))
+            : []),
+        ],
         featureList: [
           "Dictation with text insertion at the cursor",
           "Independent local or cloud speech recognition and refinement",
@@ -96,7 +151,7 @@ export function pageStructuredData({
 
   graph.push({
     "@type": "WebPage",
-    "@id": new URL("#webpage", canonical).href,
+    "@id": pageID,
     url: canonical.href,
     name: title,
     description,
@@ -106,7 +161,25 @@ export function pageStructuredData({
     ...(breadcrumbs.length > 1 && {
       breadcrumb: { "@id": breadcrumbID },
     }),
+    ...(article?.modified && { dateModified: article.modified }),
   });
+
+  if (article) {
+    graph.push({
+      "@type": "TechArticle",
+      "@id": new URL("#article", canonical).href,
+      headline: title,
+      description,
+      inLanguage: languageTag[locale],
+      mainEntityOfPage: { "@id": pageID },
+      about: { "@id": applicationID },
+      author: { "@id": publisherID },
+      publisher: { "@id": publisherID },
+      image: new URL(socialImagePath(locale), home).href,
+      ...(article.published && { datePublished: article.published }),
+      ...(article.modified && { dateModified: article.modified }),
+    });
+  }
 
   if (breadcrumbs.length > 1) {
     graph.push({

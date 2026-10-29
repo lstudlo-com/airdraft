@@ -1,0 +1,31 @@
+---
+/**
+ * One chip: a recessed name (`muted`) or a raised, selected one (`strong`),
+ * optionally led by a StatusDot. `Chips` lists several plain names; this is
+ * the single chip the bento graphics, the transcript sample and the design
+ * reference use. Extra attributes (data-*) pass through to the element.
+ */
+interface Props {
+  tone?: "muted" | "strong";
+  as?: "span" | "li";
+  /** A StatusDot before the text: ok (green), attention, busy or inactive. */
+  dot?: "ok" | "attention" | "busy" | "inactive";
+  class?: string;
+  [data: `data-${string}`]: string | number | boolean | undefined;
+}
+
+const {
+  tone = "muted",
+  as: Tag = "span",
+  dot,
+  class: className,
+  ...attributes
+} = Astro.props;
+---
+
+<Tag class:list={[`chip-${tone}`, className]} {...attributes}>
+  {dot && (
+    <span class="status-dot" data-tone={dot === "ok" ? undefined : dot} />
+  )}
+  <slot />
+</Tag>

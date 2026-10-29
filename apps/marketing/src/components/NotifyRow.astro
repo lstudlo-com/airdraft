@@ -1,0 +1,35 @@
+---
+import Button from "./ui/Button.astro";
+import { siteLinks } from "../data/site";
+import { localizedPath, type Locale } from "../i18n";
+import { messages } from "../i18n/messages";
+
+/**
+ * Until the official app is on sale, how to hear when it is: GitHub's
+ * release notifications or the changelog feed in this language. Renders
+ * nothing once checkout is open. Shared by Get Airdraft and Pricing.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const copy = messages[locale].get.notify;
+const onSale = Boolean(siteLinks.checkout);
+---
+
+{!onSale && (
+  <div class="notify">
+    <p>{copy.lead}</p>
+    <div class="notify-actions">
+      <Button href={siteLinks.releases} variant="quiet" icon="external">
+        {copy.releases}
+      </Button>
+      <Button
+        href={`${localizedPath("/", locale)}changelog.xml`}
+        variant="quiet"
+      >
+        {copy.feed}
+      </Button>
+    </div>
+  </div>
+)}

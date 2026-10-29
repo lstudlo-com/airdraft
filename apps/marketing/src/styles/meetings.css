@@ -8,12 +8,12 @@
    transcript. */
 @layer components {
   .transcript {
-    padding: 28px;
+    padding: var(--space-7);
   }
   .transcript-head {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: var(--space-3);
   }
   /* Centred on the title's first line. */
   .transcript-head .status-dot {
@@ -56,9 +56,9 @@
   .lanes {
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
-    column-gap: 16px;
-    margin-top: 24px;
-    padding: 8px 20px;
+    column-gap: var(--space-4);
+    margin-top: var(--space-6);
+    padding: var(--space-2) var(--space-5);
     border-radius: var(--radius-well);
     background: var(--well);
     box-shadow: var(--sink-soft);
@@ -149,9 +149,9 @@
   .turns {
     display: grid;
     grid-template-columns: max-content max-content minmax(0, 1fr);
-    column-gap: 16px;
-    row-gap: 16px;
-    margin-top: 24px;
+    column-gap: var(--space-4);
+    row-gap: var(--space-4);
+    margin-top: var(--space-6);
     padding: 0;
     list-style: none;
   }
@@ -193,21 +193,21 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 12px 24px;
-    margin-top: 28px;
-    padding-top: 20px;
+    gap: var(--space-3) var(--space-6);
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
     box-shadow: var(--groove);
   }
   .transcript-export {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     color: var(--muted);
     font-size: var(--step--1);
   }
   .transcript-export > span:first-child {
-    margin-inline-end: 4px;
+    margin-inline-end: var(--space-1);
   }
 
   /* With JavaScript the times and the lanes seek, and the key plays. */
@@ -239,7 +239,7 @@
       padding: 22px;
     }
     .lanes {
-      column-gap: 12px;
+      column-gap: var(--space-3);
       padding-inline: 14px;
     }
     .lane {

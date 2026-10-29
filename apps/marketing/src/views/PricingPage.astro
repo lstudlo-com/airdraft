@@ -7,6 +7,7 @@ import Disclosure from "../components/ui/Disclosure.astro";
 import Section from "../components/ui/Section.astro";
 import Surface from "../components/ui/Surface.astro";
 import Check from "../components/Check.astro";
+import NotifyRow from "../components/NotifyRow.astro";
 import Rich from "../components/Rich.astro";
 import { licenses, siteLinks } from "../data/site";
 import "../styles/pricing.css";
@@ -18,7 +19,8 @@ import {
   workload,
   workloadSummary,
 } from "../data/pricing";
-import { languageTag, type Locale } from "../i18n";
+import { languageTag, localizedPath, type Locale } from "../i18n";
+import { pages } from "../locales";
 import { messages } from "../i18n/messages";
 
 /**
@@ -32,6 +34,10 @@ interface Props {
 const { locale } = Astro.props;
 const copy = messages[locale].pricing;
 const planNames = messages[locale].license.plans;
+const breadcrumbs = [
+  { name: pages[locale].chrome.home, path: localizedPath("/", locale) },
+  { name: copy.heading, path: localizedPath("/pricing/", locale) },
+];
 
 // One primary key per page: the one-Mac license once checkout is open, until
 // then the source build, which is the path available today.
@@ -72,7 +78,11 @@ const costGroups = [
 const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
 ---
 
-<Layout title={copy.title} description={copy.description}>
+<Layout
+  title={copy.title}
+  description={copy.description}
+  breadcrumbs={breadcrumbs}
+>
   <SiteHeader />
   <main id="main" class="island subpage">
     <Section
@@ -87,7 +97,7 @@ const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
           <h2>{copy.source}</h2>
           <div class="tier">
             <h3>{copy.build}</h3>
-            <p class="plan-price">$0</p>
+            <p class="price">$0</p>
             <Button
               href={siteLinks.build}
               variant={onSale ? "secondary" : "primary"}
@@ -112,7 +122,7 @@ const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
             {plans.map((plan, index) => (
               <div class="tier">
                 <h3>{plan.title}</h3>
-                <p class="plan-price">
+                <p class="price">
                   {plan.price}
                   <span class="price-unit">{copy.once}</span>
                 </p>
@@ -142,6 +152,7 @@ const rowIndex = (row: (typeof costRows)[number]) => costRows.indexOf(row);
         </Surface>
       </div>
       <p class="pricing-note">{copy.currency}</p>
+      <NotifyRow locale={locale} />
     </Section>
 
     <Section

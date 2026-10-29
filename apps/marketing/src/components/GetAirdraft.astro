@@ -1,5 +1,6 @@
 ---
 import LicenseCard from "./LicenseCard.astro";
+import NotifyRow from "./NotifyRow.astro";
 import Button from "./ui/Button.astro";
 import Surface from "./ui/Surface.astro";
 import { siteLinks } from "../data/site";
@@ -24,7 +25,9 @@ const copy = {
  * for free, or a one-time license for the ready-to-run app (LicenseCard,
  * shared with the pricing page; prices come from src/data/site.ts). Both
  * cards have the same four rows (title, price, note, action), which share
- * the grid's tracks so they line up across the cards.
+ * the grid's tracks so they line up across the cards. Until checkout opens
+ * the source build is the one primary key, since it is the path available
+ * today, and NotifyRow says how to hear when the app goes on sale.
  */
 ---
 
@@ -43,10 +46,15 @@ const copy = {
       <div class="offer-head">
         <h3>{copy.build}</h3>
       </div>
-      <p class="offer-price">{copy.free}</p>
+      <p class="price">{copy.free}</p>
       <p class="offer-note">{copy.note}</p>
       <div class="offer-foot">
-        <Button href={siteLinks.build} size="lg" icon="external">
+        <Button
+          href={siteLinks.build}
+          variant={onSale ? "secondary" : "primary"}
+          size="lg"
+          icon="external"
+        >
           {copy.action}
         </Button>
       </div>
@@ -54,4 +62,5 @@ const copy = {
 
     <LicenseCard name="offer-macs" locale={locale} />
   </div>
+  <NotifyRow locale={locale} />
 </section>

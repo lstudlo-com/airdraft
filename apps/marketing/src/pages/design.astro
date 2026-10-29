@@ -2,6 +2,7 @@
 // Component reference for the site's design system. Not linked, not indexed.
 import Layout from "../layouts/Layout.astro";
 import Button from "../components/ui/Button.astro";
+import Chip from "../components/ui/Chip.astro";
 import Chips from "../components/ui/Chips.astro";
 import Disclosure from "../components/ui/Disclosure.astro";
 import Hud from "../components/ui/Hud.astro";
@@ -102,22 +103,14 @@ const levels = [
         <h2>Chips, keys, tag, status</h2>
         <div class="ds-row">
           <Chips items={["Qwen3-ASR", "Soniox", "LM Studio"]} />
-          <span class="chip-strong">Cupertino</span>
+          <Chip tone="strong">Cupertino</Chip>
           <Keys keys={["⌃", "⌥"]} label="Control Option" />
           <Keys keys={["⌃", "⌥"]} label="Control Option" size="lg" />
           <span class="tag">Sample</span>
-          <span class="chip-muted">
-            <span class="status-dot"></span>Ready
-          </span>
-          <span class="chip-muted">
-            <span class="status-dot" data-tone="attention"></span>Needs setup
-          </span>
-          <span class="chip-muted">
-            <span class="status-dot" data-tone="busy"></span>Checking…
-          </span>
-          <span class="chip-muted">
-            <span class="status-dot" data-tone="inactive"></span>Off
-          </span>
+          <Chip dot="ok">Ready</Chip>
+          <Chip dot="attention">Needs setup</Chip>
+          <Chip dot="busy">Checking…</Chip>
+          <Chip dot="inactive">Off</Chip>
         </div>
       </div>
 

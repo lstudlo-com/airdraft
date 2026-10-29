@@ -37,6 +37,9 @@ export const en: Messages = {
   home: {
     headline: ["Speak into any app.", "Transcribe anything."],
     headlineGap: " ",
+    lede: "A dictation app for your Mac: hold a shortcut, speak, and tidy text lands at your cursor. It transcribes recordings and files too.",
+    notOnSale:
+      "The ready-to-run app isn’t on sale yet. The free source build has every feature.",
     get: "Get Airdraft",
     source: "View source",
     sample: "Try the sample",
@@ -47,6 +50,55 @@ export const en: Messages = {
     ],
     guidesTitle: "Setup guides",
     featuresTitle: "What Airdraft handles for you",
+    faqTitle: "Questions",
+    faq: {
+      price: [
+        "Is Airdraft free?",
+        [
+          "Yes. The source build is free, has every feature and needs Xcode to build. The ready-to-run app is a one-time license: $29 for one Mac or $49 for up to three. See ",
+          { link: "pricing", text: "pricing" },
+          ".",
+        ],
+      ],
+      priceNotOnSale: [
+        "Is Airdraft free?",
+        [
+          "Yes. The source build is free, has every feature and needs Xcode to build. The ready-to-run app will be a one-time license, $29 for one Mac or $49 for up to three; it isn’t on sale yet. See ",
+          { link: "pricing", text: "pricing" },
+          ".",
+        ],
+      ],
+      macs: [
+        "Which Macs does it run on?",
+        [
+          "Macs with Apple silicon running macOS 15 or later. Local speech models download once and then run on the Mac; setup shows each one’s size before you download it.",
+        ],
+      ],
+      offline: [
+        "Does it work offline?",
+        [
+          "Yes. With a local speech model, and Apple Intelligence or LM Studio for cleanup, dictation runs entirely on your Mac. See ",
+          { link: "offlineGuide", text: "which model fits your language" },
+          ".",
+        ],
+      ],
+      data: [
+        "What leaves my Mac?",
+        [
+          "With local models, your audio and text stay on it. If you choose a cloud provider for speech or cleanup, that step’s audio or text goes to it on your own API key, which stays in the Keychain. See ",
+          { link: "localGuide", text: "local or cloud dictation" },
+          ".",
+        ],
+      ],
+      apple: [
+        "How is it different from Apple Dictation?",
+        [
+          "You choose the speech model, an editable profile tidies what you said, it learns your names and terms, and it keeps a searchable history. See the dated ",
+          { link: "comparison", text: "comparison" },
+          ", including where other apps are better.",
+        ],
+      ],
+    },
     // Illustrative outputs for the bento graphics (decorative, sample text).
     spoken: "Um, tell Maya the, uh, draft is coming tomorrow.",
     outputs: [
@@ -175,7 +227,6 @@ export const en: Messages = {
       "Controls with travel",
       "Knobs and thumbs slide inside their tracks.",
     ],
-    keysLabel: "Control Option",
     callouts: {
       "Carved mark": ["Carved mark", "Its waveform is cut in."],
       "Pressed well": ["Pressed well", "The current page sinks in."],
@@ -218,6 +269,11 @@ export const en: Messages = {
     free: "Free",
     note: "Every feature. Needs Xcode on an Apple silicon Mac.",
     action: "Build instructions",
+    notify: {
+      lead: "Hear when the ready-to-run app goes on sale:",
+      releases: "Watch releases on GitHub",
+      feed: "Changelog RSS feed",
+    },
   },
   license: {
     title: "Ready-to-run app",
@@ -248,7 +304,7 @@ export const en: Messages = {
     },
   },
   pricing: {
-    title: "Pricing — Airdraft",
+    title: "Airdraft pricing: free source build or one-time license",
     description:
       "Airdraft is free to build from source. The ready-to-run app is a one-time license: $29 for one Mac or $49 for up to three.",
     heading: "Pricing",

@@ -43,9 +43,13 @@ export interface PageCopy {
     /** Before and after the link to Support. */
     availability: [string, string, string];
   };
-  /** Each guide's title, search description and one-line hub summary. */
+  /**
+   * Each guide's title, search description and one-line hub summary.
+   * `metaTitle` replaces "<title> | Airdraft" in the browser tab and search
+   * results where that would pass 60 characters (CJK counts double).
+   */
   guides: Record<
     GuideSlug,
-    { title: string; description: string; summary: string }
+    { title: string; metaTitle?: string; description: string; summary: string }
   >;
 }

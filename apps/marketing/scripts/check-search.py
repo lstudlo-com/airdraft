@@ -14,6 +14,7 @@ from urllib.error import HTTPError
 from urllib.parse import unquote, urljoin, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 from urllib.robotparser import RobotFileParser
+from unicodedata import east_asian_width
 from xml.etree import ElementTree as ET
 
 
@@ -22,6 +23,16 @@ DIST = ROOT / "dist"
 # The site's languages (src/i18n/index.ts reads the same file): English at the
 # root, every other language under /<code>/ with the English slug.
 LANGUAGES = json.loads((ROOT / "src" / "i18n" / "locales.json").read_text())
+
+
+# Search results cut titles and descriptions by width; a wide (CJK)
+# character takes about two Latin ones.
+TITLE_WIDTH = 60
+DESCRIPTION_WIDTH = 160
+
+
+def width(text):
+    return sum(2 if east_asian_width(char) in "WF" else 1 for char in text)
 
 
 class Page(HTMLParser):
@@ -152,8 +163,10 @@ def check(base_url=None):
         require(page.hrefs("canonical") == [origin + route], f"{route}: canonical must match sitemap URL.")
         require(page.title.strip() and page.title not in titles, f"{route}: missing/duplicate title.")
         titles.add(page.title)
+        require(width(page.title) <= TITLE_WIDTH, f"{route}: title wider than {TITLE_WIDTH} ({width(page.title)}).")
         description = page.meta.get("description", "")
         require(description.strip() and description not in descriptions, f"{route}: missing/duplicate description.")
+        require(width(description) <= DESCRIPTION_WIDTH, f"{route}: description wider than {DESCRIPTION_WIDTH} ({width(description)}).")
         descriptions.add(description)
         require(page.meta.get("og:url") == origin + route, f"{route}: OG URL mismatch.")
         require(page.meta.get("og:locale") == og_locales[language_of(route)], f"{route}: OG locale mismatch.")
@@ -163,7 +176,8 @@ def check(base_url=None):
         require(page.meta.get("twitter:card") == "summary_large_image", f"{route}: missing large social preview.")
         require(page.meta.get("og:image:width") == "1200" and page.meta.get("og:image:height") == "630", f"{route}: social image dimensions.")
         require(page.meta.get("og:image:alt"), f"{route}: social image alt missing.")
-        require(page.meta.get("og:image") == origin + "/social-card.png", f"{route}: social image URL mismatch.")
+        card = "/social-card.png" if locale_of(route)["code"] == "en" else f"/social-card-{locale_of(route)['code']}.png"
+        require(page.meta.get("og:image") == origin + card, f"{route}: social image URL mismatch.")
         robots = page.meta.get("robots", "")
         require("max-image-preview:large" in robots, f"{route}: large preview permission missing.")
         require(not re.search(r"nosnippet|noai|max-snippet:0", robots), f"{route}: unexpected snippet restriction.")
@@ -171,7 +185,15 @@ def check(base_url=None):
         require(any(link.get("type") == "application/rss+xml" and urljoin(origin, link.get("href", "")) == origin + feed_path for link in page.links), f"{route}: RSS discovery missing.")
         nodes = [node for schema in page.schemas for node in graph_nodes(schema)]
         require(any(node.get("@type") == "WebPage" and node.get("url") == origin + route and node.get("inLanguage") == language_of(route) for node in nodes), f"{route}: WebPage structured data missing or in the wrong language.")
-        require(not any("aggregateRating" in node or "review" in node or "offers" in node for node in nodes), f"{route}: unsupported review or offer claim.")
+        require(not any("aggregateRating" in node or "review" in node for node in nodes), f"{route}: unsupported review claim.")
+        # Offers describe only what can be had now: the free source build, and
+        # paid licenses only with a checkout link.
+        for node in nodes:
+            for offer in node.get("offers", []) if isinstance(node.get("offers"), list) else [node["offers"]] if "offers" in node else []:
+                require(offer.get("price") == "0" or "polar.sh" in offer.get("url", ""), f"{route}: offer without a free price or checkout link.")
+        is_home = route == "/" or route in {f"/{language['code']}/" for language in prefixed}
+        if is_home:
+            require(any(node.get("@type") == "SoftwareApplication" and node.get("inLanguage") == language_of(route) for node in nodes), f"{route}: homepage SoftwareApplication missing or in the wrong language.")
     root_nodes = [node for schema in home.schemas for node in graph_nodes(schema)]
     require(any(node.get("@type") == "WebSite" and node.get("name") == "Airdraft" and node.get("url") == origin + "/" for node in root_nodes), "Homepage WebSite identity missing.")
     require(any(node.get("@type") == "SoftwareApplication" and node.get("name") == "Airdraft" for node in root_nodes), "Homepage software identity missing.")
@@ -264,13 +286,16 @@ def check(base_url=None):
             require(item.findtext("pubDate") and item.findtext("description"), f"RSS entry incomplete: {link}.")
             guids.append(item.findtext("guid"))
         require(len(guids) == len(set(guids)), f"{prefix}changelog.xml GUIDs must be unique.")
-    directory = (DIST / "llms.txt").read_text()
-    for link in re.findall(r"\]\((https://[^)]+)\)", directory):
-        target = urlsplit(link)
-        if target.netloc == urlsplit(origin).netloc:
-            require(target.path in indexable, f"llms.txt links to non-indexable page {link}.")
-    image = (DIST / "social-card.png").read_bytes()
-    require(image[:8] == b"\x89PNG\r\n\x1a\n" and struct.unpack(">II", image[16:24]) == (1200, 630), "Social preview must be a real 1200x630 PNG.")
+    for name in ("llms.txt", "llms-full.txt"):
+        directory = (DIST / name).read_text()
+        for link in re.findall(r"\]\((https://[^)]+)\)", directory):
+            target = urlsplit(link)
+            if target.netloc == urlsplit(origin).netloc:
+                require(target.path in indexable, f"{name} links to non-indexable page {link}.")
+    for language in LANGUAGES:
+        name = "social-card.png" if language["code"] == "en" else f"social-card-{language['code']}.png"
+        image = (DIST / name).read_bytes()
+        require(image[:8] == b"\x89PNG\r\n\x1a\n" and struct.unpack(">II", image[16:24]) == (1200, 630), f"{name}: social preview must be a real 1200x630 PNG.")
     require(re.fullmatch(r"[A-Za-z0-9-]{8,128}", (DIST / "indexnow-key.txt").read_text().strip()), "Invalid IndexNow key.")
     if base_url:
         class NoRedirect(HTTPRedirectHandler):
@@ -295,7 +320,7 @@ def check(base_url=None):
                 require(status in (301, 308) and urlsplit(headers.get("Location", "")).path == route, f"HTTP {route}: trailing slash redirect missing.")
             status, headers, _ = fetch(route + "index.html")
             require(status in (301, 308) and urlsplit(headers.get("Location", "")).path == route, f"HTTP {route}: index.html redirect missing.")
-        discovery_assets = [("/robots.txt", "text/plain"), ("/llms.txt", "text/plain"), ("/changelog.xml", "application/rss+xml"), ("/sitemap-index.xml", "application/xml"), ("/indexnow-key.txt", "text/plain"), ("/social-card.png", "image/png")]
+        discovery_assets = [("/robots.txt", "text/plain"), ("/llms.txt", "text/plain"), ("/llms-full.txt", "text/plain"), ("/changelog.xml", "application/rss+xml"), ("/sitemap-index.xml", "application/xml"), ("/indexnow-key.txt", "text/plain"), ("/social-card.png", "image/png")]
         discovery_assets.extend((urlsplit(loc.text).path, "application/xml") for loc in sitemap_index.findall("s:sitemap/s:loc", namespace))
         for route, mime in discovery_assets:
             status, headers, body = fetch(route)

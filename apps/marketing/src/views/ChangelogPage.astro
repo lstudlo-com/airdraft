@@ -6,7 +6,7 @@ import Arrow from "../components/Arrow.astro";
 import Section from "../components/ui/Section.astro";
 import Surface from "../components/ui/Surface.astro";
 import { changelogFor } from "../data/changelogs";
-import { href, languageTag, type Locale } from "../i18n";
+import { href, languageTag, localizedPath, type Locale } from "../i18n";
 import { pages } from "../locales";
 import "../styles/changelog.css";
 
@@ -16,6 +16,10 @@ interface Props {
 }
 const { locale } = Astro.props;
 const copy = pages[locale].changelog;
+const breadcrumbs = [
+  { name: pages[locale].chrome.home, path: localizedPath("/", locale) },
+  { name: copy.heading, path: localizedPath("/changelog/", locale) },
+];
 const changelog = changelogFor(locale);
 const tag = languageTag[locale];
 
@@ -46,7 +50,11 @@ const milestones = changelog.filter(
 );
 ---
 
-<Layout title={copy.title} description={copy.description}>
+<Layout
+  title={copy.title}
+  description={copy.description}
+  breadcrumbs={breadcrumbs}
+>
   <SiteHeader />
   <main id="main" class="island subpage">
     <Section level={1} first title={copy.heading}>

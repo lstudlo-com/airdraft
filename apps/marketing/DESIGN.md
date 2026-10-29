@@ -22,7 +22,7 @@ colors:
   key-bottom: "#1a1a1a"
   ink: "#222222"
   muted: "#5c5c5c"
-  quiet: "#666666"
+  quiet: "#5e5e5e"
   hud-top: "#2b2b2b"
   hud-bottom: "#1a1a1a"
   hud-well: "#141414"
@@ -103,6 +103,7 @@ rounded:
   cap: "7px"
   pill: "999px"
 spacing:
+  step: "4px"
   island-inset: "12px"
   island-inset-mobile: "6px"
   gutter: "48px"
@@ -184,7 +185,10 @@ in the app, and one accent, `--accent`: the app's system accent blue
 (`#007aff` light, `#0a84ff` dark). The accent marks progress and the current
 step of a story only (the dictation sample's current step number and the
 Transcribe playhead);
-never text, control fills, glows, gradients, focus rings or selection.
+never text, control fills, glows, gradients, focus rings or selection. Where
+white text sits on it (the sample's current step number), it takes
+`--accent-strong` (`#0064d2`), a deeper shade of the same blue at 5.6:1 with
+white; the system blue gives only 4.0:1 (light) and 3.6:1 (dark).
 `scripts/check-neutral.mjs` enforces this in `pnpm check`.
 
 Tokens live in `src/styles/global.css`; the sidecar `.impeccable/design.json`
@@ -226,7 +230,7 @@ Gradients run from the top-left corner to the bottom right (`135deg`).
 
 - **Ink** (`#222222` / `#dedede`): headings and primary text.
 - **Muted** (`#5c5c5c` / `#a3a3a3`): supporting text; 5.3:1 or better on the island in both appearances.
-- **Quiet** (`#666666` / `#9a9a9a`): only the hero's facts line, 4.6:1 or better.
+- **Quiet** (`#5e5e5e` / `#a3a3a3`): only the hero's facts line, 4.5:1 or better on every surface it can sit on, the well included.
 
 The app's secondary label colour is lighter; the site darkens it to meet WCAG AA.
 
@@ -307,6 +311,14 @@ Content width inside the island is `min(1120px, 100% - 2 × gutter)`, the same
 as the header, so content lines up with the mark. Sections come from the
 `Section` component and the spacing tokens; `first` sections take `56px` of top
 padding instead of the section gap (subpages excepted, below). The sample is capped at `1040px`.
+Margins, paddings and gaps on the 4px grid use `--space-n` (n × 4px, from
+`--space-1` to `--space-21`); the steps between (6, 10, 14, 18, 22px) are
+deliberate per-component values translated from the app.
+
+The homepage runs: the hero, the sample ("Hold, speak, let go"), the features
+bento, Transcribe, the provider board, the interface, Setup guides, Questions,
+then Get Airdraft. What Airdraft does comes before how it looks, and the
+questions sit just above the offers they answer.
 
 Subpages (Pricing, Support, Changelog) are `main.island.subpage` and open with
 the same title block: `Section level={1} first`, the headline step for the title
@@ -364,6 +376,15 @@ rectangle, as in the app.
 Reusable components live in `src/components/ui/`. Build new pages from them;
 `/design/` (unlinked, `noindex`, excluded from the sitemap) shows each one in
 every state and the palette in the current appearance.
+
+### Hero copy
+
+The headline, then one sentence that says what Airdraft is (`home.lede`:
+`--step-1`, muted, at most `38rem`, `24px` below), the three keys, then, until
+`siteLinks.checkout` is set, one short availability line (`home.notOnSale`,
+`--step--1`, muted) and the facts line. Until checkout opens the primary key
+(Get Airdraft) leads down to `#get-airdraft` on the page, where the free build
+is; once it opens, to Pricing. The lede and the note rise with the keys.
 
 ### Hero card (`HeroCard.astro`, `ui/Waveform.astro`)
 
@@ -456,8 +477,8 @@ bento's profile and history graphics.
 
 - `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`. Owns the heading id and spacing; `level={1}` titles get `.page-title`. Its id comes from an ASCII title, so translated sections pass `id`. On the homepage (`main.home`) every section's title and intro are centered over its content; subpages keep them at the leading edge.
 - `Surface`: `variant="panel"` (raised card) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel. Lists and tables go inside a raised panel, divided by grooves, as in the app's settings cards.
-- `Chips`: recessed capsules. `.chip-muted` and `.chip-strong` (raised) show a before → after pair.
-- `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles. Modifier keycaps carry `data-key` and sink while the visitor holds that key (`src/scripts/keys.ts`), on every page.
+- `Chips`: a list of recessed capsules. `Chip` is a single one: `tone` `muted` (recessed, default) or `strong` (raised), `as` `span` or `li`, and an optional leading `dot` (`ok`, `attention`, `busy`, `inactive`). The bento graphics, the transcript's speaker chips and `/design/` use it; never hand-write `.chip-*` classes.
+- `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles. Modifier keycaps carry `data-key` and sink while the visitor holds that key (`src/scripts/keys.ts`), on every page. With a `label` the caps read as one image of that name; inside decorative art that is already hidden, leave it out and they are hidden too.
 - `.tag`: a small recessed label.
 - `.status-dot` with `data-tone` `ok` (default), `attention`, `busy` or `inactive`: the only colour on the site.
 
@@ -497,7 +518,7 @@ dictation".
 
 The app's Transcribe page (formerly Meetings; the file, `#meetings` anchor and
 `meetings.ts` keep the old name). "Turn any recording into a transcript"
-follows the sample and precedes the interface section, with one intro line.
+follows the features bento and precedes the provider board, with one intro line.
 One raised panel at the full content width is the section's only object: the
 app's Transcribe card head (status dot, title, one metadata line that wraps
 only between its parts) with a raised play key at the end; the recording as
@@ -526,7 +547,7 @@ JavaScript, it is the finished frame and the play key stays hidden.
 
 ### Interface section (`InterfaceShowcase.astro`)
 
-"An interface you’ll love to open" follows the Transcribe section and precedes the guides.
+"An interface you’ll love to open" follows the provider board and precedes the guides.
 Its heading and one-line intro are centered over the window, like every homepage section heading, `72px` above it
 (`48px` on phones). It shows the real app: the Settings page rendered from a Debug build by
 `scripts/render-app-window.sh` (an isolated empty data directory, so no
@@ -584,19 +605,21 @@ with its status dot (yellow while refining, orange when it fails), and a "This
 Mac" boundary whose signal runs along grooves. Without JavaScript they show
 their final frame.
 
-The graphics perform and loop while they are on screen (`src/scripts/bento.ts`,
+The graphics perform while they are on screen (`src/scripts/bento.ts`,
 named by `data-art`; it sets up `.bento:not(.specimens)`, since the interface
 specimens are a `.bento` too). When a tile is first mostly on screen its
 graphic starts, the tiles of a row one after another from the left (`220ms`
-apart), then repeats on its own rhythm (about `5s`, `6.5s` for the shortcut
-and cursor pair; choice tiles walk through their choices every `2.8s`).
+apart), then repeats twice on its own rhythm (about `5s`, `6.5s` for the
+shortcut and cursor pair; choice tiles walk through their choices every
+`2.8s`) and rests on its final frame, so nothing keeps moving unasked (WCAG
+2.2.2). Coming back on screen, or a poke, allows another round.
 Hovering a tile with a mouse, or tapping it, plays it at once (at most once a
 second) and holds its loop for `8s`, so a choice the visitor made stays; a
 choice tile tries its next choice instead. The parts
 that are controls in the app work: segmented choices and the subscription
 chips select on click (the chosen chip rises, the other sinks), and holding
-the shortcut tile's keycaps, or the visitor's own ⌃⌥ while that tile is on
-screen, records in the cursor tile (live meter, timer) and types on release,
+the shortcut tile's keycaps, or the visitor's own ⌃⌥ while the pointer or
+focus is on that tile (never VoiceOver's ⌃⌥ commands elsewhere), records in the cursor tile (live meter, timer) and types on release,
 so the shortcut drives the pill as it does in the app. A third key cancels,
 as in the hero. The dictionary's fix rises from the surface (flat, `0.92`,
 shadow growing in); each stop on the privacy path rises from its socket as
@@ -642,7 +665,10 @@ stops it on the resting frame; with reduced motion it never runs.
 
 The homepage close: two equal offers side by side, Build it yourself first
 (Free, build instructions), then the ready-to-run app's license card, raised
-with the hero spread and holding the page's one primary key ("See pricing").
+with the hero spread. Until `siteLinks.checkout` is set, Build instructions is
+the section's one primary key and the license card's See pricing is
+secondary; once checkout opens, See pricing is primary. Prices use the shared
+`.price` class (with `.price-unit`), as on Pricing.
 Both cards have the same rows (title, price, note, then the action below a
 groove) as subgrid rows of one shared grid, so titles, prices, notes and keys
 line up across the cards; both keys are the large size.
@@ -654,7 +680,24 @@ group and CSS `:has()` picks the visible lines, so it works without
 JavaScript; `segmented.ts` adds the sliding thumb. Every title row is the
 choice's height (`38px`). Under `1000px` the cards stack (max `560px`). The
 pricing page lists each license as its own plan instead.
-Prices, Mac counts and inclusions come from `src/data/site.ts`.
+Prices, Mac counts and inclusions come from `src/data/site.ts`. Each license's
+price keeps a visually hidden plan name, so text extraction reads "$29 (1 Mac)
+$49 (3 Macs)" rather than the run-together prices.
+
+Until checkout opens, `NotifyRow` sits under the offers (and on Pricing, under
+the currency note): one muted line and two quiet keys, Watch releases on
+GitHub and the changelog RSS feed in the page's language. It is the way to
+hear when the official app goes on sale; it renders nothing once it is.
+
+### Questions (homepage)
+
+"Questions" (`home.faqTitle`) sits between Setup guides and Get Airdraft: the
+pricing page's raised question list with grooved `Disclosure` rows, five
+questions in each language (`home.faq`): whether Airdraft is free (the answer
+switches with `siteLinks.checkout`), which Macs it runs on, whether it works
+offline, what leaves the Mac, and how it differs from Apple Dictation. Answers
+link to the guide or page that goes deeper. They are visible content only;
+there is no FAQ markup (see `SEARCH.md`).
 
 ### Motion
 
@@ -905,10 +948,12 @@ Footer and Support links keep the guides reachable without changing the header.
 The footer also links the release RSS feed, with a 760px link group to avoid an
 isolated final link at desktop widths.
 
-The shared 1200×630 social card uses the existing app icon, neutral chrome and
-island, and factual product copy ("Speak into any app. Transcribe anything.
-Keep it on your Mac."). Regenerate it from the repository root with
-`swift apps/marketing/scripts/render-social-card.swift`. It contains no personal
+Each language has a 1200×630 social card (`social-card.png` for English,
+`social-card-<code>.png` otherwise) with the existing app icon, neutral chrome
+and island, and factual product copy in that language ("Speak into any app.
+Transcribe anything. Keep it on your Mac."), matching its `og:image:alt`.
+Regenerate them from the repository root with
+`swift apps/marketing/scripts/render-social-card.swift`. They contain no personal
 app data, price or unverified availability claim.
 
 ### Changelog

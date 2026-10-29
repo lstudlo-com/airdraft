@@ -13,8 +13,11 @@ import {
   serializeStructuredData,
   siteName,
   socialImageAlt,
+  socialImagePath,
+  type ArticleDates,
   type Breadcrumb,
 } from "../lib/seo";
+import { changelog } from "../data/changelog";
 import {
   alternatesFor,
   direction,
@@ -31,12 +34,18 @@ interface Props {
   description?: string;
   noindex?: boolean;
   breadcrumbs?: Breadcrumb[];
+  /** A homepage in any language (WebSite and SoftwareApplication data). */
+  home?: boolean;
+  /** A guide: og:type article and its Article data. */
+  article?: ArticleDates;
 }
 const {
   title = defaultTitle,
   description = defaultDescription,
   noindex = false,
   breadcrumbs = [],
+  home = false,
+  article,
 } = Astro.props;
 const locale = localeOf(Astro.url.pathname);
 const text = messages[locale];
@@ -56,10 +65,19 @@ const alternates =
     : [];
 const xDefault = alternates.find((entry) => entry.locale === "en");
 const socialImage = Astro.site
-  ? new URL("/social-card.png", Astro.site)
+  ? new URL(socialImagePath(locale), Astro.site)
   : undefined;
 const structuredData = canonical
-  ? pageStructuredData({ canonical, title, description, breadcrumbs, locale })
+  ? pageStructuredData({
+      canonical,
+      title,
+      description,
+      breadcrumbs,
+      locale,
+      home,
+      version: changelog.find((entry) => entry.version)?.version,
+      article,
+    })
   : undefined;
 const googleVerification = import.meta.env.GOOGLE_SITE_VERIFICATION?.trim();
 const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
@@ -107,7 +125,10 @@ const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
       title={text.layout.rss}
       href={`${localizedPath("/", locale)}changelog.xml`}
     />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={article ? "article" : "website"} />
+    {article?.modified && (
+      <meta property="article:modified_time" content={article.modified} />
+    )}
     <meta property="og:site_name" content={siteName} />
     <meta property="og:locale" content={ogLocale[locale]} />
     {alternates

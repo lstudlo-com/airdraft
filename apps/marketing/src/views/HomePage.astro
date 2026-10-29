@@ -12,6 +12,9 @@ import SiteFooter from "../components/SiteFooter.astro";
 import GuideLinks from "../components/GuideLinks.astro";
 import BentoTile from "../components/ui/BentoTile.astro";
 import Button from "../components/ui/Button.astro";
+import Chip from "../components/ui/Chip.astro";
+import Disclosure from "../components/ui/Disclosure.astro";
+import Rich from "../components/Rich.astro";
 import Hud from "../components/ui/Hud.astro";
 import Keys from "../components/ui/Keys.astro";
 import Section from "../components/ui/Section.astro";
@@ -48,6 +51,16 @@ const { locale } = Astro.props;
 const app = appLabels[locale];
 
 const copy = messages[locale].home;
+// Until checkout opens, the hero's key leads to Get Airdraft on this page,
+// which offers the free source build and how to hear about the app.
+const onSale = Boolean(siteLinks.checkout);
+const questions = [
+  onSale ? copy.faq.price : copy.faq.priceNotOnSale,
+  copy.faq.macs,
+  copy.faq.offline,
+  copy.faq.data,
+  copy.faq.apple,
+];
 
 const outputs = [...copy.outputs, copy.spoken];
 // The app's built-in profile names, as it shows them in this language.
@@ -76,7 +89,7 @@ const mixed =
 const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 ---
 
-<Layout title={copy.title} description={copy.description}>
+<Layout title={copy.title} description={copy.description} home>
   <SiteHeader />
 
   <main id="main" class="island home">
@@ -95,12 +108,13 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
               </>
             ))}
           </h1>
+          <p class="hero-lede">{copy.lede}</p>
           <div class="hero-actions">
             <Button
-              href={href("/pricing/", locale)}
+              href={onSale ? href("/pricing/", locale) : "#get-airdraft"}
               variant="primary"
               size="lg"
-              icon="right"
+              icon={onSale ? "right" : "down"}
             >
               {copy.get}
             </Button>
@@ -111,6 +125,7 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
               {copy.sample}
             </Button>
           </div>
+          {!onSale && <p class="hero-note">{copy.notOnSale}</p>}
           <ul class="hero-meta">
             {copy.facts.map((fact) => (
               <li>{fact}</li>
@@ -123,14 +138,6 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 
     <Section id="sample" title={messages[locale].preview.title}>
       <DictationPreview locale={locale} />
-    </Section>
-
-    <MeetingsSection locale={locale} />
-
-    <InterfaceShowcase locale={locale} />
-
-    <Section id="guides" title={copy.guidesTitle}>
-      <GuideLinks locale={locale} />
     </Section>
 
     <Section id="features" title={copy.featuresTitle}>
@@ -162,7 +169,7 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
           title={copy.tiles.shortcut[0]}
           caption={copy.tiles.shortcut[1]}
         >
-          <Keys keys={["⌃", "⌥"]} label="Control Option" size="xl" />
+          <Keys keys={["⌃", "⌥"]} size="xl" />
         </BentoTile>
 
         <BentoTile
@@ -192,9 +199,9 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
               cooper tino
             </span>
             <Arrow direction="down" />
-            <span class="chip-strong art-right" data-right>
+            <Chip tone="strong" class="art-right" data-right>
               Cupertino
-            </span>
+            </Chip>
           </div>
         </BentoTile>
 
@@ -225,8 +232,7 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
           caption={copy.tiles.fallback[1]}
         >
           <div class="art-fallback">
-            <span class="chip-muted">
-              <span class="status-dot" data-tone="attention"></span>
+            <Chip dot="attention">
               <span
                 data-status
                 data-busy={app.refining}
@@ -234,7 +240,7 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
               >
                 {app.refinementFailed}
               </span>
-            </span>
+            </Chip>
             <div class="art-field">
               <p data-typed>
                 {copy.spoken}
@@ -289,7 +295,7 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
             </div>
             <div class="art-cloud">
               <span class="art-cloud-link"></span>
-              <span class="chip-muted">{copy.privacyArt.cloud}</span>
+              <Chip>{copy.privacyArt.cloud}</Chip>
             </div>
           </div>
         </BentoTile>
@@ -336,20 +342,38 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
           caption={copy.tiles.plan[1]}
         >
           <ul class="art-plans">
-            <li class="chip-strong">
-              <span class="status-dot"></span>
+            <Chip as="li" tone="strong" dot="ok">
               Claude Code
-            </li>
-            <li class="chip-muted">
-              <span class="status-dot" data-tone="inactive"></span>
+            </Chip>
+            <Chip as="li" dot="inactive">
               Codex
-            </li>
+            </Chip>
           </ul>
         </BentoTile>
       </div>
     </Section>
 
+    <MeetingsSection locale={locale} />
+
     <PipelineStory locale={locale} />
+
+    <InterfaceShowcase locale={locale} />
+
+    <Section id="guides" title={copy.guidesTitle}>
+      <GuideLinks locale={locale} />
+    </Section>
+
+    <Section id="questions" title={copy.faqTitle}>
+      <div class="question-list panel">
+        {questions.map(([question, answer]) => (
+          <Disclosure summary={question}>
+            <p>
+              <Rich parts={answer} locale={locale} />
+            </p>
+          </Disclosure>
+        ))}
+      </div>
+    </Section>
 
     <GetAirdraft locale={locale} />
   </main>

@@ -36,11 +36,14 @@ export const es: Messages = {
     allow: "Permitir analítica",
   },
   home: {
-    title: "Airdraft | Dictado en tu idioma y transcripción de audio para Mac",
+    title: "Airdraft | Dictado y transcripción en tu Mac",
     description:
-      "Airdraft es una app de código abierto para Mac que escribe lo que dices en cualquier app, en tu idioma y con términos en inglés de por medio, y transcribe grabaciones y archivos de audio o vídeo. La voz y el refinamiento funcionan en tu Mac o con tu propio proveedor. Compilarla desde el código es gratis.",
+      "Dictado de código abierto para Mac: habla en cualquier app, mezcla términos en inglés y transcribe grabaciones. En tu Mac o con tu propio proveedor.",
     headline: ["Habla en cualquier app.", "Transcribe lo que sea."],
     headlineGap: " ",
+    lede: "Una app de dictado para tu Mac: mantén un atajo, habla y el texto limpio aparece en tu cursor. También transcribe grabaciones y archivos.",
+    notOnSale:
+      "La app lista para usar aún no está a la venta. Compilada desde el código es gratis y tiene todas las funciones.",
     get: "Obtener Airdraft",
     source: "Ver el código",
     sample: "Probar el ejemplo",
@@ -51,6 +54,55 @@ export const es: Messages = {
     ],
     guidesTitle: "Guías de configuración",
     featuresTitle: "Lo que Airdraft hace por ti",
+    faqTitle: "Preguntas",
+    faq: {
+      price: [
+        "¿Airdraft es gratis?",
+        [
+          "Sí. Compilada desde el código es gratis, tiene todas las funciones y necesita Xcode. La app lista para usar es una licencia de pago único: 29 US$ para un Mac o 49 US$ para hasta tres. Consulta los ",
+          { link: "pricing", text: "precios" },
+          ".",
+        ],
+      ],
+      priceNotOnSale: [
+        "¿Airdraft es gratis?",
+        [
+          "Sí. Compilada desde el código es gratis, tiene todas las funciones y necesita Xcode. La app lista para usar será una licencia de pago único, 29 US$ para un Mac o 49 US$ para hasta tres; aún no está a la venta. Consulta los ",
+          { link: "pricing", text: "precios" },
+          ".",
+        ],
+      ],
+      macs: [
+        "¿En qué Macs funciona?",
+        [
+          "En Macs con Apple silicon y macOS 15 o posterior. Los modelos de voz locales se descargan una vez y luego funcionan en el Mac; la configuración muestra el tamaño de cada uno antes de descargarlo.",
+        ],
+      ],
+      offline: [
+        "¿Funciona sin conexión?",
+        [
+          "Sí. Con un modelo de voz local, y Apple Intelligence o LM Studio para el refinamiento, el dictado funciona por completo en tu Mac. Mira ",
+          { link: "offlineGuide", text: "qué modelo va mejor con tu idioma" },
+          ".",
+        ],
+      ],
+      data: [
+        "¿Qué sale de mi Mac?",
+        [
+          "Con modelos locales, tu audio y tu texto se quedan en él. Si eliges un proveedor en la nube para la voz o el refinamiento, el audio o el texto de ese paso va a ese proveedor con tu propia clave de API, que queda en el Llavero. Consulta ",
+          { link: "localGuide", text: "dictado local o en la nube" },
+          ".",
+        ],
+      ],
+      apple: [
+        "¿En qué se diferencia del Dictado de Apple?",
+        [
+          "Eliges el modelo de voz, un perfil editable ordena lo que dijiste, aprende tus nombres y términos, y guarda un historial con búsqueda. Mira la ",
+          { link: "comparison", text: "comparación con fecha" },
+          ", incluido dónde otras apps son mejores.",
+        ],
+      ],
+    },
     spoken: "Eh, dile a Maya que el, este, borrador llega mañana.",
     outputs: [
       "Dile a Maya que el borrador llega mañana.",
@@ -188,7 +240,6 @@ export const es: Messages = {
       "Controles con recorrido",
       "Perillas y deslizadores se mueven dentro de su carril.",
     ],
-    keysLabel: "Control Option",
     callouts: {
       "Carved mark": ["Marca tallada", "Su onda está grabada."],
       "Pressed well": ["Hueco hundido", "La página actual se hunde."],
@@ -240,6 +291,11 @@ export const es: Messages = {
     free: "Gratis",
     note: "Todas las funciones. Necesita Xcode en un Mac con Apple silicon.",
     action: "Instrucciones de compilación",
+    notify: {
+      lead: "Entérate cuando la app lista para usar salga a la venta:",
+      releases: "Seguir las versiones en GitHub",
+      feed: "Feed RSS de cambios",
+    },
   },
   license: {
     title: "App lista para usar",
@@ -271,7 +327,7 @@ export const es: Messages = {
     },
   },
   pricing: {
-    title: "Precios — Airdraft",
+    title: "Precios de Airdraft: gratis desde el código o licencia única",
     description:
       "Airdraft se compila gratis desde el código. La app lista para usar es una licencia de pago único: 29 US$ para un Mac o 49 US$ para hasta tres.",
     heading: "Precios",

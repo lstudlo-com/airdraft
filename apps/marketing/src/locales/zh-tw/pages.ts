@@ -8,32 +8,32 @@ export const zhTw: PageCopy = {
     related: "相關指南",
   },
   notFound: {
-    title: "找不到頁面 — Airdraft",
+    title: "找不到頁面｜Airdraft",
     heading: "這個頁面不存在",
     action: "回到首頁",
   },
   hub: {
     title: "Mac 聽寫設定與模型指南｜Airdraft",
     description:
-      "Airdraft 實用指南：用你的語言在 Mac 上離線聽寫、中英混著講、用語音輸入 Claude Code 與終端機、本機與雲端模型、在自己的 Mac 上轉錄會議、與其他 App 比較，以及免費原始碼版與官方版怎麼選。",
+      "Airdraft 實用指南：離線聽寫、中英混著講、Claude Code 與終端機、本機或雲端模型、會議逐字稿、App 比較，以及免費版與官方版怎麼選。",
     heading: "聽寫指南",
     help: ["設定好了卻出問題？", "檢查權限、快速鍵與常見問題。"],
     pricing: "比較價格",
     changes: "查看更新紀錄",
   },
   support: {
-    title: "支援 — Airdraft",
+    title: "Airdraft 支援：權限、快速鍵與模型",
     description: "解決 Airdraft 權限、快速鍵與模型的常見問題，或回報錯誤。",
     heading: "支援",
   },
   privacy: {
-    title: "隱私｜Airdraft",
+    title: "Airdraft 隱私：哪些資料留在 Mac",
     description:
       "Airdraft 如何處理聽寫資料、選用的 App 使用資料與網站分析，以及如何更改這兩項選擇。",
     heading: "隱私",
   },
   changelog: {
-    title: "更新紀錄 — Airdraft",
+    title: "Airdraft 更新紀錄：每一版的變更",
     description:
       "Airdraft 的版本歷史：從第一個原始碼版本，到各模式專屬的語音模型、本機智慧功能與全新的原生介面。",
     heading: "更新紀錄",
@@ -90,6 +90,7 @@ export const zhTw: PageCopy = {
     },
     "compare-mac-dictation-apps": {
       title: "Airdraft 與 VoiceInk、Handy、Typeless、Apple 聽寫比較",
+      metaTitle: "Airdraft 與 VoiceInk、Handy、Typeless、Apple 聽寫比較",
       description:
         "附查核日期，比較 Airdraft、VoiceInk、Handy、Typeless 與 macOS 27 的 Apple 聽寫：價格、原始碼、語音在哪裡處理、錄音與檔案轉錄，以及各自的強項。",
       summary:

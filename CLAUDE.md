@@ -189,8 +189,15 @@ and Local releases below.
   over a recessed well, never a heading inside a raised card, and guide titles
   have no intro line. Homepage section titles and intros are centered
   (`main.home`); subpages keep them at the leading edge. The header keys sit one 10 px step apart through the
-  `.header-actions` gap, never margins. Bento tiles loop while on screen and hold
-  after a touch (`bento.ts` sets up `.bento:not(.specimens)`); the dictation
+  `.header-actions` gap, never margins. Bento tiles play on arrival, repeat twice
+  while on screen, then rest, and hold after a touch (`bento.ts` sets up
+  `.bento:not(.specimens)`); the visitor's ⌃⌥ drives a demo only while the
+  pointer or focus is on it, never from VoiceOver commands elsewhere. The
+  homepage runs hero, sample, features, Transcribe, provider board, interface,
+  Setup guides, Questions, Get Airdraft; the hero states what Airdraft is in one
+  `home.lede` sentence. Until `siteLinks.checkout` is set, the hero's key leads to
+  `#get-airdraft`, the source build holds the primary key there and on Pricing,
+  and `NotifyRow` offers GitHub releases and the changelog feed; the dictation
   sample after the hero (`DictationPreview`, `preview.ts`), titled "Hold, speak,
   let go", is the one telling of how dictation works: its three steps light as it
   plays; headings rise word by word, the content under them rises block by block
@@ -234,7 +241,8 @@ and Local releases below.
   ranking claims. The app comparison guide cites each product's own pages with
   check dates, states where competitors are better and marks unknown cells Not
   checked; recheck rows before changing their dates. Marketing builds validate generated crawlability, canonical URLs,
-  sitemap membership, links, feeds and social previews. Keep `_redirects` aligned
+  sitemap membership, links, feeds and social previews, and title (60) and
+  description (160) widths, CJK counting double. Keep `_redirects` aligned
   with canonical HTML routes. IndexNow defaults to a dry run; submission is a
   separate explicit command after publication, never a build side effect.
   Website analytics follow `apps/marketing/ANALYTICS.md`: consent before SDK

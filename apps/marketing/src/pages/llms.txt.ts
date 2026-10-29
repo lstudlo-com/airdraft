@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { guides, guidesFor } from "../data/guides";
 import { siteLinks } from "../data/site";
+import { productFacts } from "../lib/llms";
 import { languageName, locales, localizedPath } from "../i18n";
 import { pages } from "../locales";
 import { messages } from "../i18n/messages";
@@ -10,6 +11,7 @@ import { messages } from "../i18n/messages";
 export const GET: APIRoute = ({ site }) => {
   if (!site) throw new Error("The site directory requires Astro.site.");
   const url = (path: string) => new URL(path, site).href;
+  const facts = productFacts();
   // Every page in every other language, in that language.
   const translated = locales
     .filter((locale) => locale !== "en")
@@ -38,7 +40,9 @@ export const GET: APIRoute = ({ site }) => {
 
 > Airdraft is an open-source menu-bar dictation app for Apple silicon Macs running macOS 15 or later. It transcribes speech, optionally refines the text, and inserts it at the cursor. Speech and refinement providers are chosen independently. Its Transcribe page records app audio and the microphone or imports audio and video files, then transcribes them on the Mac or with Soniox, with optional speaker labels and summaries, for a meeting or any other recording.
 
-The linked pages contain current product facts and availability. The source build is free. See Pricing for official-build availability and license terms.
+${facts}
+
+The linked pages contain current product facts and availability. A longer plain-text version, with the homepage and pricing questions answered, is at ${url("/llms-full.txt")}.
 
 ## Product
 

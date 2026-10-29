@@ -1,7 +1,7 @@
 ---
 import TextPage from "./TextPage.astro";
 import { pages } from "../locales";
-import type { Locale } from "../i18n";
+import { localizedPath, type Locale } from "../i18n";
 import En from "../locales/en/Privacy.astro";
 import ZhTw from "../locales/zh-tw/Privacy.astro";
 import ZhCn from "../locales/zh-cn/Privacy.astro";
@@ -13,6 +13,10 @@ interface Props {
 }
 const { locale } = Astro.props;
 const copy = pages[locale].privacy;
+const breadcrumbs = [
+  { name: pages[locale].chrome.home, path: localizedPath("/", locale) },
+  { name: copy.heading, path: localizedPath("/privacy/", locale) },
+];
 const Body = { en: En, "zh-tw": ZhTw, "zh-cn": ZhCn, es: Es, ja: Ja }[locale];
 ---
 
@@ -20,6 +24,7 @@ const Body = { en: En, "zh-tw": ZhTw, "zh-cn": ZhCn, es: Es, ja: Ja }[locale];
   title={copy.title}
   description={copy.description}
   heading={copy.heading}
+  breadcrumbs={breadcrumbs}
 >
   <Body />
 </TextPage>
