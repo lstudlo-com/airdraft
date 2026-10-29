@@ -10,7 +10,13 @@ import { href, languageTag, localizedPath, type Locale } from "../i18n";
 import { pages } from "../locales";
 import "../styles/changelog.css";
 
-/** The release history, in each language. */
+/**
+ * The release history, in each language: a navigator by release family
+ * beside a timeline. Each entry's version and date sit in a column beside
+ * its card and stay in view while the card is read (below 1000px they sit
+ * above it). Feature releases are raised cards, patches recessed wells, and
+ * the latest release is raised furthest.
+ */
 interface Props {
   locale: Locale;
 }
@@ -43,6 +49,11 @@ const sourceLabel = (label: string) =>
 // Navigate by release family; patch releases remain readable in the timeline.
 const series = (version?: string) =>
   version?.split(".").slice(0, 2).join(".") ?? copy.source;
+// A patch (x.y.z after x.y.0) reads lighter than the release it follows:
+// a recessed well instead of a raised card. The latest release is raised
+// furthest, whatever it is.
+const isPatch = (version?: string) =>
+  Boolean(version && !/\.0$/.test(version) && version.split(".").length > 2);
 const milestones = changelog.filter(
   (entry, index) =>
     index === 0 ||
@@ -76,7 +87,11 @@ const milestones = changelog.filter(
           </div>
           {changelog.map((entry, index) => (
             <article
-              class="release-entry"
+              class:list={[
+                "release-entry",
+                index === 0 && "is-latest",
+                index > 0 && isPatch(entry.version) && "is-patch",
+              ]}
               aria-labelledby={`${entry.id}-title`}
               id={entry.id}
               tabindex="-1"
@@ -90,7 +105,10 @@ const milestones = changelog.filter(
                 <time datetime={entry.date}>{formatDate(entry.date)}</time>
                 {index === 0 && <span class="tag">{copy.latest}</span>}
               </div>
-              <Surface class="release-card">
+              <Surface
+                class="release-card"
+                variant={index > 0 && isPatch(entry.version) ? "well" : "panel"}
+              >
                 <h2 id={`${entry.id}-title`}>
                   <a href={`#${entry.id}`}>{entry.title}</a>
                 </h2>

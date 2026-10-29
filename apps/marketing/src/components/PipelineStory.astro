@@ -2,6 +2,7 @@
 import Section from "./ui/Section.astro";
 import type { Locale } from "../i18n";
 import { messages } from "../i18n/messages";
+import "../styles/pipeline.css";
 
 interface Props {
   locale?: Locale;
@@ -10,26 +11,26 @@ const { locale = "en" } = Astro.props;
 const copy = messages[locale].pipeline;
 
 /**
- * "You choose where each step runs": the dictation pipeline as one raised
- * board with three columns, Speech, Refinement and Insertion. Speech and
- * Refinement each hold a segmented choice of where they run
- * (SoftSegmentedPicker); the choice swaps that column's one-line consequence
- * and its provider table, so every step's choice is visible at once and
- * independent of the others. The table is a settings table: rows divided by
- * grooves, the first resting in the sidebar's recessed selection well with a
- * raised check island. Insertion always happens at the cursor; its column
- * shows the vocabulary fix.
+ * "You choose where each step runs": the dictation pipeline as three
+ * separate raised cards on the island, in the order dictation runs through
+ * them (Speech, Refinement, Insertion), joined by recessed channels.
  *
- * The board is the page's climax (src/scripts/pipeline.ts): once it has
- * risen, one dictation runs through it, column by column. Each chosen row's
- * check island sinks while it works, with a busy status dot, and rises with
- * its check; the chevron on the next groove presses as the text passes;
- * Insertion strikes the misheard words and brings in the fix. Changing a
- * choice runs it again from that column.
+ * Every card has the same anatomy: a numbered stud and its title, where the
+ * step runs (a segmented choice, or "At your cursor"), one line on what that
+ * means, a settings table, then what the step hands on. Speech hands on the
+ * words it heard, Refinement the cleaned-up sentence and Insertion the text
+ * field, where the vocabulary fixes the misheard name.
  *
- * The choices are native radio groups and CSS `:has()` swaps the columns, so
- * the section works without JavaScript; src/scripts/segmented.ts only adds the
- * sliding thumb. The board stacks into rows below 1000px.
+ * The story is scroll-driven (src/styles/pipeline.css): one dictation runs
+ * through the cards as the visitor scrolls. On desktop the cards pin while
+ * it runs; stacked below 1000px they play as each card passes. Every state
+ * is derived from one number, `--p` (0 to 1), so scrolling back reverses it
+ * and the resting frame (`--p: 1`, with reduced motion or without scroll
+ * timelines and JavaScript) shows the finished dictation.
+ *
+ * The choices are native radio groups and CSS `:has()` swaps the tables, so
+ * the section works without JavaScript; src/scripts/segmented.ts adds the
+ * sliding thumb and src/scripts/pipeline.ts the scroll fallback.
  *
  * Provider lists mirror ASRProviderKind, LLMProviderKind and the local engines
  * in the root CLAUDE.md; update them together.
@@ -45,12 +46,15 @@ interface Stage {
   id: string;
   title: string;
   options: Option[];
+  /** What the step hands on, word by word. */
+  out: string;
 }
 
 const stages: Stage[] = [
   {
     id: "speech",
     title: copy.speech,
+    out: copy.heard,
     options: [
       {
         place: "mac",
@@ -84,6 +88,7 @@ const stages: Stage[] = [
   {
     id: "refinement",
     title: copy.refinement,
+    out: copy.refined,
     options: [
       {
         place: "mac",
@@ -119,91 +124,218 @@ const stages: Stage[] = [
   },
 ];
 
-// The direction of flow, on the groove before each later column.
-const arrow = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="m9.5 6.5 5.5 5.5-5.5 5.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+// Example vocabulary: what was heard, and the spelling it becomes.
+const vocabulary: [string, string][] = [
+  ["cooper tino", "Cupertino"],
+  ["air draft", "Airdraft"],
+  ["x code", "Xcode"],
+  ["git hub", "GitHub"],
+  ["type script", "TypeScript"],
+  ["post hog", "PostHog"],
+];
+const words = (text: string) => text.split(" ");
+// The voice Speech is still listening to, before its words arrive: the
+// recording pill's meter.
+const voice = [0.35, 0.6, 0.9, 0.55, 1, 0.7, 0.4, 0.8, 0.5, 0.3];
+// The name speech recognition misheard, marked until the vocabulary fixes it.
+const misheard = new Set(["cooper", "tino"]);
 const check = "m5 12.5 4.5 4.5L19 7.5";
+const arrow = "M5 12h13m-5-5.5 5.5 5.5-5.5 5.5";
+const fixed = words(copy.fix[0]);
+const tail = words(copy.fix[1]);
 ---
 
 <Section id="how-it-works" title={copy.title} intro={copy.intro}>
-  <div class="pipeline panel" data-reveal data-pipeline>
-    {stages.map((stage, index) => (
-      <div
-        class="pipe-stage"
-        role="group"
-        aria-labelledby={`stage-${stage.id}`}
-      >
-        {index > 0 && (
-          <span class="pipe-arrow" aria-hidden="true" set:html={arrow} />
-        )}
-        <h3 id={`stage-${stage.id}`}>{stage.title}</h3>
-        <div
-          class="segmented"
-          role="radiogroup"
-          aria-label={copy.where(stage.title)}
-        >
-          {stage.options.map((option, choice) => (
-            <label>
-              <input
-                type="radio"
-                name={`pipeline-${stage.id}`}
-                value={option.place}
-                checked={choice === 0}
-              />
-              {option.label}
-            </label>
-          ))}
-        </div>
-        <div class="pipe-swap">
-          {stage.options.map((option) => (
-            <div class="pipe-option" data-place={option.place}>
-              <p class="pipe-line">{option.line}</p>
-              <ul class="choices">
-                {option.items.map((item, position) => (
-                  <li class:list={[position === 0 && "is-selected"]}>
-                    {item}
-                    {position === 0 && (
-                      <span class="choice-island" aria-hidden="true">
-                        <span class="status-dot" data-tone="busy" />
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d={check}
-                            stroke="currentColor"
-                            stroke-width="2.4"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                        </svg>
-                      </span>
-                    )}
-                  </li>
+  <div class="pipe-scroll" data-pipeline>
+    <div class="pipe-pin">
+      <ol class="pipe-flow">
+        {stages.map((stage, index) => (
+          <li class="pipe-stage" data-stage={index + 1}>
+            {index > 0 && <span class="pipe-link" aria-hidden="true" />}
+            <div
+              class="pipe-card"
+              role="group"
+              aria-labelledby={`stage-${stage.id}`}
+            >
+              <div class="pipe-head">
+                <span class="pipe-step" aria-hidden="true">
+                  {index + 1}
+                </span>
+                <h3 id={`stage-${stage.id}`}>{stage.title}</h3>
+              </div>
+              <div
+                class="segmented"
+                role="radiogroup"
+                aria-label={copy.where(stage.title)}
+              >
+                {stage.options.map((option, choice) => (
+                  <label>
+                    <input
+                      type="radio"
+                      name={`pipeline-${stage.id}`}
+                      value={option.place}
+                      checked={choice === 0}
+                    />
+                    {option.label}
+                  </label>
                 ))}
-              </ul>
+              </div>
+              <div class="pipe-swap">
+                {stage.options.map((option) => (
+                  <div class="pipe-option" data-place={option.place}>
+                    <p class="pipe-line">{option.line}</p>
+                    <ul class="pipe-table">
+                      {option.items.map((item, position) => (
+                        <li class:list={[position === 0 && "is-chosen"]}>
+                          {item}
+                          {position === 0 && (
+                            <span class="pipe-island" aria-hidden="true">
+                              <span class="status-dot" data-tone="busy" />
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d={check}
+                                  stroke="currentColor"
+                                  stroke-width="2.4"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                />
+                              </svg>
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+              <p
+                class="pipe-out"
+                aria-hidden="true"
+                style={`--n: ${words(stage.out).length}`}
+              >
+                {index === 0 && (
+                  <span class="pipe-voice">
+                    {voice.map((level) => (
+                      <span style={`--v: ${level}`} />
+                    ))}
+                  </span>
+                )}
+                {words(stage.out).map((word, i) => (
+                  <Fragment>
+                    {i > 0 && " "}
+                    <span
+                      class:list={[
+                        "pipe-word",
+                        misheard.has(word) && "is-misheard",
+                      ]}
+                      style={`--i: ${i}`}
+                    >
+                      {word}
+                    </span>
+                  </Fragment>
+                ))}
+              </p>
             </div>
-          ))}
-        </div>
-      </div>
-    ))}
-    <div class="pipe-stage" role="group" aria-labelledby="stage-insertion">
-      <span class="pipe-arrow" aria-hidden="true" set:html={arrow} />
-      <h3 id="stage-insertion">{copy.insertion}</h3>
-      <p class="pipe-fixed">{copy.atCursor}</p>
-      <p class="pipe-line">{copy.insertionLine}</p>
-      <div class="fix-field" data-fix-field>
-        <p>
-          {copy.fix[0]}{" "}
-          <span class="fix">
-            <del class="fix-wrong">cooper tino</del>
-            <ins class="fix-right">Cupertino</ins>
-          </span>{" "}
-          {copy.fix[1]}
-          <span class="caret" aria-hidden="true" />
-        </p>
-      </div>
+          </li>
+        ))}
+        <li class="pipe-stage" data-stage="3">
+          <span class="pipe-link" aria-hidden="true"></span>
+          <div class="pipe-card" role="group" aria-labelledby="stage-insertion">
+            <div class="pipe-head">
+              <span class="pipe-step" aria-hidden="true">
+                3
+              </span>
+              <h3 id="stage-insertion">{copy.insertion}</h3>
+            </div>
+            <p class="pipe-fixed">{copy.atCursor}</p>
+            <div class="pipe-swap">
+              <div class="pipe-option">
+                <p class="pipe-line">{copy.insertionLine}</p>
+                <ul class="pipe-table pipe-vocab">
+                  {vocabulary.map(([heard, spelling], position) => (
+                    <li class:list={[position === 0 && "is-chosen"]}>
+                      <span class="pipe-heard">{heard}</span>
+                      <svg
+                        class="pipe-to"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d={arrow}
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                      <span class="visually-hidden">→</span>
+                      <span>{spelling}</span>
+                      {position === 0 && (
+                        <span class="pipe-island" aria-hidden="true">
+                          <span class="status-dot" data-tone="busy" />
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <path
+                              d={check}
+                              stroke="currentColor"
+                              stroke-width="2.4"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <p
+              class="pipe-out pipe-field"
+              aria-hidden="true"
+              style={`--n: ${fixed.length + tail.length + 1}`}
+            >
+              {fixed.map((word, i) => (
+                <Fragment>
+                  <span class="pipe-word" style={`--i: ${i}`}>
+                    {word}
+                  </span>{" "}
+                </Fragment>
+              ))}
+              <span class="pipe-word" style={`--i: ${fixed.length}`}>
+                <span class="fix">
+                  <del class="fix-wrong">cooper tino</del>
+                  <ins class="fix-right">Cupertino</ins>
+                </span>
+              </span>
+              {tail.map((word, i) => (
+                <Fragment>
+                  {" "}
+                  <span
+                    class="pipe-word"
+                    style={`--i: ${fixed.length + 1 + i}`}
+                  >
+                    {word}
+                  </span>
+                </Fragment>
+              ))}
+              <span class="caret"></span>
+            </p>
+          </div>
+        </li>
+      </ol>
     </div>
   </div>
 </Section>

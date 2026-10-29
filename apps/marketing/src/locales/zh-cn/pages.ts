@@ -6,6 +6,7 @@ export const zhCn: PageCopy = {
     home: "首页",
     guides: "指南",
     related: "相关指南",
+    onThisPage: "本页内容",
   },
   notFound: {
     title: "找不到页面 | Airdraft",

@@ -188,33 +188,6 @@
         }
       }
 
-      /* 4. The pipeline board rises as it arrives, then its columns follow
-         left to right, in the order dictation runs through them. */
-      .pipeline {
-        --rise-y: 56px;
-        --rise-scale: 0.94;
-        animation:
-          motion-rise linear both,
-          motion-lift linear both;
-        animation-timeline: view(), view();
-        animation-range:
-          entry 0% cover 40%,
-          entry 0% cover 40%;
-      }
-      .pipeline > .pipe-stage {
-        --rise-y: 18px;
-        animation: motion-fade-up linear both;
-        animation-timeline: view();
-        animation-range: entry calc(20% + var(--step, 0%)) cover
-          calc(40% + var(--step, 0%));
-      }
-      .pipeline > .pipe-stage:nth-child(2) {
-        --step: 6%;
-      }
-      .pipeline > .pipe-stage:nth-child(3) {
-        --step: 12%;
-      }
-
       /* The Transcribe story (MeetingsSection.astro). Stacked, each beat
          plays while it crosses a line 65% down the window, so the beats
          run one at a time, in order.

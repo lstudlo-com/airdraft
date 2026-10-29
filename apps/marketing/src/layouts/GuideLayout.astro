@@ -3,6 +3,7 @@ import Layout from "./Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import GuideLinks from "../components/GuideLinks.astro";
+import GuideToc from "../components/GuideToc.astro";
 import Section from "../components/ui/Section.astro";
 import type { Guide } from "../data/guides";
 import { localeOf, localizedPath } from "../i18n";
@@ -12,8 +13,9 @@ import "../styles/guides.css";
 
 /**
  * A guide page in any language: breadcrumbs, the title alone (no intro line
- * under it), then the guide's sections (GuideSection: a heading on the
- * island over a recessed well), then the other guides.
+ * under it), then the guide's sections (GuideSection: a numbered heading and
+ * its content on the island) beside "On this page" (GuideToc), then the
+ * other guides.
  */
 interface Props {
   guide: Guide;
@@ -33,6 +35,7 @@ const article = {
   published: firstCommitted(source),
   modified: lastCommitted([source]),
 };
+const body = await Astro.slots.render("default");
 ---
 
 <Layout
@@ -57,9 +60,12 @@ const article = {
           ))}
         </ol>
       </nav>
-      <article class="guide-article" aria-label={guide.title}>
-        <slot />
-      </article>
+      <div class="guide-layout">
+        <GuideToc html={body} label={copy.onThisPage} />
+        <article class="guide-article" aria-label={guide.title}>
+          <Fragment set:html={body} />
+        </article>
+      </div>
     </Section>
     <Section id="related" title={copy.related}>
       <GuideLinks exclude={guide.slug} locale={locale} />
@@ -67,3 +73,7 @@ const article = {
   </main>
   <SiteFooter />
 </Layout>
+
+<script>
+  import "../scripts/guide-toc";
+</script>

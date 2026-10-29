@@ -1,0 +1,588 @@
+/* The provider story (PipelineStory.astro): three separate raised cards on
+   the island, Speech, Refinement and Insertion, joined by recessed channels.
+
+   One number drives everything: --p, from 0 (the dictation has not started)
+   to 1 (it has landed at the cursor). A scroll timeline runs it as the
+   visitor scrolls (pinned on desktop, as each card passes when stacked), so
+   scrolling back reverses the story; src/scripts/pipeline.ts runs it where
+   there are no scroll timelines. Its resting value is 1, the finished
+   dictation, which is what reduced motion and no-JS browsers without scroll
+   timelines show.
+
+   Each card works out its own state from --p and its window (--a0 to --a1):
+     --lit   0 → 1 as the dictation reaches it: the card rises from the
+             island and its stud's number comes up in ink
+     --work  1 while it works: the card lifts closer, its chosen row's check
+             island sinks with a busy dot, and what it hands on arrives
+             word by word (--l)
+     --done  1 once it has finished: the check rises in the island and the
+             stud fills with ink
+   and each channel before a card fills (--c, with the accent: progress)
+   while a small raised packet runs through it. Light stays at the top left;
+   cards rise and sink, nothing tilts. */
+
+@property --p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@layer components {
+  .pipe-scroll {
+    --p: 1;
+    /* The scroll the story runs over while the cards are pinned: a spacer
+     after them (::after), since a sticky box stays inside its parent's
+     content box and padding would not hold it. */
+    --run: 150vh;
+  }
+  .pipe-flow {
+    --link: 72px;
+    --out-h: 76px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--link);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Each card's window on --p, and the channel's before it. */
+  .pipe-stage {
+    --a0: 0.08;
+    --a1: 0.28;
+    --c0: 0;
+    --c1: 0.08;
+    --lit: clamp(0, (var(--p) - var(--a0)) * 25, 1);
+    --done: clamp(0, (var(--p) - var(--a1)) * 25, 1);
+    --work: calc(var(--lit) - var(--done));
+    --l: clamp(0, (var(--p) - var(--a0)) / (var(--a1) - var(--a0)), 1);
+    --c: clamp(0, (var(--p) - var(--c0)) / (var(--c1) - var(--c0)), 1);
+    position: relative;
+    display: flex;
+    min-width: 0;
+  }
+  .pipe-stage[data-stage="2"] {
+    --a0: 0.4;
+    --a1: 0.6;
+    --c0: 0.28;
+    --c1: 0.4;
+  }
+  .pipe-stage[data-stage="3"] {
+    --a0: 0.72;
+    --a1: 0.92;
+    --c0: 0.6;
+    --c1: 0.72;
+  }
+
+  /* A card: a raised face whose cast shadows cross-fade from a quarter
+     spread (waiting) to the card's (reached) to the hero's (working). The
+     face itself never changes, so its text keeps full contrast. */
+  .pipe-card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    padding: 20px;
+    border-radius: var(--radius-card);
+    background: var(--fill-card);
+    box-shadow: var(--edge), var(--raise-small);
+    scale: calc(0.95 + 0.05 * var(--lit) + 0.015 * var(--work));
+    translate: 0 calc(var(--work) * -10px);
+  }
+  .pipe-card::before,
+  .pipe-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .pipe-card::before {
+    box-shadow: var(--raise-card);
+    opacity: var(--lit);
+  }
+  .pipe-card::after {
+    box-shadow: var(--raise-hero);
+    opacity: var(--work);
+  }
+
+  .pipe-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .pipe-head h3 {
+    font-size: var(--step-2);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  /* The step's number on a small raised keycap; it fills with ink once the
+     step has run, like the changelog's current stud. */
+  .pipe-step {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: var(--fill-cap);
+    box-shadow: var(--edge), var(--raise-small);
+    color: color-mix(
+      in srgb,
+      var(--island) calc(var(--done) * 100%),
+      color-mix(in srgb, var(--ink) calc(var(--lit) * 100%), var(--muted))
+    );
+    font: 600 var(--step--1) / 1 var(--font-rounded);
+    font-variant-numeric: tabular-nums;
+  }
+  .pipe-step::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--ink);
+    box-shadow: var(--sink-chip);
+    opacity: var(--done);
+  }
+
+  .pipe-card .segmented {
+    align-self: flex-start;
+  }
+  .pipe-card .segmented > label {
+    padding: 0 var(--space-3);
+  }
+  /* Insertion has no choice to make; its place sits where the others'
+     picker does, at the picker's height. */
+  .pipe-fixed {
+    display: flex;
+    align-items: center;
+    min-height: 38px;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+  .pipe-line {
+    min-height: 3lh;
+    font-size: var(--step-0);
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  /* The choice swaps the line and table (`:has()`, as the license card
+     does); every choice sits in one grid cell, so a card keeps the height of
+     its longest table and nothing moves when it changes. */
+  .pipe-swap {
+    display: grid;
+    flex: 1;
+    align-content: start;
+  }
+  .pipe-option {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    grid-area: 1 / 1;
+    transition:
+      opacity 260ms ease,
+      translate 480ms var(--ease-out);
+  }
+  .pipe-card:has(input[value="mac"]:checked)
+    .pipe-option:not([data-place="mac"]),
+  .pipe-card:has(input[value="cloud"]:checked)
+    .pipe-option:not([data-place="cloud"]),
+  .pipe-card:has(input[value="plan"]:checked)
+    .pipe-option:not([data-place="plan"]) {
+    opacity: 0;
+    visibility: hidden;
+    translate: 0 8px;
+    transition:
+      opacity 140ms ease,
+      translate 140ms ease,
+      visibility 0s linear 140ms;
+  }
+
+  /* A settings table: rows divided by grooves, the chosen one resting in
+     the sidebar's recessed selection well (2.5pt depth, 12pt corners) with
+     a check island inside it. */
+  .pipe-table {
+    margin: 0 -6px;
+    padding: 0;
+    list-style: none;
+  }
+  .pipe-table li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 36px;
+    padding-inline: var(--space-3) var(--space-11);
+    font-size: var(--step-0);
+    font-weight: 500;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .pipe-table li + li {
+    box-shadow: var(--groove);
+  }
+  .pipe-table li.is-chosen {
+    border-radius: 12px;
+    background: var(--well-soft);
+    box-shadow:
+      inset 2.5px 2.5px 5px var(--shade-soft),
+      inset -2.5px -2.5px 5px var(--light);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  /* The row below the well loses its groove: the well is the division. */
+  .pipe-table li.is-chosen + li {
+    box-shadow: none;
+  }
+  /* Vocabulary rows: what was heard, then its spelling. */
+  .pipe-heard {
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .pipe-to {
+    flex: none;
+    color: var(--muted);
+  }
+  [dir="rtl"] .pipe-to {
+    scale: -1 1;
+  }
+
+  /* The check island rises from its well; while the step works it sinks
+     flush (its light and shade fade with --work) and holds a busy dot. */
+  .pipe-island {
+    --up: calc(1 - var(--work));
+    position: absolute;
+    top: 4px;
+    inset-inline-end: 4px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: var(--fill-control);
+    box-shadow:
+      inset 1px 1px 0
+        color-mix(in srgb, var(--rim) calc(var(--up) * 100%), transparent),
+      1.5px 2px 3px
+        color-mix(in srgb, var(--shade) calc(var(--up) * 100%), transparent),
+      -1px -1.5px 3px
+        color-mix(in srgb, var(--light) calc(var(--up) * 100%), transparent),
+      inset 1.5px 1.5px 3px
+        color-mix(
+          in srgb,
+          var(--shade-soft) calc(var(--work) * 100%),
+          transparent
+        );
+    color: var(--ink);
+  }
+  .pipe-island > * {
+    grid-area: 1 / 1;
+  }
+  .pipe-island svg {
+    opacity: var(--done);
+    scale: calc(0.6 + 0.4 * var(--done));
+  }
+  .pipe-island .status-dot {
+    opacity: var(--work);
+    scale: calc(0.4 + 0.6 * var(--work));
+  }
+
+  /* What the step hands on: Speech's and Refinement's in a recessed well,
+     Insertion's in the raised text field of the app you're typing in. The
+     words arrive one by one as the step works (--w). The misheard name is
+     marked until the vocabulary fixes it. */
+  .pipe-out {
+    --w: var(--l);
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 0 0.3em;
+    min-height: var(--out-h);
+    padding: 12px 14px;
+    border-radius: var(--radius-field);
+    background: var(--well-soft);
+    box-shadow: var(--sink-soft);
+    font-size: var(--step-0);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  /* Before Speech has words, its well shows the voice it is listening to,
+     the recording pill's meter; the bars settle as the words arrive. */
+  .pipe-out:has(> .pipe-voice) {
+    position: relative;
+  }
+  .pipe-voice {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    opacity: calc(1 - clamp(0, var(--l) * 2.5, 1));
+    pointer-events: none;
+  }
+  .pipe-voice > span {
+    width: 4px;
+    height: 30px;
+    border-radius: 2px;
+    background: var(--fill-bar);
+    box-shadow:
+      inset 0.5px 0.5px 0 var(--rim),
+      0.75px 1px 1.5px var(--shade);
+    /* The scroll speaks: each bar's level follows --p, so the meter moves
+       while the visitor scrolls toward Speech and stops at rest. */
+    scale: 1
+      calc(
+        (
+            0.25 + 0.75 * var(--v) *
+              (0.5 + 0.5 * sin((var(--p) * 140 + var(--v) * 9) * 1rad))
+          ) *
+          (1 - clamp(0, var(--l) * 2.5, 1))
+      );
+  }
+  .pipe-word {
+    --o: clamp(0, var(--w) * (var(--n) + 1) - var(--i), 1);
+    display: inline-block;
+    opacity: var(--o);
+    translate: 0 calc((1 - var(--o)) * 0.35em);
+  }
+  .pipe-word.is-misheard {
+    text-decoration: underline dotted
+      color-mix(in srgb, var(--muted), transparent 30%);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+  .pipe-field {
+    --w: clamp(0, var(--l) / 0.45, 1);
+    --fix: clamp(0, (var(--l) - 0.5) / 0.45, 1);
+    background: var(--fill-control);
+    box-shadow: var(--edge), var(--raise-control);
+  }
+  .pipe-field .caret {
+    align-self: center;
+    margin-inline-start: -0.15em;
+    opacity: var(--done);
+  }
+  /* --fix runs 0 to 1: strike the heard words, fade them, then bring in
+     the fix. Its resting value is the fixed sentence. */
+  .fix {
+    --strike: clamp(0, calc(var(--fix, 1) * 2.5), 1);
+    --out: clamp(0, calc(var(--fix, 1) * 5 - 2), 1);
+    --swap: clamp(0, calc(var(--fix, 1) * 3.3 - 2), 1);
+    display: inline-grid;
+    vertical-align: bottom;
+  }
+  .fix > * {
+    grid-area: 1 / 1;
+    justify-self: start;
+    text-decoration: none;
+  }
+  .fix-wrong {
+    color: var(--muted);
+    background: linear-gradient(currentColor, currentColor) 0 58% /
+      calc(var(--strike) * 100%) 2px no-repeat;
+    max-width: calc((1 - var(--out)) * 7em);
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: calc(1 - var(--out));
+  }
+  .fix-right {
+    font-weight: 600;
+    opacity: var(--swap);
+    translate: 0 calc((1 - var(--swap)) * 8px);
+  }
+
+  /* The channel before a card: a recessed track across the gap at the
+     height of what the cards hand on, from one to the next. The accent
+     fills it as the dictation passes (progress), and a small raised packet
+     runs through it, its light and shade clipped inside. */
+  .pipe-link {
+    --len: calc(var(--link) - 16px);
+    --packet: 22px;
+    position: absolute;
+    inset-inline-end: calc(100% + 8px);
+    bottom: calc(20px + var(--out-h) / 2 - 7px);
+    width: var(--len);
+    height: 14px;
+    border-radius: 999px;
+    background: var(--well);
+    box-shadow: var(--sink-track);
+    overflow: clip;
+  }
+  .pipe-link::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--accent);
+    box-shadow:
+      inset 1px 1px 2px rgb(0 0 0 / 0.25),
+      inset -1px -1px 1px rgb(255 255 255 / 0.12);
+    transform: scaleX(var(--c));
+    transform-origin: left;
+  }
+  [dir="rtl"] .pipe-link::before {
+    transform-origin: right;
+  }
+  .pipe-link::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    inset-inline-start: 2px;
+    width: var(--packet);
+    height: 10px;
+    border-radius: 999px;
+    background: var(--fill-control);
+    box-shadow:
+      inset 1px 1px 0 var(--rim),
+      1px 1.5px 2px var(--shade);
+    opacity: calc(
+      clamp(0, var(--c) * 12, 1) - clamp(0, (var(--c) - 0.92) * 12, 1)
+    );
+    translate: calc(var(--c) * (var(--len) - var(--packet) - 4px)) 0;
+  }
+  [dir="rtl"] .pipe-link::after {
+    translate: calc(var(--c) * (var(--len) - var(--packet) - 4px) * -1) 0;
+  }
+
+  /* A changed choice works again in place for a moment
+     (src/scripts/pipeline.ts). */
+  .pipe-stage.is-rerun .pipe-island {
+    background: var(--pressed);
+    box-shadow: var(--press-small);
+  }
+  .pipe-stage.is-rerun .pipe-island svg {
+    opacity: 0;
+  }
+  .pipe-stage.is-rerun .pipe-island .status-dot {
+    opacity: 1;
+    scale: 1;
+    animation: pipe-busy 600ms ease-in-out infinite alternate;
+  }
+  @keyframes pipe-busy {
+    to {
+      opacity: 0.45;
+    }
+  }
+}
+
+@layer responsive {
+  /* The story runs from the scroll where the browser has scroll timelines
+     and motion is allowed: the cards pin below the header while the
+     dictation runs through them, then the page moves on. */
+  @keyframes pipe-run {
+    from {
+      --p: 0;
+    }
+    to {
+      --p: 1;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .pipe-scroll::after {
+        content: "";
+        display: block;
+        height: var(--run);
+      }
+      .pipe-scroll {
+        view-timeline: --pipe block;
+        animation: pipe-run linear both;
+        animation-timeline: --pipe;
+        animation-range: contain 0% contain 100%;
+      }
+      .pipe-pin {
+        position: sticky;
+        top: max(calc(var(--header) + 24px), calc(50vh - 270px));
+      }
+    }
+    /* The same, driven by pipeline.ts. */
+    .pipe-scroll.is-scrubbed::after {
+      content: "";
+      display: block;
+      height: var(--run);
+    }
+    .pipe-scroll.is-scrubbed .pipe-pin {
+      position: sticky;
+      top: max(calc(var(--header) + 24px), calc(50vh - 270px));
+    }
+  }
+
+  /* Stacked: the cards follow each other down the page and nothing pins;
+     each plays as it passes the middle of the window. The channels turn
+     upright between them. */
+  @media (max-width: 1000px) {
+    .pipe-flow {
+      --link: 64px;
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--link);
+      max-width: 560px;
+      margin-inline: auto;
+    }
+    .pipe-line {
+      min-height: 0;
+    }
+    .pipe-link {
+      inset-inline: calc(50% - 7px) auto;
+      bottom: calc(100% + 8px);
+      width: 14px;
+      height: var(--len);
+    }
+    .pipe-link::before,
+    [dir="rtl"] .pipe-link::before {
+      transform: scaleY(var(--c));
+      transform-origin: top;
+    }
+    .pipe-link::after,
+    [dir="rtl"] .pipe-link::after {
+      top: 2px;
+      inset-inline-start: 2px;
+      width: 10px;
+      height: var(--packet);
+      translate: 0 calc(var(--c) * (var(--len) - var(--packet) - 4px));
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      @supports (animation-timeline: view()) {
+        .pipe-scroll::after {
+          content: none;
+        }
+        .pipe-scroll {
+          animation-range: cover 10% cover 82%;
+        }
+        .pipe-pin {
+          position: static;
+        }
+      }
+      .pipe-scroll.is-scrubbed::after {
+        content: none;
+      }
+      .pipe-scroll.is-scrubbed .pipe-pin {
+        position: static;
+      }
+    }
+  }
+  @media (max-width: 700px) {
+    .pipe-card {
+      padding: 18px 16px;
+    }
+    .pipe-flow {
+      --out-h: 72px;
+    }
+  }
+  /* Increase Contrast adds explicit edges, as in the app. */
+  @media (prefers-contrast: more) {
+    .pipe-card,
+    .pipe-field,
+    .pipe-step {
+      outline: 1px solid color-mix(in srgb, var(--ink), transparent 50%);
+      outline-offset: -1px;
+    }
+  }
+}

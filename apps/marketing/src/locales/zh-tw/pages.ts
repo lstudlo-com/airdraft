@@ -6,6 +6,7 @@ export const zhTw: PageCopy = {
     home: "首頁",
     guides: "指南",
     related: "相關指南",
+    onThisPage: "本頁內容",
   },
   notFound: {
     title: "找不到頁面｜Airdraft",

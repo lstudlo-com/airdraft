@@ -1,21 +1,27 @@
 ---
 /**
- * One section of a guide or a text page: its heading on the island, at the
- * top left of the section, and the content below it in a recessed well
- * carved into the island. The heading is never inside the well, and the well
- * is never raised: one heading and one well make a section.
+ * One section of a guide or a text page: a numbered heading on the island,
+ * then its content on the island at a reading measure. The section gives no
+ * box of its own; what it holds brings its material (guides.css): steps
+ * become a numbered rail, choices and labelled lists raised cards, tables
+ * and troubleshooting rows a raised panel. `aside` makes the section a
+ * raised side card beside the others (Support's "Still stuck?").
  */
 interface Props {
   id: string;
   title: string;
+  aside?: boolean;
   class?: string;
 }
-const { id, title, class: className } = Astro.props;
+const { id, title, aside = false, class: className } = Astro.props;
 ---
 
-<section class:list={["guide-section", className]} aria-labelledby={id}>
+<section
+  class:list={["guide-section", aside && "guide-aside", className]}
+  aria-labelledby={id}
+>
   <h2 id={id}>{title}</h2>
-  <div class="guide-well well">
+  <div class="guide-body">
     <slot />
   </div>
 </section>

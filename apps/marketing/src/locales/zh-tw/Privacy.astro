@@ -22,39 +22,60 @@ import Button from "../../components/ui/Button.astro";
     只在設定的「就緒」步驟或「首頁」詢問一次，你回答之前不會傳送任何資料。自行從原始碼編譯的版本從不傳送使用資料或當機報告。
   </p>
   <p>經你同意後，App 只會傳送以下事件：</p>
-  <ul>
+  <ul class="guide-facts">
     <li>
-      <strong>App 已啟動</strong>：App 版本與建置編號、macOS
+      <strong>
+        App 已啟動<span class="visually-hidden">：</span>
+      </strong>{" "}
+      App 版本與建置編號、macOS
       主要版本、處理器類型、介面語言與授權狀態（試用中、已授權、已過期或無）。
     </li>
     <li>
-      <strong>設定完成</strong>：已完成或已略過。
+      <strong>
+        設定完成<span class="visually-hidden">：</span>
+      </strong>{" "}
+      已完成或已略過。
     </li>
     <li>
-      <strong>聽寫完成</strong>：語音引擎系列，以及它在你的 Mac
+      <strong>
+        聽寫完成<span class="visually-hidden">：</span>
+      </strong>{" "}
+      語音引擎系列，以及它在你的 Mac
       上還是線上執行、潤稿供應商類型、內建模式或「自訂」、以區間表示的錄音長度與停止到送達的時間、送達狀態，以及是否套用潤稿或改用你的逐字稿。
     </li>
     <li>
-      <strong>聽寫失敗</strong>
-      ：失敗類別，例如權限、缺少模型、缺少金鑰、語音辨識錯誤或送達失敗。取消的聽寫不會回報。
+      <strong>
+        聽寫失敗<span class="visually-hidden">：</span>
+      </strong>
+      失敗類別，例如權限、缺少模型、缺少金鑰、語音辨識錯誤或送達失敗。取消的聽寫不會回報。
     </li>
     <li>
-      <strong>模型下載結束</strong>：該模型在 Airdraft
-      內建目錄中的識別碼，以及下載成功、失敗或已取消。
+      <strong>
+        模型下載結束<span class="visually-hidden">：</span>
+      </strong>{" "}
+      該模型在 Airdraft 內建目錄中的識別碼，以及下載成功、失敗或已取消。
     </li>
     <li>
       <strong>錄音或檔案已轉錄</strong>
       （在「轉錄」頁）：以區間表示的長度與語音引擎系列。
     </li>
     <li>
-      <strong>授權事件</strong>：開始試用或啟用授權。
+      <strong>
+        授權事件<span class="visually-hidden">：</span>
+      </strong>{" "}
+      開始試用或啟用授權。
     </li>
     <li>
-      <strong>使用資料選擇</strong>：開啟分享時傳送，關閉時再傳送一次。
+      <strong>
+        使用資料選擇<span class="visually-hidden">：</span>
+      </strong>{" "}
+      開啟分享時傳送，關閉時再傳送一次。
     </li>
     <li>
-      <strong>當機報告</strong>
-      ：錯誤類型、堆疊框架，以及找出問題所需的已載入系統與 App
+      <strong>
+        當機報告<span class="visually-hidden">：</span>
+      </strong>
+      錯誤類型、堆疊框架，以及找出問題所需的已載入系統與 App
       程式庫，檔案路徑中的使用者名稱會先移除。
     </li>
   </ul>

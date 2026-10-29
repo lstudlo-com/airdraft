@@ -1,103 +1,65 @@
-// The provider board's run (components/PipelineStory.astro), the homepage's
-// climax: one dictation passes through the visitor's choices, in the order
-// dictation runs.
+// The provider story (components/PipelineStory.astro). One dictation runs
+// through Speech, Refinement and Insertion as the visitor scrolls; every
+// state is derived in CSS from one number, --p (src/styles/pipeline.css).
 //
-//   Speech      the chosen row's check island sinks into its well with a busy
-//               status dot while it works, then rises with its check
-//   chevron     the raised chevron on the next groove presses as the text
-//               passes into the next column
-//   Refinement  as Speech
-//   Insertion   the misheard words are struck and the dictionary's spelling
-//               comes in, then the caret blinks at the end of the line
-//
-// It runs once when the board has risen (half of it on screen), and again
-// from a column whenever its choice changes. Leaving the screen jumps to the
-// resting frame, which is the board's CSS without a run. With reduced motion
-// it never runs; the choices still swap their tables (CSS).
-import { gsap } from "gsap";
-
+// Where the browser has scroll timelines, CSS runs --p by itself and this
+// script only answers a changed choice. Elsewhere it sets --p from the scroll
+// position over the same ranges: while the cards are pinned on desktop
+// (`contain`), and over 10% to 82% of the stack's `cover` range when they
+// are stacked. The cards stay still while --p changes (pinned, or each
+// state is only a lift of a few pixels), so a frame of lag never shows as
+// jitter. With reduced motion none of it runs and the resting frame (the
+// finished dictation) shows.
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-const board = document.querySelector<HTMLElement>("[data-pipeline]");
-if (board) setup(board);
+const stacked = matchMedia("(max-width: 1000px)");
+const scroller = document.querySelector<HTMLElement>("[data-pipeline]");
+if (scroller) setup(scroller);
 
-function setup(board: HTMLElement) {
-  const stages = [
-    ...board.querySelectorAll<HTMLElement>(":scope > .pipe-stage"),
-  ];
-  const fix = board.querySelector<HTMLElement>("[data-fix-field] .fix");
-  let run: gsap.core.Timeline | null = null;
-  let queued: gsap.core.Tween | null = null;
-  let visible = false;
-  let ran = false;
+function setup(scroller: HTMLElement) {
+  const clamp = (value: number) => Math.min(1, Math.max(0, value));
+  let frame = 0;
 
-  const rest = () => {
-    queued?.kill();
-    queued = null;
-    run?.kill();
-    run = null;
-    for (const stage of stages) {
-      stage.classList.remove("is-working", "is-passing");
+  const measure = () => {
+    frame = 0;
+    const box = scroller.getBoundingClientRect();
+    const view = innerHeight;
+    const p = stacked.matches
+      ? ((view - box.top) / (box.height + view) - 0.1) / 0.72
+      : -box.top / Math.max(1, box.height - view);
+    scroller.style.setProperty("--p", clamp(p).toFixed(4));
+  };
+  const queue = () => {
+    if (!frame) frame = requestAnimationFrame(measure);
+  };
+
+  const scrub = () => {
+    const on = !reduced.matches && !CSS.supports("animation-timeline: view()");
+    scroller.classList.toggle("is-scrubbed", on);
+    removeEventListener("scroll", queue);
+    removeEventListener("resize", queue);
+    if (!on) {
+      scroller.style.removeProperty("--p");
+      return;
     }
-    fix?.style.removeProperty("--fix");
+    addEventListener("scroll", queue, { passive: true });
+    addEventListener("resize", queue);
+    queue();
   };
+  scrub();
+  reduced.addEventListener("change", scrub);
+  stacked.addEventListener("change", queue);
 
-  /** Run from the stage at `from` to Insertion. */
-  const play = (from: number) => {
-    if (reduced.matches) return;
-    rest();
-    const timeline = gsap.timeline({ onComplete: rest });
-    let at = 0;
-    stages.slice(from).forEach((stage, offset) => {
-      const index = from + offset;
-      // The groove's chevron sits on this stage; it presses as text arrives.
-      if (index > 0) {
-        timeline
-          .call(() => stage.classList.add("is-passing"), [], at)
-          .call(() => stage.classList.remove("is-passing"), [], at + 0.22);
-        at += 0.24;
-      }
-      if (index < stages.length - 1) {
-        timeline
-          .call(() => stage.classList.add("is-working"), [], at)
-          .call(() => stage.classList.remove("is-working"), [], at + 0.8);
-        at += 1.05;
-        return;
-      }
-      if (!fix) return;
-      timeline
-        .set(fix, { "--fix": 0 }, 0)
-        .to(fix, { "--fix": 1, duration: 1.3, ease: "none" }, at + 0.15);
-      at += 1.6;
-    });
-    run = timeline;
-  };
-
-  // Once, when the board has risen.
-  new IntersectionObserver(
-    ([entry]) => {
-      visible = entry.isIntersecting;
-      if (!visible) return rest();
-      if (!ran && entry.intersectionRatio >= 0.5) {
-        ran = true;
-        queued = gsap.delayedCall(0.35, () => play(0));
-      }
-    },
-    { threshold: [0, 0.5] },
-  ).observe(board);
-
-  // A changed choice runs again from its column, after the table has
-  // swapped in (the CSS transition is 480ms).
-  stages.forEach((stage, index) =>
+  // A changed choice works again in place for a moment: the new table's
+  // check island sinks with a busy dot, then its check returns.
+  for (const stage of scroller.querySelectorAll<HTMLElement>(".pipe-stage")) {
+    let timer = 0;
     stage.addEventListener("change", () => {
-      if (!visible) return;
-      rest();
-      queued = gsap.delayedCall(0.3, () => play(index));
-    }),
-  );
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) rest();
-  });
+      if (reduced.matches) return;
+      clearTimeout(timer);
+      stage.classList.add("is-rerun");
+      timer = window.setTimeout(() => stage.classList.remove("is-rerun"), 900);
+    });
+  }
 }
 
 export {};

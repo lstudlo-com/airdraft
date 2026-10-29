@@ -111,24 +111,18 @@
     margin-left: 0;
     margin-inline-start: 0.15em;
   }
-  [dir="rtl"]
-    :is(.preview, .art-field, .art-output, .art-card-front, .details-body) {
+  [dir="rtl"] :is(.art-field, .art-output, .art-card-front, .details-body) {
     text-align: start;
   }
   [dir="rtl"] .details-body {
     padding-right: 0;
     padding-inline-end: var(--space-2);
   }
-  [dir="rtl"] .choice-island {
-    right: auto;
-    inset-inline-end: 6px;
-  }
   [dir="rtl"] .art-mac-label {
     left: auto;
     inset-inline-start: 18px;
   }
   /* Arrows along the reading direction. */
-  [dir="rtl"] :is(.pipe-arrow, .stage-arrow) svg,
   [dir="rtl"] .arrow.right {
     scale: -1 1;
   }

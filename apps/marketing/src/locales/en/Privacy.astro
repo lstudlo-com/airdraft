@@ -27,46 +27,65 @@ import Button from "../../components/ui/Button.astro";
     reports.
   </p>
   <p>With your consent, the app sends only these events:</p>
-  <ul>
+  <ul class="guide-facts">
     <li>
-      <strong>App launched</strong>: app version and build, macOS major version,
-      processor type, interface language and license state (trial, licensed,
-      expired or none).
+      <strong>
+        App launched<span class="visually-hidden">:</span>
+      </strong>{" "}
+      app version and build, macOS major version, processor type, interface
+      language and license state (trial, licensed, expired or none).
     </li>
     <li>
-      <strong>Setup finished</strong>: completed or skipped.
+      <strong>
+        Setup finished<span class="visually-hidden">:</span>
+      </strong>{" "}
+      completed or skipped.
     </li>
     <li>
-      <strong>Dictation completed</strong>: speech engine family and whether it
-      runs on your Mac or online, refinement provider type, built-in profile or
-      "custom", recording length and stop-to-delivery time in ranges, delivery
-      status and whether refinement was applied or fell back to your transcript.
+      <strong>
+        Dictation completed<span class="visually-hidden">:</span>
+      </strong>{" "}
+      speech engine family and whether it runs on your Mac or online, refinement
+      provider type, built-in profile or "custom", recording length and
+      stop-to-delivery time in ranges, delivery status and whether refinement
+      was applied or fell back to your transcript.
     </li>
     <li>
-      <strong>Dictation failed</strong>: a category such as permission, missing
-      model, missing key, speech error or delivery failure. Cancelled dictations
-      are not reported.
+      <strong>
+        Dictation failed<span class="visually-hidden">:</span>
+      </strong>{" "}
+      a category such as permission, missing model, missing key, speech error or
+      delivery failure. Cancelled dictations are not reported.
     </li>
     <li>
-      <strong>Model download finished</strong>: the model's identifier from
-      Airdraft's built-in catalogue and whether the download succeeded, failed
-      or was cancelled.
+      <strong>
+        Model download finished<span class="visually-hidden">:</span>
+      </strong>{" "}
+      the model's identifier from Airdraft's built-in catalogue and whether the
+      download succeeded, failed or was cancelled.
     </li>
     <li>
       <strong>Recording or file transcribed</strong> (on the Transcribe page):
       length in ranges and speech engine family.
     </li>
     <li>
-      <strong>License event</strong>: trial started or license activated.
+      <strong>
+        License event<span class="visually-hidden">:</span>
+      </strong>{" "}
+      trial started or license activated.
     </li>
     <li>
-      <strong>Usage data choice</strong>: sent when you turn sharing on, and
-      once when you turn it off.
+      <strong>
+        Usage data choice<span class="visually-hidden">:</span>
+      </strong>{" "}
+      sent when you turn sharing on, and once when you turn it off.
     </li>
     <li>
-      <strong>Crash reports</strong>: the error type, stack frames and the
-      loaded system and app libraries needed to locate the fault, with user
-      names removed from file paths.
+      <strong>
+        Crash reports<span class="visually-hidden">:</span>
+      </strong>{" "}
+      the error type, stack frames and the loaded system and app libraries
+      needed to locate the fault, with user names removed from file paths.
     </li>
   </ul>
   <p>

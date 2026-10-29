@@ -397,7 +397,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     padding-bottom: var(--section);
     background: var(--island);
     clip-path: inset(var(--island-y) var(--island-x) 0 round var(--island-r));
-    /* Clips the pipeline's flying cards to the island without breaking
+    /* Clips content that reaches past the island without breaking
        position: sticky. */
     overflow: clip;
   }
@@ -1987,190 +1987,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     border-top: 2px dashed color-mix(in srgb, var(--muted), transparent 50%);
   }
 
-  /* Pipeline board (PipelineStory.astro): one raised card split into three
-     columns by engraved vertical grooves, with a small raised chevron on each
-     groove for the direction of flow. Speech and Refinement swap their line
-     and table with their segmented choice (`:has()`, as the license card
-     does); the tables sit in one grid cell, so a column keeps the height of
-     its longest choice and nothing below it moves. */
-  .pipeline {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    padding: var(--space-2);
-  }
-  .pipe-stage {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
-    min-width: 0;
-    padding: 22px var(--space-5) 18px;
-  }
-  /* RowDivider turned on its side: shade on the left, highlight just right. */
-  .pipe-stage + .pipe-stage {
-    box-shadow:
-      inset 1px 0 0 var(--groove-shade),
-      inset 2px 0 0 var(--groove-light);
-  }
-  .pipe-stage h3 {
-    font-size: var(--step-2);
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-  }
-  .pipe-stage .segmented > label {
-    padding: 0 var(--space-3);
-  }
-  /* Insertion has no choice to make; its place sits where the others' picker
-     does, at the picker's height. */
-  .pipe-fixed {
-    display: flex;
-    align-items: center;
-    min-height: 38px;
-    font-size: var(--step--1);
-    font-weight: 600;
-  }
-  .pipe-line {
-    min-height: 2lh;
-    font-size: var(--step-0);
-    line-height: 1.5;
-    color: var(--muted);
-  }
-  .pipe-swap {
-    display: grid;
-    align-self: stretch;
-  }
-  .pipe-option {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    grid-area: 1 / 1;
-    transition:
-      opacity 260ms ease,
-      translate 480ms var(--ease-out);
-  }
-  .pipe-stage:has(input[value="mac"]:checked)
-    .pipe-option:not([data-place="mac"]),
-  .pipe-stage:has(input[value="cloud"]:checked)
-    .pipe-option:not([data-place="cloud"]),
-  .pipe-stage:has(input[value="plan"]:checked)
-    .pipe-option:not([data-place="plan"]) {
-    opacity: 0;
-    visibility: hidden;
-    translate: 0 8px;
-    transition:
-      opacity 140ms ease,
-      translate 140ms ease,
-      visibility 0s linear 140ms;
-  }
-  /* Sits on the groove before its column, level with the heading. */
-  .pipe-arrow {
-    position: absolute;
-    top: 21px;
-    left: 1px;
-    display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    background: var(--fill-control);
-    box-shadow: var(--edge), var(--raise-small);
-    color: var(--muted);
-    translate: -50% 0;
-  }
-  /* A settings table: rows divided by grooves, the chosen one resting in the
-     sidebar's recessed selection well (2.5pt depth, 12pt corners), with a
-     raised check island inside it. */
-  .choices {
-    --row-h: 40px;
-    margin: 0 -6px;
-    padding: 0;
-    list-style: none;
-  }
-  .choices li {
-    position: relative;
-    display: flex;
-    align-items: center;
-    height: var(--row-h);
-    padding: 0 var(--space-11) 0 var(--space-3);
-    font-size: var(--step-0);
-    font-weight: 500;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  .choices li + li {
-    box-shadow: var(--groove);
-  }
-  .choices li.is-selected {
-    border-radius: 12px;
-    background: var(--well-soft);
-    box-shadow:
-      inset 2.5px 2.5px 5px var(--shade-soft),
-      inset -2.5px -2.5px 5px var(--light);
-    color: var(--ink);
-    font-weight: 600;
-  }
-  /* The row below the well loses its groove: the well is the division. */
-  .choices li.is-selected + li {
-    box-shadow: none;
-  }
-  .choice-island {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    display: grid;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 9px;
-    background: var(--fill-control);
-    box-shadow:
-      inset 1px 1px 0 var(--rim),
-      1.5px 2px 3px var(--shade),
-      -1px -1.5px 3px var(--light);
-    color: var(--ink);
-  }
-  .fix-field {
-    align-self: stretch;
-    padding: var(--space-4) 18px;
-    border-radius: var(--radius-field);
-    background: var(--fill-control);
-    box-shadow: var(--edge), var(--raise-control);
-  }
-  .fix-field p {
-    font-size: var(--step-1);
-    font-weight: 500;
-    line-height: 1.5;
-  }
-  /* --fix runs 0 to 1: strike the heard words, fade them, then bring in
-     the fix. Its resting value is the fixed sentence. */
-  .fix {
-    --strike: clamp(0, calc(var(--fix, 1) * 2.5), 1);
-    --out: clamp(0, calc(var(--fix, 1) * 5 - 2), 1);
-    --swap: clamp(0, calc(var(--fix, 1) * 3.3 - 2), 1);
-    display: inline-grid;
-    vertical-align: bottom;
-  }
-  .fix > * {
-    grid-area: 1 / 1;
-    justify-self: start;
-    text-decoration: none;
-  }
-  .fix-wrong {
-    color: var(--muted);
-    background: linear-gradient(currentColor, currentColor) 0 58% /
-      calc(var(--strike) * 100%) 2px no-repeat;
-    max-width: calc((1 - var(--out)) * 7em);
-    overflow: hidden;
-    white-space: nowrap;
-    opacity: calc(1 - var(--out));
-  }
-  .fix-right {
-    font-weight: 600;
-    opacity: var(--swap);
-    translate: 0 calc((1 - var(--swap)) * 8px);
-  }
   /* The close (GetAirdraft.astro): two equal cards. Each card's title,
      price, note and action rows are subgrid rows of one shared grid, so they
      line up across the cards whatever either holds. The license is raised
@@ -2479,22 +2295,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .hero .wave-bar:nth-child(-n + 12) {
       display: none;
     }
-    /* The pipeline stacks: its grooves lie flat and the arrows point down. */
-    .pipeline {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .pipe-stage + .pipe-stage {
-      box-shadow: var(--groove);
-    }
-    .pipe-line {
-      min-height: 0;
-    }
-    .pipe-arrow {
-      top: 1px;
-      left: 50%;
-      translate: -50% -50%;
-      rotate: 90deg;
-    }
   }
   @media (max-width: 700px) {
     :root {
@@ -2581,9 +2381,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     }
     .art-mac {
       width: 100%;
-    }
-    .pipe-stage {
-      padding: 22px var(--space-4) 18px;
     }
     .offer {
       padding: 22px;
@@ -2672,7 +2469,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   /* Increase Contrast adds explicit edges, as in the app. */
   @media (prefers-contrast: more) {
     .panel,
-    .fix-field,
     .hero-card,
     .key,
     .segmented,
@@ -2699,8 +2495,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   }
 }
 
-/* Motion: the bento's performances and the provider board's run
-   (src/scripts/bento.ts, src/scripts/pipeline.ts). Each rule is a state a
+/* Motion: the bento's performances (src/scripts/bento.ts). Each rule is a state a
    script sets; without JavaScript none applies and the resting frame shows.
    With reduced motion the responsive layer drops every transition, so the
    states change in place. Objects rise from the surface and sink into it;
@@ -2760,59 +2555,5 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .tile-art:is(.is-recording, .is-typing) .art-field .caret {
       animation: none;
     }
-  }
-
-  /* The provider board's run. The chosen row's check island sinks flush
-     into its well while that step works, holding a busy status dot, then
-     rises with its check; the chevron on the next groove presses as the
-     text passes. */
-  .choice-island > * {
-    grid-area: 1 / 1;
-  }
-  .choice-island {
-    transition:
-      background 200ms ease,
-      box-shadow 360ms var(--ease-out);
-  }
-  .choice-island svg,
-  .choice-island .status-dot {
-    transition:
-      opacity 200ms ease,
-      scale 420ms var(--ease-out);
-  }
-  .choice-island .status-dot {
-    opacity: 0;
-    scale: 0.4;
-  }
-  .pipe-stage.is-working .choice-island {
-    background: var(--pressed);
-    box-shadow: var(--press-small);
-  }
-  .pipe-stage.is-working .choice-island svg {
-    opacity: 0;
-    scale: 0.6;
-  }
-  .pipe-stage.is-working .choice-island .status-dot {
-    opacity: 1;
-    scale: 1;
-    animation: pipe-busy 700ms ease-in-out infinite alternate;
-  }
-  @keyframes pipe-busy {
-    to {
-      opacity: 0.45;
-    }
-  }
-  .pipe-arrow {
-    transition:
-      background 120ms ease,
-      box-shadow 120ms ease,
-      color 120ms ease,
-      scale 200ms var(--ease-out);
-  }
-  .pipe-stage.is-passing > .pipe-arrow {
-    background: var(--pressed);
-    box-shadow: var(--press-small);
-    color: var(--ink);
-    scale: 0.9;
   }
 }

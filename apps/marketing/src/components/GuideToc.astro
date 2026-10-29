@@ -1,0 +1,44 @@
+---
+/**
+ * "On this page" for a guide or text page: its sections (GuideSection), read
+ * from the page's rendered body, numbered like their headings. It sits in a
+ * recessed track beside the article and stays in view; with JavaScript
+ * (src/scripts/guide-toc.ts) a raised thumb follows the section being read,
+ * on the selection curve. Pages with fewer than three sections need none.
+ */
+interface Props {
+  /** The rendered body that holds the GuideSections. */
+  html: string;
+  label: string;
+}
+const { html, label } = Astro.props;
+
+const sections = [
+  ...html.matchAll(
+    /<section class="guide-section[^"]*" aria-labelledby="([^"]+)"[^>]*>\s*<h2 id="\1"[^>]*>([\s\S]*?)<\/h2>/g,
+  ),
+].map(([, id, title]) => ({ id, title: title.replace(/<[^>]+>/g, "").trim() }));
+---
+
+{sections.length >= 3 && (
+  <nav class="guide-toc" aria-label={label} data-guide-toc>
+    <p class="guide-toc-label" aria-hidden="true">
+      {label}
+    </p>
+    <div class="guide-toc-track">
+      <span class="guide-toc-thumb" aria-hidden="true" />
+      <ol class="guide-toc-links">
+        {sections.map((section, index) => (
+          <li>
+            <a href={`#${section.id}`} data-toc-link>
+              <span class="guide-toc-index" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span set:html={section.title} />
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </nav>
+)}

@@ -31,47 +31,69 @@ import Button from "../../components/ui/Button.astro";
     de fallos.
   </p>
   <p>Con tu consentimiento, la app envía solo estos eventos:</p>
-  <ul>
+  <ul class="guide-facts">
     <li>
-      <strong>App abierta</strong>: versión y compilación de la app, versión
-      principal de macOS, tipo de procesador, idioma de la interfaz y estado de
-      la licencia (prueba, con licencia, caducada o ninguna).
+      <strong>
+        App abierta<span class="visually-hidden">:</span>
+      </strong>{" "}
+      versión y compilación de la app, versión principal de macOS, tipo de
+      procesador, idioma de la interfaz y estado de la licencia (prueba, con
+      licencia, caducada o ninguna).
     </li>
     <li>
-      <strong>Configuración terminada</strong>: completada u omitida.
+      <strong>
+        Configuración terminada<span class="visually-hidden">:</span>
+      </strong>{" "}
+      completada u omitida.
     </li>
     <li>
-      <strong>Dictado completado</strong>: familia del motor de voz y si se
-      ejecuta en tu Mac o en línea, tipo de proveedor de refinamiento, perfil
-      integrado o «custom» (personalizado), duración de la grabación y tiempo
-      desde que paras hasta la entrega en rangos, estado de la entrega y si se
-      aplicó el refinamiento o se volvió a tu transcripción.
+      <strong>
+        Dictado completado<span class="visually-hidden">:</span>
+      </strong>{" "}
+      familia del motor de voz y si se ejecuta en tu Mac o en línea, tipo de
+      proveedor de refinamiento, perfil integrado o «custom» (personalizado),
+      duración de la grabación y tiempo desde que paras hasta la entrega en
+      rangos, estado de la entrega y si se aplicó el refinamiento o se volvió a
+      tu transcripción.
     </li>
     <li>
-      <strong>Dictado fallido</strong>: una categoría como permiso, modelo que
-      falta, clave que falta, error de voz o fallo de entrega. Los dictados
-      cancelados no se informan.
+      <strong>
+        Dictado fallido<span class="visually-hidden">:</span>
+      </strong>{" "}
+      una categoría como permiso, modelo que falta, clave que falta, error de
+      voz o fallo de entrega. Los dictados cancelados no se informan.
     </li>
     <li>
-      <strong>Descarga de modelo terminada</strong>: el identificador del modelo
-      en el catálogo integrado de Airdraft y si la descarga se completó, falló o
-      se canceló.
+      <strong>
+        Descarga de modelo terminada<span class="visually-hidden">:</span>
+      </strong>{" "}
+      el identificador del modelo en el catálogo integrado de Airdraft y si la
+      descarga se completó, falló o se canceló.
     </li>
     <li>
       <strong>Grabación o archivo transcrito</strong> (en «Transcribir»):
       duración en rangos y familia del motor de voz.
     </li>
     <li>
-      <strong>Evento de licencia</strong>: prueba iniciada o licencia activada.
+      <strong>
+        Evento de licencia<span class="visually-hidden">:</span>
+      </strong>{" "}
+      prueba iniciada o licencia activada.
     </li>
     <li>
-      <strong>Elección sobre los datos de uso</strong>: se envía cuando activas
-      la opción de compartir, y una vez cuando la desactivas.
+      <strong>
+        Elección sobre los datos de uso<span class="visually-hidden">:</span>
+      </strong>{" "}
+      se envía cuando activas la opción de compartir, y una vez cuando la
+      desactivas.
     </li>
     <li>
-      <strong>Informes de fallos</strong>: el tipo de error, los marcos de pila
-      y las bibliotecas del sistema y de la app cargadas que hacen falta para
-      localizar el fallo, sin nombres de usuario en las rutas de archivo.
+      <strong>
+        Informes de fallos<span class="visually-hidden">:</span>
+      </strong>{" "}
+      el tipo de error, los marcos de pila y las bibliotecas del sistema y de la
+      app cargadas que hacen falta para localizar el fallo, sin nombres de
+      usuario en las rutas de archivo.
     </li>
   </ul>
   <p>

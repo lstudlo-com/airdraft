@@ -227,6 +227,8 @@ export const zhCn: Messages = {
     refinementPlan: "使用你已经付费的 Claude 或 ChatGPT 套餐。",
     atCursor: "在光标位置",
     insertionLine: "最后用词汇修正名称，再粘贴到你正在打字的 App。",
+    heard: "呃 九点在 cooper tino 见面",
+    refined: "九点在 cooper tino 见面。",
     fix: ["九点在", "见面。"],
   },
   get: {

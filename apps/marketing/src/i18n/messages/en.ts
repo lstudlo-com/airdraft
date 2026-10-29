@@ -264,6 +264,8 @@ export const en: Messages = {
     atCursor: "At your cursor",
     insertionLine:
       "Vocabulary fixes names last, then the text goes into the app you’re typing in.",
+    heard: "um meet me in cooper tino at nine",
+    refined: "Meet me in cooper tino at nine.",
     fix: ["Meet me in", "at nine."],
   },
   get: {

@@ -219,6 +219,8 @@ export const zhTw: Messages = {
     refinementPlan: "沿用你已付費的 Claude 或 ChatGPT 訂閱。",
     atCursor: "在游標位置",
     insertionLine: "最後套用詞彙修正名稱，再貼進你正在打字的 App。",
+    heard: "呃 九點在 cooper tino 碰面",
+    refined: "九點在 cooper tino 碰面。",
     fix: ["九點在", "碰面。"],
   },
   get: {
