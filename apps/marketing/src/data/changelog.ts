@@ -8,11 +8,28 @@ export interface ChangelogEntry {
 }
 
 // Newest first, one entry per product version. Rebuilds share an entry.
-// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-26.
+// Publication dates: GitHub Releases, in Asia/Taipei, checked 2026-10-29.
 // Descriptions: published notes and commits between the corresponding tags.
 // These are personal-use Apple Development builds, not notarized distribution.
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
+  {
+    id: "0-19-1",
+    version: "0.19.1",
+    date: "2026-10-28",
+    title: "A shorter notice when a paste can’t happen",
+    changes: [
+      {
+        title: "Just “Dictation copied”",
+        description:
+          "When Airdraft can’t paste, because the destination changed or couldn’t be identified, the paste couldn’t be sent or confirmed, or a retry copied instead, the recording window used to widen into a full explanation. It now shows one short “Dictation copied” notice, and the reason stays in History.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.19.1-build.528",
+    },
+  },
   {
     id: "0-19-0",
     version: "0.19.0",

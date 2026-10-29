@@ -3,6 +3,16 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-19-1": {
+    title: "Un aviso más corto cuando no se puede pegar",
+    changes: [
+      {
+        title: "Solo “Dictado copiado”",
+        description:
+          "Cuando Airdraft no puede pegar, porque el destino cambió o no se pudo identificar, el pegado no se pudo enviar o confirmar, o un reintento copió en lugar de pegar, la ventana de grabación se ensanchaba con una explicación completa. Ahora muestra solo el aviso breve “Dictado copiado”, y el motivo queda en Historial.",
+      },
+    ],
+  },
   "0-19-0": {
     title: "El texto en directo pasa a ser tu transcripción",
     changes: [

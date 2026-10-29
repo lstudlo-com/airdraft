@@ -3,6 +3,16 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-19-1": {
+    title: "无法粘贴时只显示简短通知",
+    changes: [
+      {
+        title: "只显示“听写内容已复制”",
+        description:
+          "Airdraft 无法粘贴时（目标已改变或无法识别、粘贴无法发送或确认，或重试时改为复制），录音窗口原本会展开成一大段说明。现在只显示简短的“听写内容已复制”，原因保留在“历史记录”中。",
+      },
+    ],
+  },
   "0-19-0": {
     title: "实时文字直接成为转写结果",
     changes: [

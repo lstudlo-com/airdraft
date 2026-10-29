@@ -5,6 +5,16 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-19-1": {
+    title: "無法貼上時只顯示簡短通知",
+    changes: [
+      {
+        title: "只顯示「聽寫內容已拷貝」",
+        description:
+          "Airdraft 無法貼上時（目標已改變或無法辨識、貼上無法送出或確認，或重試時改為拷貝），錄音視窗原本會展開成一大段說明。現在只顯示簡短的「聽寫內容已拷貝」，原因保留在「記錄」中。",
+      },
+    ],
+  },
   "0-19-0": {
     title: "即時文字直接成為逐字稿",
     changes: [

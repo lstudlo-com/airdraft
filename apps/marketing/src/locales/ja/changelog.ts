@@ -4,6 +4,16 @@ import type { ChangelogText } from "../../data/changelog";
 // changes in the same order. App labels are the app's ja catalog values;
 // releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
+  "0-19-1": {
+    title: "貼り付けできないときの通知を短く",
+    changes: [
+      {
+        title: "「音声入力の内容をコピーしました」だけを表示",
+        description:
+          "貼り付け先が変わった、または特定できない、貼り付けを送信または確認できない、再試行で貼り付けの代わりにコピーしたなど、Airdraft が貼り付けできないとき、これまでは録音ウインドウが広がって詳しい説明を表示していました。現在は短い「音声入力の内容をコピーしました」だけを表示し、理由は「履歴」に残ります。",
+      },
+    ],
+  },
   "0-19-0": {
     title: "ライブテキストがそのまま書き起こしに",
     changes: [
