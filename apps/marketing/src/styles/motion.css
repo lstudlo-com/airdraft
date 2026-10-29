@@ -106,31 +106,38 @@
           exit 0% exit 90%;
       }
 
-      /* 2. The sample rises from the surface as it reaches the middle of the
-         window. The spoken words, inside a recessed well, lag; the raised
-         result card leads. */
-      .preview {
-        --rise-y: 56px;
+      /* 2. The sample is a scene of separate objects, and each rises from
+         the island as it arrives: the steps fade up, then the well, the
+         pill and the card rise one after another, the card (the raised
+         payoff) furthest. Pinned, they hold still while the scroll tells
+         the story (preview.ts), so nothing here moves while it does. */
+      .sample-steps {
+        --rise-y: 24px;
+        animation: motion-fade-up linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+      .sample-stage > * {
+        --rise-y: 48px;
+        --rise-scale: 0.94;
+        animation: motion-rise linear both;
+        animation-timeline: view();
+        animation-range: entry var(--stagger, 0%) entry 100%;
+      }
+      .sample-stage > .sample-link {
+        --stagger: 15%;
+        --rise-scale: 0.9;
+      }
+      .sample-stage > .sample-inserts {
+        --stagger: 30%;
+        --rise-y: 64px;
         --rise-scale: 0.92;
-        animation:
-          motion-rise linear both,
-          motion-lift linear both;
-        animation-timeline: view(), view();
-        animation-range:
-          entry 0% cover 45%,
-          entry 0% cover 45%;
       }
-      .preview .spoken > * {
-        --depth-range: 6px;
-        animation: motion-lag linear both;
+      .sample-controls {
+        --rise-y: 20px;
+        animation: motion-fade-up linear both;
         animation-timeline: view();
-        animation-range: cover 0% cover 100%;
-      }
-      .preview .written {
-        --depth-range: 6px;
-        animation: motion-lead linear both;
-        animation-timeline: view();
-        animation-range: cover 0% cover 100%;
+        animation-range: entry 20% entry 100%;
       }
 
       /* 3. Bento. Tiles rise as they enter, left to right within a row on

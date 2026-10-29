@@ -1480,168 +1480,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     }
   }
 
-  /* Dictation sample: the homepage's one telling of how dictation works. */
-  .preview {
-    padding: var(--space-6);
-    text-align: left;
-  }
-  /* Its three steps run along the top and follow the sample's state: hold
-     and speak while it listens (the keycaps sink), let go while it
-     transcribes and refines, the result while it types and rests. Past
-     steps read as ink, the current one carries the accent number, and
-     without JavaScript every step is plainly readable. */
-  .preview-steps {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-4);
-    margin: 0 0 var(--space-5);
-    padding: var(--space-1) var(--space-1) 0;
-    list-style: none;
-  }
-  .preview-steps li {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    min-width: 0;
-    color: var(--muted);
-    font-size: var(--step-0);
-    font-weight: 500;
-    line-height: 1.35;
-    transition: color 320ms ease;
-  }
-  .step-hold {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px var(--space-2);
-  }
-  .step-index {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: var(--fill-control);
-    box-shadow:
-      inset 0.75px 0.75px 0 var(--rim),
-      var(--raise-small);
-    color: var(--muted);
-    font: 600 var(--step--1) / 1 var(--font-rounded);
-    transition:
-      background 320ms ease,
-      color 320ms ease,
-      box-shadow 320ms ease;
-  }
-  .preview:is(
-      [data-state="listening"],
-      [data-state="decoding"],
-      [data-state="refining"],
-      [data-state="typing"],
-      [data-state="done"]
-    )
-    .preview-steps
-    li {
-    color: color-mix(in srgb, var(--muted), transparent 35%);
-  }
-  .preview[data-state="listening"] li[data-step="0"],
-  .preview:is([data-state="decoding"], [data-state="refining"])
-    li:is([data-step="0"], [data-step="1"]),
-  .preview:is([data-state="typing"], [data-state="done"]) .preview-steps li {
-    color: var(--ink);
-  }
-  .preview[data-state="listening"] [data-step="0"] .step-index,
-  .preview:is([data-state="decoding"], [data-state="refining"])
-    [data-step="1"]
-    .step-index,
-  .preview:is([data-state="typing"], [data-state="done"])
-    [data-step="2"]
-    .step-index {
-    background: var(--accent-strong);
-    box-shadow: var(--raise-small);
-    color: #fff;
-  }
-  .preview[data-state="listening"] .step-hold kbd {
-    translate: 0.5px 1px;
-    background: var(--pressed);
-    box-shadow: var(--press-small);
-  }
-  .preview-stage {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr);
-    align-items: stretch;
-  }
-  .spoken,
-  .written {
-    padding: var(--space-5);
-    border-radius: var(--radius-well);
-  }
-  .field-label {
-    display: block;
-    margin-bottom: 10px;
-    font-size: var(--step--1);
-    font-weight: 600;
-    color: var(--muted);
-  }
-  .spoken p,
-  .result-copy p {
-    font-size: var(--step-1);
-    line-height: 1.65;
-  }
-  .word {
-    transition: opacity 200ms ease;
-  }
-  .preview:is([data-state="idle"], [data-state="listening"]) .word:not(.said) {
-    opacity: 0.28;
-  }
-  .js .preview:not([data-state]) [data-spoken] {
-    opacity: 0.28;
-  }
-  .js .preview:not([data-state]) .result-copy {
-    visibility: hidden;
-  }
-  .filler {
-    color: var(--muted);
-    background: linear-gradient(currentColor, currentColor) no-repeat 0 56% / 0%
-      1.5px;
-    -webkit-box-decoration-break: clone;
-    box-decoration-break: clone;
-    transition:
-      background-size 320ms var(--ease-out),
-      opacity 200ms ease;
-  }
-  .filler.struck {
-    background-size: 100% 1.5px;
-  }
-  .stage-arrow {
-    display: grid;
-    place-items: center;
-    color: var(--muted);
-  }
-  /* What Airdraft inserts: pressed in while it waits, raised once typed. */
-  .written {
-    background: var(--fill-control);
-    box-shadow: var(--edge), var(--raise-control);
-    transition:
-      box-shadow 520ms var(--ease-out),
-      background 520ms var(--ease-out);
-  }
-  .preview:is(
-      [data-state="idle"],
-      [data-state="listening"],
-      [data-state="decoding"],
-      [data-state="refining"]
-    )
-    .written {
-    background: var(--well-soft);
-    box-shadow: var(--sink-soft);
-  }
-  .result-copy {
-    min-height: 5.1em;
-  }
-  .result-copy .placeholder {
-    color: var(--muted);
-  }
   /* A text caret in ink. */
   .caret {
     display: inline-block;
@@ -1651,12 +1489,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     border-radius: 1px;
     vertical-align: -0.2em;
     background: var(--ink);
-  }
-  .preview:is([data-state="typing"], [data-state="done"]) .caret {
-    animation: blink 1.1s steps(1) infinite;
-  }
-  .preview[data-state="typing"] .caret {
-    animation-play-state: paused;
   }
   @keyframes blink {
     50% {
@@ -1745,45 +1577,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     margin: 0;
     align-self: flex-start;
   }
-  .written .segmented {
-    margin-top: 18px;
-  }
-  .preview-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    margin-top: 22px;
-  }
-  .run-button {
-    min-height: 44px;
-    padding: 0 18px 0 var(--space-4);
-  }
-  .stop-symbol {
-    display: none;
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    background: currentColor;
-  }
-  .preview:is(
-      [data-state="listening"],
-      [data-state="decoding"],
-      [data-state="refining"],
-      [data-state="typing"]
-    )
-    .play-symbol {
-    display: none;
-  }
-  .preview:is(
-      [data-state="listening"],
-      [data-state="decoding"],
-      [data-state="refining"],
-      [data-state="typing"]
-    )
-    .stop-symbol {
-    display: block;
-  }
-
   /* The app's recording pill (IndicatorPanel): a graphite capsule holding a
      small dark well of white bars, then the timer or state. Always dark. */
   .hud {
@@ -1799,10 +1592,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       inset 0 0 0 0.75px rgb(255 255 255 / 0.05),
       2px 3px 8px rgb(0 0 0 / 0.3);
     transition: opacity 320ms ease;
-  }
-  .preview:is([data-state="idle"], [data-state="done"]) .hud,
-  .preview:not([data-state]) .hud {
-    opacity: 0.6;
   }
   .hud-well {
     display: flex;
@@ -1830,7 +1619,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       transform 90ms linear,
       opacity 240ms ease;
   }
-  .preview:is([data-state="decoding"], [data-state="refining"]) .hud-bars span,
   .art-hud .hud-bars span {
     opacity: 0.3;
   }
@@ -1839,21 +1627,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     font: 500 var(--step-0) / 1 var(--font-rounded);
     font-variant-numeric: tabular-nums;
   }
-  /* The steps and the pill show the state; the status line only speaks it. */
-  .preview-status {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-  .no-script-note {
-    margin-top: 14px;
-    font-size: var(--step--1);
-    color: var(--muted);
-  }
-
   /* Sections */
   .section-first {
     padding-top: var(--space-14);
@@ -2766,35 +2539,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .wave-caret {
       height: 52px;
     }
-    .preview {
-      padding: var(--space-4);
-    }
-    .preview-steps {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 10px;
-      margin-bottom: var(--space-4);
-    }
-    .preview-stage {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .stage-arrow {
-      height: 36px;
-    }
-    .stage-arrow svg {
-      rotate: 90deg;
-    }
-    .spoken,
-    .written {
-      padding: 18px;
-    }
-    .result-copy {
-      min-height: 0;
-    }
-    .preview-controls {
-      flex-wrap: wrap;
-      gap: var(--space-3);
-      margin-top: 18px;
-    }
     .hud-bars span:nth-child(n + 11) {
       display: none;
     }
@@ -2937,8 +2681,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .brand-groove,
     kbd,
     .art-field,
-    .art-output,
-    .written {
+    .art-output {
       outline: 1px solid color-mix(in srgb, var(--ink), transparent 50%);
       outline-offset: -1px;
     }

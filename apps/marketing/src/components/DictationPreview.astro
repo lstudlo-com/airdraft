@@ -1,21 +1,27 @@
 ---
-import Arrow from "./Arrow.astro";
 import Button from "./ui/Button.astro";
 import Hud from "./ui/Hud.astro";
 import Keys from "./ui/Keys.astro";
 import { appLabels } from "../data/app";
 import type { Locale } from "../i18n";
 import { messages } from "../i18n/messages";
+import "../styles/sample.css";
 
 /**
- * The authored sample dictation (src/scripts/preview.ts), the homepage's one
- * telling of how dictation works. Its three steps (hold the shortcut and
- * speak, let go while Airdraft tidies, the text at the cursor) run along the
- * panel's top and light in turn as the sample plays, the current number in
- * the accent. Each language has its own spoken line and profile results
- * (src/i18n/messages); the script reads them from data attributes. Profile
- * names and HUD states are the app's own labels in the page's language
- * (src/data/app.ts).
+ * "Hold, speak, let go": the homepage's one telling of how dictation works
+ * (src/scripts/preview.ts). The section is a scene on the island, not one
+ * card: its three steps sit centered under the title on a recessed progress
+ * track, and below them stand separate objects, the recessed "What you said"
+ * well, the recording pill floating between, the raised "What Airdraft
+ * inserts" card, and the profile picker and Run key as standalone controls.
+ *
+ * On wide windows the scene pins while the visitor scrolls and the scroll
+ * tells the story: step 1 listens, step 2 tidies, step 3 types at the cursor;
+ * scrolling back reverses it. Phones, short windows and browsers without
+ * room play it once on screen instead. Reduced motion and no JavaScript rest
+ * on the finished frame. Each language has its own spoken line and profile
+ * results (src/i18n/messages); profile names and HUD states are the app's
+ * own labels in the page's language (src/data/app.ts).
  */
 interface Props {
   locale?: Locale;
@@ -40,96 +46,110 @@ const profiles = [
 ---
 
 <section
-  class="preview panel"
+  class="section wrap section-space sample"
   id="try"
-  aria-label={copy.name}
+  aria-labelledby="sample-heading"
   data-preview
   data-examples={JSON.stringify(copy.examples)}
   data-labels={JSON.stringify(labels)}
 >
-  <ol class="preview-steps">
-    {copy.steps.map((step, index) => (
-      <li data-step={index}>
-        <span class="step-index" aria-hidden="true">
-          {index + 1}
-        </span>
-        {typeof step === "string" ? (
-          <span>{step}</span>
-        ) : (
-          <span class="step-hold">
-            {step[0] && <span>{step[0]}</span>}
-            <Keys keys={["⌃", "⌥"]} label="Control Option" />
-            <span>{step[1]}</span>
-          </span>
-        )}
-      </li>
-    ))}
-  </ol>
-  <div class="preview-stage">
-    <div class="spoken well">
-      <span class="field-label">{copy.said}</span>
-      <p data-spoken>
-        {copy.spoken.map((part) =>
-          typeof part === "string" ? (
-            part
-          ) : (
-            <span class="filler struck">{part.filler}</span>
-          ),
-        )}
-      </p>
-    </div>
-    <span class="stage-arrow" aria-hidden="true">
-      <Arrow />
-    </span>
-    <div class="written" data-written>
-      <span class="field-label">{copy.inserts}</span>
-      <div class="result-copy" aria-live="polite" data-result>
-        <p>
-          {copy.examples.clean}
-          <span class="caret" aria-hidden="true"></span>
-        </p>
+  <div class="sample-track" data-sample-track>
+    <div class="sample-pin" data-sample-pin>
+      <div class="section-heading">
+        <h2 id="sample-heading">{copy.title}</h2>
       </div>
-      <div
-        class="segmented"
-        role="group"
-        aria-label={copy.picker}
-        data-profile-picker
-        hidden
-      >
-        {profiles.map(([id, name], index) => (
-          <button
-            type="button"
-            data-profile={id}
-            aria-pressed={index === 0 ? "true" : "false"}
+
+      <div class="sample-scene" role="group" aria-label={copy.name}>
+        <ol class="sample-steps" data-sample-steps>
+          {copy.steps.map((step, index) => (
+            <li data-step={index}>
+              <span class="step-index" aria-hidden="true">
+                {index + 1}
+              </span>
+              {typeof step === "string" ? (
+                <span class="step-label">{step}</span>
+              ) : (
+                <span class="step-label step-hold">
+                  {step[0] && <span>{step[0]}</span>}
+                  <Keys keys={["⌃", "⌥"]} label="Control Option" />
+                  <span>{step[1]}</span>
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
+
+        <div class="sample-stage">
+          <div class="sample-said" data-sample-said>
+            <span class="field-label">{copy.said}</span>
+            <p data-spoken>
+              {copy.spoken.map((part) =>
+                typeof part === "string" ? (
+                  part
+                ) : (
+                  <span class="filler struck">{part.filler}</span>
+                ),
+              )}
+            </p>
+          </div>
+
+          <div class="sample-link" aria-hidden="true">
+            <Hud locale={locale} class="sample-hud" />
+          </div>
+
+          <div class="sample-inserts" data-written>
+            <span class="field-label">{copy.inserts}</span>
+            <div class="result-copy" aria-live="polite" data-result>
+              <p>
+                {copy.examples.clean}
+                <span class="caret" aria-hidden="true"></span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sample-controls">
+          <div
+            class="segmented"
+            role="group"
+            aria-label={copy.picker}
+            data-profile-picker
+            hidden
           >
-            {name}
-          </button>
-        ))}
+            {profiles.map(([id, name], index) => (
+              <button
+                type="button"
+                data-profile={id}
+                aria-pressed={index === 0 ? "true" : "false"}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+          <Button class="run-button" data-play hidden>
+            <svg
+              slot="icon"
+              class="play-symbol"
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
+            </svg>
+            <span slot="icon" class="stop-symbol" aria-hidden="true"></span>
+            <span data-play-label>{copy.run}</span>
+          </Button>
+        </div>
+        <p class="preview-status" aria-live="polite" data-status></p>
+        <noscript>
+          <p class="no-script-note">{copy.noscript}</p>
+        </noscript>
       </div>
     </div>
+    <div class="sample-runway" aria-hidden="true"></div>
   </div>
-  <div class="preview-controls">
-    <Button class="run-button" data-play hidden>
-      <svg
-        slot="icon"
-        class="play-symbol"
-        viewBox="0 0 24 24"
-        width="16"
-        height="16"
-        fill="currentColor"
-        aria-hidden="true"
-      >
-        <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
-      </svg>
-      <span slot="icon" class="stop-symbol" aria-hidden="true"></span>
-      <span data-play-label>{copy.run}</span>
-    </Button>
-    <Hud locale={locale} />
-    <p class="preview-status" aria-live="polite" data-status></p>
-  </div>
-  <noscript>
-    <p class="no-script-note">{copy.noscript}</p>
-  </noscript>
 </section>
 
 <script>

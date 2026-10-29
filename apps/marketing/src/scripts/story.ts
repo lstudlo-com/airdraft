@@ -1,5 +1,5 @@
 // Scroll storytelling for the homepage, built on GSAP and ScrollTrigger:
-// headings, the sample, panels, bento tiles and offers rise into place as
+// headings, the sample's objects, panels, bento tiles and offers rise into place as
 // they enter, where the browser has no scroll timelines (motion.css does it
 // elsewhere). The bento's graphics perform in bento.ts, the Transcribe panel
 // in meetings.ts and the provider board's run in pipeline.ts.
@@ -25,7 +25,7 @@ function reveals() {
   const targets = [
     ...all(".section-heading"),
     ...all("[data-reveal]"),
-    ...all("[data-preview]"),
+    ...all(".sample-steps, .sample-stage > *, .sample-controls"),
   ];
   for (const target of targets) {
     gsap.from(target, {
