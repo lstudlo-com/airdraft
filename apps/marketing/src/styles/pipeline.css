@@ -2,10 +2,11 @@
    the island, Speech, Refinement and Insertion, joined by recessed channels.
 
    One number drives everything: --p, from 0 (the dictation has not started)
-   to 1 (it has landed at the cursor). A scroll timeline runs it as the
-   visitor scrolls (pinned on desktop, as each card passes when stacked), so
-   scrolling back reverses the story; src/scripts/pipeline.ts runs it where
-   there are no scroll timelines. Its resting value is 1, the finished
+   to 1 (it has landed at the cursor). The section's scroll timeline runs it
+   once the cards have arrived under the sticky title (pinned below it where
+   the window has room, src/scripts/sticky.ts), so scrolling back reverses
+   the story; src/scripts/pipeline.ts runs it where there are no scroll
+   timelines. Its resting value is 1, the finished
    dictation, which is what reduced motion and no-JS browsers without scroll
    timelines show.
 
@@ -30,10 +31,7 @@
 @layer components {
   .pipe-scroll {
     --p: 1;
-    /* The scroll the story runs over while the cards are pinned: a spacer
-     after them (::after), since a sticky box stays inside its parent's
-     content box and padding would not hold it. */
-    --run: 150vh;
+    --runway: 120vh;
   }
   .pipe-flow {
     --link: 72px;
@@ -474,9 +472,10 @@
 }
 
 @layer responsive {
-  /* The story runs from the scroll where the browser has scroll timelines
-     and motion is allowed: the cards pin below the header while the
-     dictation runs through them, then the page moves on. */
+  /* The story runs from the section's scroll timeline where the browser
+     has one and motion is allowed, over --story-0 to --story-1
+     (sticky.ts): the runway while the cards are pinned, or from the first
+     card's arrival to the last's when they are not. */
   @keyframes pipe-run {
     from {
       --p: 0;
@@ -487,37 +486,16 @@
   }
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
-      .pipe-scroll::after {
-        content: "";
-        display: block;
-        height: var(--run);
-      }
-      .pipe-scroll {
-        view-timeline: --pipe block;
+      .section-sticky .pipe-scroll {
         animation: pipe-run linear both;
-        animation-timeline: --pipe;
-        animation-range: contain 0% contain 100%;
+        animation-timeline: --sticky;
+        animation-range: cover var(--story-0, 0px) cover var(--story-1, 100%);
       }
-      .pipe-pin {
-        position: sticky;
-        top: max(calc(var(--header) + 24px), calc(50vh - 270px));
-      }
-    }
-    /* The same, driven by pipeline.ts. */
-    .pipe-scroll.is-scrubbed::after {
-      content: "";
-      display: block;
-      height: var(--run);
-    }
-    .pipe-scroll.is-scrubbed .pipe-pin {
-      position: sticky;
-      top: max(calc(var(--header) + 24px), calc(50vh - 270px));
     }
   }
 
-  /* Stacked: the cards follow each other down the page and nothing pins;
-     each plays as it passes the middle of the window. The channels turn
-     upright between them. */
+  /* Stacked: the cards follow each other down the page and nothing pins.
+     The channels turn upright between them. */
   @media (max-width: 1000px) {
     .pipe-flow {
       --link: 64px;
@@ -547,25 +525,6 @@
       width: 10px;
       height: var(--packet);
       translate: 0 calc(var(--c) * (var(--len) - var(--packet) - 4px));
-    }
-    @media (prefers-reduced-motion: no-preference) {
-      @supports (animation-timeline: view()) {
-        .pipe-scroll::after {
-          content: none;
-        }
-        .pipe-scroll {
-          animation-range: cover 10% cover 82%;
-        }
-        .pipe-pin {
-          position: static;
-        }
-      }
-      .pipe-scroll.is-scrubbed::after {
-        content: none;
-      }
-      .pipe-scroll.is-scrubbed .pipe-pin {
-        position: static;
-      }
     }
   }
   @media (max-width: 700px) {

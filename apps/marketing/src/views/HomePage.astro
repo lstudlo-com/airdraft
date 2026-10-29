@@ -125,7 +125,6 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
               {copy.sample}
             </Button>
           </div>
-          {!onSale && <p class="hero-note">{copy.notOnSale}</p>}
           <ul class="hero-meta">
             {copy.facts.map((fact) => (
               <li>{fact}</li>
@@ -138,7 +137,7 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 
     <DictationPreview locale={locale} />
 
-    <Section id="features" title={copy.featuresTitle}>
+    <Section id="features" title={copy.featuresTitle} sticky>
       <div class="bento">
         <BentoTile
           wide
@@ -381,4 +380,5 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 
 <script>
   import "../scripts/story";
+  import "../scripts/sticky";
 </script>

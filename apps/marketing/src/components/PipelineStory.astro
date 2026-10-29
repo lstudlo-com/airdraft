@@ -145,9 +145,9 @@ const fixed = words(copy.fix[0]);
 const tail = words(copy.fix[1]);
 ---
 
-<Section id="how-it-works" title={copy.title} intro={copy.intro}>
-  <div class="pipe-scroll" data-pipeline>
-    <div class="pipe-pin">
+<Section id="how-it-works" title={copy.title} sticky>
+  <div class="pipe-scroll" data-pipeline data-pin-runway>
+    <div class="pipe-pin" data-pin>
       <ol class="pipe-flow">
         {stages.map((stage, index) => (
           <li class="pipe-stage" data-stage={index + 1}>

@@ -12,8 +12,8 @@ import "../styles/sample.css";
  * (src/scripts/preview.ts). The section is a scene on the island, not one
  * card: its three steps sit centered under the title on a recessed progress
  * track, and below them stand separate objects, the recessed "What you said"
- * well, the recording pill floating between, the raised "What Airdraft
- * inserts" card, and the profile picker and Run key as standalone controls.
+ * well and the raised "What Airdraft inserts" card, with the recording pill
+ * floating between them and, under it, the profile picker and the Run key.
  *
  * On wide windows the scene pins while the visitor scrolls and the scroll
  * tells the story: step 1 listens, step 2 tidies, step 3 types at the cursor;
@@ -93,8 +93,44 @@ const profiles = [
             </p>
           </div>
 
-          <div class="sample-link" aria-hidden="true">
-            <Hud locale={locale} class="sample-hud" />
+          <div class="sample-link">
+            <div class="sample-hud-row" aria-hidden="true">
+              <Hud locale={locale} class="sample-hud" />
+            </div>
+            <div class="sample-controls">
+              <div
+                class="segmented"
+                role="group"
+                aria-label={copy.picker}
+                data-profile-picker
+                hidden
+              >
+                {profiles.map(([id, name], index) => (
+                  <button
+                    type="button"
+                    data-profile={id}
+                    aria-pressed={index === 0 ? "true" : "false"}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+              <Button class="run-button" data-play hidden>
+                <svg
+                  slot="icon"
+                  class="play-symbol"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
+                </svg>
+                <span slot="icon" class="stop-symbol" aria-hidden="true"></span>
+                <span data-play-label>{copy.run}</span>
+              </Button>
+            </div>
           </div>
 
           <div class="sample-inserts" data-written>
@@ -108,40 +144,6 @@ const profiles = [
           </div>
         </div>
 
-        <div class="sample-controls">
-          <div
-            class="segmented"
-            role="group"
-            aria-label={copy.picker}
-            data-profile-picker
-            hidden
-          >
-            {profiles.map(([id, name], index) => (
-              <button
-                type="button"
-                data-profile={id}
-                aria-pressed={index === 0 ? "true" : "false"}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-          <Button class="run-button" data-play hidden>
-            <svg
-              slot="icon"
-              class="play-symbol"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
-            </svg>
-            <span slot="icon" class="stop-symbol" aria-hidden="true"></span>
-            <span data-play-label>{copy.run}</span>
-          </Button>
-        </div>
         <p class="preview-status" aria-live="polite" data-status></p>
         <noscript>
           <p class="no-script-note">{copy.noscript}</p>

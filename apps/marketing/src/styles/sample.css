@@ -1,9 +1,10 @@
 /* "Hold, speak, let go" (components/DictationPreview.astro,
    src/scripts/preview.ts): a scene on the island rather than one card. The
    three steps stand centered under the title on a recessed progress track;
-   below them, separate objects: the recessed "What you said" well, the
-   recording pill floating on the groove between, the raised "What Airdraft
-   inserts" card, then the profile picker and the Run key on their own.
+   below them, separate objects: the recessed "What you said" well and the
+   raised "What Airdraft inserts" card, with the recording pill floating on
+   the groove between them and the profile picker and the Run key under it,
+   so the scene is one row.
 
    The script sets data-state (idle, listening, decoding, refining, typing,
    done) and the two track fills (--fill-1, --fill-2, 0 to 1). On wide
@@ -167,13 +168,16 @@
   }
 
   /* The stage: the well, the pill on the groove between, the card. The
-     middle column is as wide as the pill's widest state (--hud-column,
-     measured by preview.ts), so the well and the card never move while the
-     pill grows and shrinks from its centre, as in the app. */
+     middle column is at least as wide as the pill's widest state
+     (--hud-column, measured by preview.ts), so the well and the card never
+     move while the pill grows and shrinks from its centre, as in the app;
+     the picker under the pill may widen it. */
   .sample-stage {
     --side: minmax(0, 1fr);
     display: grid;
-    grid-template-columns: var(--side) var(--hud-column, 13.5rem) var(--side);
+    grid-template-columns:
+      var(--side) minmax(var(--hud-column, 13.5rem), max-content)
+      var(--side);
     align-items: stretch;
     margin-top: var(--space-16);
     text-align: start;
@@ -259,15 +263,25 @@
     animation-play-state: paused;
   }
 
-  /* The pill floats over an engraved groove that joins the well to the
-     card: it hangs higher, with a longer shadow, while it works, and rests
-     dimmed, closer to the island, before and after. */
+  /* The middle column: the pill, then the controls under it. The pill
+     floats over an engraved groove that joins the well to the card: it
+     hangs higher, with a longer shadow, while it works, and rests dimmed,
+     closer to the island, before and after. */
   .sample-link {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-6);
+  }
+  .sample-hud-row {
     position: relative;
     display: grid;
     place-items: center;
+    align-self: stretch;
+    min-height: 56px;
   }
-  .sample-link::before {
+  .sample-hud-row::before {
     content: "";
     position: absolute;
     inset-inline: var(--space-3);
@@ -304,15 +318,14 @@
     opacity: 0.3;
   }
 
-  /* Standalone controls under the stage: the profile picker re-runs the
-     refinement, the key runs the sample again (or stops it). */
+  /* Standalone controls under the pill: the profile picker re-runs the
+     refinement, the key under it runs the sample again (or stops it). */
   .sample-controls {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: var(--space-4) var(--space-5);
-    margin-top: var(--space-10);
+    gap: var(--space-4);
+    padding-inline: var(--space-4);
   }
   .run-button {
     min-height: 44px;
@@ -367,7 +380,9 @@
 @layer responsive {
   @media (max-width: 1000px) {
     .sample-stage {
-      grid-template-columns: var(--side) var(--hud-column, 11rem) var(--side);
+      grid-template-columns:
+        var(--side) minmax(var(--hud-column, 11rem), max-content)
+        var(--side);
     }
     .sample-said,
     .sample-inserts {
@@ -398,15 +413,28 @@
     .step-hold {
       gap: 4px 6px;
     }
+    /* Stacked: the well, the pill on its groove, the card, then the
+       controls. */
     .sample-stage {
       grid-template-columns: minmax(0, 1fr);
       margin-top: var(--space-12);
     }
     .sample-link {
+      display: contents;
+    }
+    .sample-hud-row {
+      order: 1;
       height: 76px;
     }
+    .sample-inserts {
+      order: 2;
+    }
+    .sample-controls {
+      order: 3;
+      margin-top: var(--space-8);
+    }
     /* The groove stands upright between the well and the card. */
-    .sample-link::before {
+    .sample-hud-row::before {
       inset-block: 0;
       inset-inline: calc(50% - 1px) auto;
       width: 3px;
@@ -421,9 +449,6 @@
     }
     .result-copy {
       min-height: 0;
-    }
-    .sample-controls {
-      margin-top: var(--space-8);
     }
   }
   /* Increase Contrast adds explicit edges, as in the app. */

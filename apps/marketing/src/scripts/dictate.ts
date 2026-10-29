@@ -1,12 +1,12 @@
-// The hero's waveform card does what its caption says. Hold ⌃⌥, or press and
-// hold the waveform or its keycaps: the recording pill replaces the caption
-// and a live bar grows at the caret. Let go: the pill shows Refining, the bar
+// The hero's waveform card does what the app's first-run line says (kept for
+// assistive technology). Hold ⌃⌥, or press and hold the waveform: the
+// recording pill rises under the card and a live bar grows at the caret. Let go: the pill shows Refining, the bar
 // settles at a height from the dictation's length (the app's 0.26 + 0.74 ×
 // √share), the oldest bar slides out, and the caret lifts as it does in the
 // app when a dictation lands (HomeHero's flare).
 //
 // Nothing is recorded: the level is a synthetic speech envelope. The card is
-// decorative (aria-hidden visuals); the caption carries the instruction. Any
+// decorative (aria-hidden visuals); a hidden line carries the instruction. Any
 // third key cancels a keyboard hold, so VoiceOver's ⌃⌥ commands never add a
 // bar. With reduced motion the live bar holds one level and nothing animates.
 
@@ -128,7 +128,7 @@ function setup(card: HTMLElement) {
         settled.classList.add("is-settling");
         settled.classList.remove("is-live");
         settled.style.setProperty("--h", height.toFixed(3));
-        settled.style.setProperty("--cap", (60 / (48 * height)).toFixed(3));
+        settled.style.setProperty("--cap", (40 / (32 * height)).toFixed(3));
         settled.style.removeProperty("--live");
         settled.dataset.bar = "";
         window.setTimeout(() => settled.classList.remove("is-settling"), 520);
@@ -191,11 +191,8 @@ function setup(card: HTMLElement) {
     cancel();
   });
 
-  // Pointer: press and hold the waveform or the caption's keycaps.
-  for (const target of [
-    wave,
-    ...card.querySelectorAll<HTMLElement>(".hero-caption kbd"),
-  ]) {
+  // Pointer: press and hold the waveform.
+  for (const target of [wave]) {
     target.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
       // Keep receiving the release even if the pointer leaves the target.

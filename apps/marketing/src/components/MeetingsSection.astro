@@ -12,8 +12,8 @@ import "../styles/meetings.css";
  * one panel: the recording comes in (a raised card with the app's title and
  * metadata line), the speakers split into lanes (Home waveform bars, one
  * lane per speaker, carved into the island), the transcript is written out
- * turn by turn (one raised card per turn, the second speaker at the far
- * side), then it exports (recessed slots that raised TXT, JSON, SRT and VTT
+ * turn by turn (rows in one raised transcript card, speaker, time and words
+ * in aligned columns, grooves between them), then it exports (recessed slots that raised TXT, JSON, SRT and VTT
  * tiles rise into). Each beat sits under its own numbered label; the current
  * beat's number takes the accent, like the dictation sample's steps.
  * Internal names (file, #meetings, meetings.ts) keep the feature's former
@@ -30,7 +30,8 @@ import "../styles/meetings.css";
  * --a and --b), and everything inside reads --ts-k, so the resting value
  * (1, registered in meetings.css) is the finished transcript without
  * JavaScript or with reduced motion. motion.css scrubs --ts-p with the
- * scroll (pinned on tall desktop windows, beat by beat when stacked);
+ * scroll (the stage pinned under the sticky title where it fits,
+ * src/scripts/sticky.ts; otherwise each beat its own --ts-k);
  * src/scripts/meetings.ts plays it in time from the play key, a timestamp or
  * the lanes, and plays it on arrival where scroll timelines are missing.
  *
@@ -100,9 +101,9 @@ const formats = ["TXT", "JSON", "SRT", "VTT"];
 const glyph = [0.42, 0.78, 1, 0.64, 0.34];
 ---
 
-<Section id="meetings" title={copy.title} intro={copy.intro}>
-  <div class="ts" data-transcript>
-    <article class="ts-stage" aria-label={copy.sample} data-reveal="">
+<Section id="meetings" title={copy.title} sticky>
+  <div class="ts" data-transcript data-pin-runway>
+    <article class="ts-stage" aria-label={copy.sample} data-reveal="" data-pin>
       <div class="ts-beat ts-beat-source" style={range("source")}>
         <h3 class="ts-label">
           <span class="ts-index" aria-hidden="true">
@@ -197,24 +198,26 @@ const glyph = [0.42, 0.78, 1, 0.64, 0.34];
           </span>
           {copy.steps[2]}
         </h3>
-        <ol class="turns">
-          {turns.map((turn, index) => (
-            <li
-              class="turn"
-              data-speaker={turn.speaker}
-              style={`--at: ${arrival(index, turns.length)}`}
-            >
-              <Chip class="turn-speaker" data-speaker={turn.speaker}>
-                <i aria-hidden="true" />
-                {app.speaker(turn.speaker)}
-              </Chip>
-              <span class="turn-time" data-seek>
-                {turn.time}
-              </span>
-              <p>{turn.text}</p>
-            </li>
-          ))}
-        </ol>
+        <div class="ts-doc">
+          <ol class="turns">
+            {turns.map((turn, index) => (
+              <li
+                class="turn"
+                data-speaker={turn.speaker}
+                style={`--at: ${arrival(index, turns.length)}`}
+              >
+                <Chip class="turn-speaker" data-speaker={turn.speaker}>
+                  <i aria-hidden="true" />
+                  {app.speaker(turn.speaker)}
+                </Chip>
+                <span class="turn-time" data-seek>
+                  {turn.time}
+                </span>
+                <p>{turn.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
 
       <div class="ts-beat ts-beat-export" style={range("export")}>

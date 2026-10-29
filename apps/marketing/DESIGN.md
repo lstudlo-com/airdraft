@@ -232,7 +232,7 @@ Gradients run from the top-left corner to the bottom right (`135deg`).
 
 - **Ink** (`#222222` / `#dedede`): headings and primary text.
 - **Muted** (`#5c5c5c` / `#a3a3a3`): supporting text; 5.3:1 or better on the island in both appearances.
-- **Quiet** (`#5e5e5e` / `#a3a3a3`): only the hero's facts line, 4.5:1 or better on every surface it can sit on, the well included.
+- **Quiet** (`#5e5e5e` / `#a3a3a3`): only the hero's facts line, a small label under the keys that never competes with them. It is dimmed further to 60% opacity (owner's choice, 2026-10-30), which puts it below AA (about 2.4:1 light, 3.1:1 dark); the same facts are in the lede, the FAQ and Get Airdraft.
 
 The app's secondary label colour is lighter; the site darkens it to meet WCAG AA.
 
@@ -382,35 +382,35 @@ every state and the palette in the current appearance.
 ### Hero copy
 
 The headline, then one sentence that says what Airdraft is (`home.lede`:
-`--step-1`, muted, at most `38rem`, `24px` below), the three keys, then, until
-`siteLinks.checkout` is set, one short availability line (`home.notOnSale`,
-`--step--1`, muted) and the facts line. Until checkout opens the primary key
-(Get Airdraft) leads down to `#get-airdraft` on the page, where the free build
-is; once it opens, to Pricing. The lede and the note rise with the keys.
+`--step-1`, muted, at most `38rem`, `24px` below), the three keys, then the
+facts line, dimmed. There is no availability line. Until checkout opens the
+primary key (Get Airdraft) leads down to `#get-airdraft` on the page, where the
+free build is; once it opens, to Pricing. The lede rises with the keys.
 
 ### Hero card (`HeroCard.astro`, `ui/Waveform.astro`)
 
 Home's hero card from the app, without its metrics (the site never shows usage
-counts): a raised card with a faint top-left sheen holding the waveform well,
-then the app's own first-run caption, "Hold ⌃⌥ and speak. Each dictation adds a
-bar." The forty bars are decorative; their heights are a fixed pattern shaped
-like the app's `0.26 + 0.74 × √share` mapping, not data.
+counts): a raised card with a faint top-left sheen around the waveform well,
+nothing else, with the same inset on every side (two thirds of `32px`; two
+thirds of `16px` on phones). The app's first-run line, "Hold ⌃⌥ and speak.
+Each dictation adds a bar.", stays only for assistive technology. The forty
+bars are decorative; their heights are a fixed pattern shaped like the app's
+`0.26 + 0.74 × √share` mapping, not data.
 
 The card sits `84px` below the hero facts line, reduced to `60px` at widths
 of `700px` or less.
 
-`Waveform` is the well: `104px` tall (`84px` on phones), raised gray bars up to
-`48px`, and a `60px` graphite caret. Bars grow from 12% on load. Like the app,
+`Waveform` is the well: `70px` tall (`56px` on phones), raised gray bars up to
+`32px`, and a `40px` graphite caret. Bars grow from 12% on load. Like the app,
 the bars near the pointer grow by up to 28% on a Gaussian two and a half bars
 wide, never past the caret, and the bar under the pointer deepens toward the
 caret's tone (`src/scripts/waveform.ts`). They also rise with the shared voice.
 Narrow screens hide the oldest (leftmost) bars so the newest stay beside the
 caret. With reduced motion the bars are static; only the hover tone changes.
 
-The caption works (`src/scripts/dictate.ts`). Holding ⌃⌥ while the card is on
-screen, or pressing and holding the well or the caption's keycaps, plays a
-pretend dictation: the caption gives way to the recording pill (timer and
-meter), a live bar enters at the caret and follows a synthetic speech envelope,
+The card works (`src/scripts/dictate.ts`). Holding ⌃⌥ while the card is on
+screen, or pressing and holding the well, plays a pretend dictation: the
+recording pill (timer and meter) rises `16px` under the card, a live bar enters at the caret and follows a synthetic speech envelope,
 and the oldest bar folds away. On release the pill shows Refining, then the bar
 settles at the height the app would give that length (`0.26 + 0.74 × √share`,
 six seconds being a full bar) and the caret lifts once (HomeHero's flare).
@@ -477,7 +477,8 @@ bento's profile and history graphics.
 
 ### Section, Surface, Chips, Keys, Tag, StatusDot
 
-- `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`. Owns the heading id and spacing; `level={1}` titles get `.page-title`. Its id comes from an ASCII title, so translated sections pass `id`. On the homepage (`main.home`) every section's title and intro are centered over its content; subpages keep them at the leading edge.
+- `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`, `sticky`. Owns the heading id and spacing; `level={1}` titles get `.page-title`. Its id comes from an ASCII title, so translated sections pass `id`. On the homepage (`main.home`) every section's title is centered over its content and has no intro; subpages keep title and intro at the leading edge.
+- `Section sticky` (the bento, Transcribe, the provider board and the interface): the title holds one header height below the site header (`40px` on phones, none on windows under `540px` tall) while the section's content scrolls up under it, until the section ends. Behind the title is the header's progressive blur (the same six layers, veil and tint, `.heading-blur`) from the window's top to `40px` below the title, so content blurs as it passes under the title as it does under the header. A negative margin and its own formatting context keep the section's spacing unchanged. `src/scripts/sticky.ts` measures, on the section's view timeline (`--sticky`), when each item (`data-follow`, bento tiles, Transcribe beats, provider cards) rises: in order, `70px` of scroll apart, starting `260px` before the title settles and never before the item comes into the window. A story stage (`data-pin`) that fits under the settled title pins there while its runway (`data-pin-runway`, `120vh`) scrolls past and its story runs over `--story-0` to `--story-1`.
 - `Surface`: `variant="panel"` (raised card) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel. Lists and tables go inside a raised panel, divided by grooves, as in the app's settings cards.
 - `Chips`: a list of recessed capsules. `Chip` is a single one: `tone` `muted` (recessed, default) or `strong` (raised), `as` `span` or `li`, and an optional leading `dot` (`ok`, `attention`, `busy`, `inactive`). The bento graphics, the transcript's speaker chips and `/design/` use it; never hand-write `.chip-*` classes.
 - `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles. Modifier keycaps carry `data-key` and sink while the visitor holds that key (`src/scripts/keys.ts`), on every page. With a `label` the caps read as one image of that name; inside decorative art that is already hidden, leave it out and they are hidden too.
@@ -510,9 +511,11 @@ upcoming ones fade. Below them stand a deep recessed "What you said" well
 groove between them (scaled 1.12 on desktop, riding higher with a longer
 shadow while it works, dimmed at rest), and the "What Airdraft inserts" card,
 pressed in (`--sink-soft`, 0.985) while it waits and raised (`--raise-card`)
-once typed. The profile picker and the Run key stand alone below. The middle
-column is as wide as the pill's widest state (`--hud-column`, measured by the
-script), so the well and card never move.
+once typed. The profile picker and, under it, the Run key stand in the middle
+column under the pill, so the scene is one row. The middle column is at least
+as wide as the pill's widest state (`--hud-column`, measured by the script), so
+the well and card never move while the pill changes; at `700px` or less the
+controls follow the card.
 
 The scroll tells the story. Above `700px`, with motion allowed and when the
 scene plus `32px` fits under the header, it pins at the vertical centre below
@@ -536,8 +539,8 @@ is "Sample dictation".
 
 The app's Transcribe page (formerly Meetings; the file, `#meetings` anchor and
 `meetings.ts` keep the old name). "Turn any recording into a transcript"
-follows the features bento and precedes the provider board, with one intro
-line. It is four separate objects on the island, each under a numbered label
+follows the features bento and precedes the provider board, its title sticky
+(`Section sticky`). It is four separate objects on the island, each under a numbered label
 (an `h3`, `meetings.steps`) whose number takes the accent while its beat
 plays; there is no status dot:
 
@@ -547,19 +550,19 @@ plays; there is no status dot:
    waveform bars per speaker (the first speaker's bars in the caret's deeper
    tone), lying flat until the accent playhead reaches them. The lanes are
    computed from the turns' timestamps, a quarter-second column each.
-3. The transcript: one raised card per turn, speaker 1 at the start and
-   speaker 2 at the far side, each waiting flat and empty, then rising as its
-   words fade in.
+3. The transcript: one raised card, like the app's transcript editor, its
+   turns in rows (speaker chip, time, words in aligned columns, a subgrid)
+   divided by grooves; each row waits empty, then its words fade up.
 4. The export: four recessed slots that TXT, JSON, SRT and VTT tiles rise
    into one by one, then the transcription guide link.
 
 On desktop the first row is the recording and the lanes, the second the
 transcript and the export. One number from 0 to 1 drives the story and rests
 at 1, so without JavaScript or with reduced motion the finished transcript
-shows. On windows at least `1001×760` the stage pins under the header for
-about `150vh` and the beats run in order, backwards when scrolling back;
-otherwise the beats stack and each plays as it crosses a line 65% down the
-window. The play key plays the whole story in about `9s` and pauses it; a
+shows. The beats arrive one by one as the title settles. Above `1000px`,
+where the stage fits under the settled title, it pins there and the story
+runs over a `120vh` runway, backwards when scrolling back; otherwise each beat
+plays its part over the scroll after it arrives. The play key plays the whole story in about `9s` and pauses it; a
 timestamp plays from that turn and a click on the lanes from that point. A
 timed play overrides the scroll animation with an `!important` value and
 hands control back once the scroll would show the same finished frame, or
@@ -571,9 +574,10 @@ the guide.
 
 ### Interface section (`InterfaceShowcase.astro`)
 
-"An interface you’ll love to open" follows the provider board and precedes the guides.
-Its heading and one-line intro are centered over the window, like every homepage section heading, `72px` above it
-(`48px` on phones). It shows the real app: the Settings page rendered from a Debug build by
+"An interface you’ll love to use" follows the provider board and precedes the guides.
+Its sticky title is centered over the window, like every homepage section
+heading; the window arrives as the title settles (rising from `0.84`, its
+shadow growing), its callouts after it, and it scrolls up under the title. It shows the real app: the Settings page rendered from a Debug build by
 `scripts/render-app-window.sh` (an isolated empty data directory, so no
 history, usage count or personal setting; grayscale, as the app looks with the
 Graphite accent) in `public/app/`: `configuration-*` in English and
@@ -674,9 +678,11 @@ in cooper tino at nine."; Insertion (.72–.92) strikes "cooper tino", brings
 in Cupertino from its vocabulary table (six spelling examples) and shows the
 caret. A card lifts as it is reached and floats forward while it works; the
 chosen row's check island sinks with a busy dot and rises with its check;
-finished keycaps turn ink. Above `1000px` the cards pin, centred; at
-`1000px` or less they stack without pinning, the channels stand upright and
-each card plays as it passes. Changing a choice reruns that card. Reduced
+finished keycaps turn ink. The cards arrive one by one as the sticky title
+settles. Above `1000px`, where they fit under the settled title, they pin there
+and the dictation runs over a `120vh` runway; otherwise it runs from the first
+card's arrival to past the last's. At `1000px` or less they stack, the channels
+stand upright. Changing a choice reruns that card. Reduced
 motion, or no scroll timeline and no JavaScript, shows the finished frame
 (`--p: 1`).
 
@@ -735,18 +741,21 @@ never jitters; never move content from a scroll listener. Transforms and
 opacity run apart from shadows so the browser can composite them. An element
 inside a scroll container (`overflow: hidden` or `auto` included) would take
 that container as its scroller, so its timeline comes from an ancestor
-outside it (`--tile`, `--cost-table`).
+outside it (`--tile`, `--cost-table`). Production CSS is minified with esbuild
+(`astro.config.mjs`): Lightning CSS folds `animation-timeline` into the
+`animation` shorthand, which Chrome drops, removing every scroll-driven
+animation; `scripts/check-search.py` rejects a build that does.
 
-| Where            | Motion                                                                                                                                                       |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Section headings | Fade up `28px` as they enter.                                                                                                                                |
-| Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94` and its shadow flattens.                           |
-| Sample           | Each object rises as it enters; above `700px` the scene pins and the scroll plays the story (`preview.ts`), otherwise it plays once mid-screen.              |
-| Bento            | Tiles rise as they enter, left to right within a desktop row (`8%` of the range per column). Each graphic lags `±10px` in its well; wide tiles lead `±10px`. |
-| Transcribe       | Four beats on one scroll-driven number: pinned on large desktops, otherwise each beat as it crosses 65% of the window (`meetings.ts`).                       |
-| Provider board   | `--p` from the scroll runs one dictation through the three cards and channels, pinned above `1000px` (`pipeline.ts`).                                        |
-| Close            | Both offers rise as the island settles back to its inset; the license rises furthest (`0.92`, `72px`); neither leads, so both settle level.                  |
-| Pricing          | Plan cards rise left to right; each list well's contents and the cost rows fade up in turn; each three-year bar fills to its share.                          |
+| Where            | Motion                                                                                                                                                                                                                         |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Section headings | Fade up `28px` as they enter; on the homepage what they introduce follows from further down (`96px`, `140px` of scroll later), so it slides in behind the title at a different speed.                                          |
+| Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94` and its shadow flattens.                                                                                             |
+| Sample           | The steps, the well, the pill, the controls and the card follow the title one after another; above `700px` the scene pins and the scroll plays the story (`preview.ts`), otherwise it plays once mid-screen.                   |
+| Bento            | Under its sticky title, tiles rise one by one (`110px`, from `--in`, `sticky.ts`) as the title settles or as they come up, then scroll under the title's blur. Each graphic lags `±18px` in its well; wide tiles lead `±16px`. |
+| Transcribe       | The beats arrive in turn under the sticky title; the stage pins under it where it fits and the scroll runs the story, otherwise each beat plays after it arrives (`meetings.ts`).                                              |
+| Provider board   | The cards arrive in turn; `--p` runs one dictation through them and the channels, pinned under the title where it fits (`pipeline.ts`, `sticky.ts`).                                                                           |
+| Close            | Both offers follow their title, the license from furthest (`0.94`, `140px`); both settle level.                                                                                                                                |
+| Pricing          | Plan cards rise left to right; each list well's contents and the cost rows fade up in turn; each three-year bar fills to its share.                                                                                            |
 
 **GSAP (`src/scripts/story.ts`).** One `gsap.matchMedia` context, off
 entirely with reduced motion. In browsers without scroll timelines, GSAP

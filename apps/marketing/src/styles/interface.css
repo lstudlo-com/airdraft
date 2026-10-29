@@ -9,11 +9,6 @@
 }
 
 @layer components {
-  /* The heading (centered, like every homepage heading) sits over the
-     window it describes. */
-  .interface .section-heading + .showcase {
-    margin-top: var(--space-18);
-  }
   .showcase {
     margin: 0;
   }
@@ -386,9 +381,6 @@
       width: 38px;
       height: 38px;
     }
-    .interface .section-heading + .showcase {
-      margin-top: var(--space-12);
-    }
     .showcase figcaption {
       margin-top: 22px;
     }
@@ -410,10 +402,11 @@
 @layer motion {
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
-      /* The window rises out of the island as it arrives, growing from
-         0.84 toward the visitor while its shadow grows from nothing; the divider sweeps in from the right so the
-         dark appearance slides across; then the callouts draw out to their
-         places, top to bottom. */
+      /* The window arrives after its title settles (the frame's --in,
+         sticky.ts): it rises out of the island, growing from 0.84 toward
+         the visitor while its shadow grows from nothing; then the callouts
+         draw out to their places, top to bottom. The frame itself stays
+         put; only the window and the callouts move. */
       @keyframes showcase-rise {
         from {
           opacity: 0;
@@ -438,25 +431,26 @@
           translate: -16px -50%;
         }
       }
-      .showcase-frame {
-        view-timeline: --showcase block;
+      .interface .showcase-frame {
+        --follow-len: 420px;
+        animation: none;
       }
-      .app-window {
+      .interface .app-window {
         animation:
-          showcase-rise linear both,
+          showcase-rise var(--ease-follow) both,
           showcase-lift linear both;
-        animation-timeline: --showcase, --showcase;
+        animation-timeline: --sticky, --sticky;
         animation-range:
-          entry 0% cover 45%,
-          entry 0% cover 45%;
+          cover var(--in, 0px) cover calc(var(--in, 0px) + var(--follow-len)),
+          cover var(--in, 0px) cover calc(var(--in, 0px) + var(--follow-len));
       }
-      .callout {
-        --at: calc(30% + var(--i) * 2.5%);
-        animation: callout-left linear both;
-        animation-timeline: --showcase;
-        animation-range: cover var(--at) cover calc(var(--at) + 12%);
+      .interface .callout {
+        --at: calc(var(--in, 0px) + var(--follow-len) + var(--i) * 40px);
+        animation: callout-left var(--ease-follow) both;
+        animation-timeline: --sticky;
+        animation-range: cover var(--at) cover calc(var(--at) + 160px);
       }
-      .callout-right {
+      .interface .callout-right {
         animation-name: callout-right;
       }
       @media (min-width: 1001px) {

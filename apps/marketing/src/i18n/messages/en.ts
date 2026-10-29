@@ -38,8 +38,6 @@ export const en: Messages = {
     headline: ["Speak into any app.", "Transcribe anything."],
     headlineGap: " ",
     lede: "A dictation app for your Mac: hold a shortcut, speak, and tidy text lands at your cursor. It transcribes recordings and files too.",
-    notOnSale:
-      "The ready-to-run app isn’t on sale yet. The free source build has every feature.",
     get: "Get Airdraft",
     source: "View source",
     sample: "Try the sample",
@@ -191,8 +189,6 @@ export const en: Messages = {
   },
   meetings: {
     title: "Turn any recording into a transcript",
-    intro:
-      "Record any app or import a file. Your Mac writes it out, speaker by speaker.",
     steps: [
       "Record or import",
       "Speakers split into lanes",
@@ -213,8 +209,7 @@ export const en: Messages = {
     guide: "Transcription guide",
   },
   interface: {
-    title: "An interface you’ll love to open",
-    intro: "Raised keys, pressed wells and carved grooves, in light and dark.",
+    title: "An interface you’ll love to use",
     alt: "Airdraft’s Settings page in light mode: a sidebar beside raised cards for the microphone and appearance, including the six recording-window styles.",
     compare: "Compare light and dark appearance",
     half: "Half light, half dark",
@@ -247,8 +242,6 @@ export const en: Messages = {
   },
   pipeline: {
     title: "You choose where each step runs",
-    intro:
-      "Speech and refinement run separately. Pick local or cloud for each.",
     speech: "Speech",
     refinement: "Refinement",
     insertion: "Insertion",
@@ -270,9 +263,6 @@ export const en: Messages = {
   },
   get: {
     title: "Get Airdraft",
-    intro:
-      "Free to build from source, or a one-time license for the ready-to-run app.",
-    notOnSale: "The official app isn’t on sale yet.",
     build: "Build it yourself",
     free: "Free",
     note: "Every feature. Needs Xcode on an Apple silicon Mac.",

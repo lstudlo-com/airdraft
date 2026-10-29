@@ -68,7 +68,6 @@ export interface Messages {
     /** The sentence under the headline that says what Airdraft is. */
     lede: string;
     /** Under the hero's actions until the official app is on sale. */
-    notOnSale: string;
     get: string;
     source: string;
     sample: string;
@@ -129,7 +128,6 @@ export interface Messages {
   };
   meetings: {
     title: string;
-    intro: string;
     /** The story's four beats: record, speaker lanes, turns, export. */
     steps: [string, string, string, string];
     sample: string;
@@ -142,7 +140,6 @@ export interface Messages {
   };
   interface: {
     title: string;
-    intro: string;
     alt: string;
     compare: string;
     half: string;
@@ -167,7 +164,6 @@ export interface Messages {
   };
   pipeline: {
     title: string;
-    intro: string;
     speech: string;
     refinement: string;
     insertion: string;
@@ -193,8 +189,6 @@ export interface Messages {
   };
   get: {
     title: string;
-    intro: string;
-    notOnSale: string;
     build: string;
     free: string;
     note: string;

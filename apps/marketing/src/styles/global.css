@@ -252,6 +252,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     --section: 144px;
 
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    /* Scroll-linked entrances: quick to start, settling softly. */
+    --ease-follow: cubic-bezier(0.22, 0.75, 0.25, 1);
     /* SelectionMotion.curve */
     --ease-select: cubic-bezier(0.65, 0, 0.35, 1);
 
@@ -1246,13 +1248,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     color: var(--muted);
     text-wrap: balance;
   }
-  /* Availability, under the keys, until the official app is on sale. */
-  .hero-note {
-    margin-top: 18px;
-    font-size: var(--step--1);
-    color: var(--muted);
-    text-wrap: balance;
-  }
   .hero-actions {
     display: flex;
     justify-content: center;
@@ -1272,6 +1267,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     font-size: var(--step--1);
     font-weight: 500;
     color: var(--quiet);
+    /* A small label under the keys; it never competes with them. */
+    opacity: 0.6;
   }
   .hero-meta li + li::before {
     content: "";
@@ -1286,11 +1283,13 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   }
 
   /* Home's hero card (HeroCard.astro, HomeHero.swift): a raised card with a
-     faint top-left sheen, holding the waveform well and its caption. */
+     faint top-left sheen around the waveform well, the same inset on every
+     side. */
   .hero-card {
+    position: relative;
     width: min(100%, 880px);
     margin-top: var(--space-21);
-    padding: var(--space-8) var(--space-8) 22px;
+    padding: calc(var(--space-8) * 2 / 3);
     border-radius: var(--radius-card);
     background:
       radial-gradient(
@@ -1305,21 +1304,14 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       var(--raise-hero);
     animation: rise 900ms var(--ease-out) both;
   }
-  /* The caption and the recording pill share one place under the well: while
-     a dictation records (src/scripts/dictate.ts) the pill rises in its stead. */
-  .hero-status {
-    display: grid;
-    place-items: center;
-    min-height: 44px;
-    margin-top: var(--space-3);
-  }
-  .hero-status > * {
-    grid-area: 1 / 1;
-  }
-  .hero-caption {
-    transition: opacity 200ms ease;
-  }
+  /* While a dictation records (src/scripts/dictate.ts) the recording pill
+     rises under the card, where the app's own pill floats over the Dock. */
   .hero-hud {
+    position: absolute;
+    top: calc(100% + var(--space-4));
+    inset-inline: 0;
+    width: max-content;
+    margin-inline: auto;
     opacity: 0;
     translate: 0 6px;
     scale: 0.96;
@@ -1334,32 +1326,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     translate: 0 0;
     scale: 1;
   }
-  .hero-card:is(.is-recording, .is-refining) .hero-caption {
-    opacity: 0;
-  }
   .hero-card.is-refining .hud-bars span {
     opacity: 0.3;
-  }
-  /* The caption's keycaps can be held like the real shortcut. */
-  .hero-caption kbd {
-    cursor: pointer;
-    touch-action: pan-y;
-    -webkit-touch-callout: none;
-    user-select: none;
-  }
-  .hero-card.is-recording .hero-caption kbd {
-    background: var(--pressed);
-    box-shadow: var(--press-small);
-  }
-  .hero-caption {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-    font-size: var(--step--1);
-    font-variant-numeric: tabular-nums;
-    color: var(--muted);
   }
   @keyframes rise {
     from {
@@ -1371,14 +1339,14 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   /* The waveform well (ui/Waveform.astro): raised gray bars standing in a
      pressed capsule, ending in the caret where text lands. */
   .wave {
-    --bar-max: 48px;
+    --bar-max: 32px;
     --bar-w: 7px;
     --bar-gap: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: var(--bar-gap);
-    height: 104px;
+    height: 70px;
     padding-inline: var(--space-10);
     border-radius: 999px;
     background: var(--well);
@@ -1451,7 +1419,7 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .wave-caret {
     flex: none;
     width: 8px;
-    height: 60px;
+    height: 40px;
     margin-left: 6px;
     border-radius: 4px;
     transform-origin: center;
@@ -1643,11 +1611,90 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .section-heading + * {
     margin-top: var(--space-11);
   }
-  /* The homepage centers every section's title and intro over its content;
-     subpages keep them at the leading edge. */
+  /* The homepage centers every section's title over its content (its
+     sections have no intros); subpages keep them at the leading edge. */
   .home .section-heading {
     margin-inline: auto;
     text-align: center;
+  }
+  /* Sticky story titles (Section sticky: the bento, Transcribe, the
+     provider board and the interface). The title rests one header height
+     below the site header while the section's content scrolls up under
+     it, until the section ends. Behind it is the header's progressive blur
+     (the same six layers), from the window's top edge to just below the
+     title, so content blurs as it passes under the title as it does under
+     the header. A negative margin keeps the section's spacing unchanged.
+     sticky.ts measures the rest: when each item arrives, and where a story
+     stage pins under the title (.is-pinned, --pin-top, [data-pin]) with its
+     runway ([data-pin-runway]). */
+  .section-sticky {
+    --stick-gap: var(--header);
+    --stick-pad: var(--space-5);
+    /* Its own block formatting context, so the title's negative margin
+       pulls it above the section instead of collapsing into the
+       section's own margin. */
+    display: flow-root;
+    view-timeline: --sticky block;
+  }
+  .section-sticky > .section-heading {
+    position: sticky;
+    top: var(--header);
+    z-index: 5;
+    margin-top: calc(-1 * var(--stick-gap));
+    padding-block: var(--stick-gap) var(--stick-pad);
+  }
+  .section-sticky > .section-heading > :not(.heading-blur) {
+    position: relative;
+  }
+  .section-sticky > .section-heading + * {
+    margin-top: calc(var(--space-11) - var(--stick-pad));
+  }
+  .heading-blur {
+    inset: calc(-1 * var(--header)) calc(50% - 50vw) -40px;
+    height: auto;
+  }
+  /* The veil and tint start under the header, which has its own. */
+  .heading-blur::before,
+  .heading-blur::after {
+    top: var(--header);
+  }
+  .heading-blur::after {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black calc(100% - 48px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      black calc(100% - 48px),
+      transparent
+    );
+  }
+  .heading-blur::before {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black calc(100% - 40px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      black calc(100% - 40px),
+      transparent
+    );
+  }
+  /* sticky.ts measures every box where it sits in the flow. */
+  .sticky-measure .section-sticky > .section-heading,
+  .sticky-measure .section-sticky [data-pin] {
+    position: static !important;
+  }
+  .section-sticky.is-pinned [data-pin] {
+    position: sticky;
+    top: var(--pin-top);
+  }
+  .section-sticky.is-pinned [data-pin-runway]::after {
+    content: "";
+    display: block;
+    height: var(--runway, 120vh);
   }
   /* Every subpage opens with the same title block (Section level 1): one
      size, one top inset, the full content width. The title sits further
@@ -2296,6 +2343,21 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       display: none;
     }
   }
+  /* Phones keep the title closer: a header height more would cover too
+     much of the window. It still clears the header's blur, which reaches
+     100px down. */
+  @media (max-width: 700px) {
+    .section-sticky {
+      --stick-gap: var(--space-10);
+      --stick-pad: var(--space-4);
+    }
+  }
+  /* Too short a window for a held title: it scrolls with its section. */
+  @media (max-height: 540px) {
+    .section-sticky > .section-heading {
+      position: relative;
+    }
+  }
   @media (max-width: 700px) {
     :root {
       --gutter: 20px;
@@ -2326,18 +2388,18 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     }
     .hero-card {
       margin-top: var(--space-15);
-      padding: var(--space-5) var(--space-4) var(--space-4);
+      padding: calc(var(--space-4) * 2 / 3);
     }
     .wave {
       --bar-gap: 9px;
-      height: 84px;
+      height: 56px;
       padding-inline: 22px;
     }
     .hero .wave-bar:nth-child(-n + 25) {
       display: none;
     }
     .wave-caret {
-      height: 52px;
+      height: 35px;
     }
     .hud-bars span:nth-child(n + 11) {
       display: none;

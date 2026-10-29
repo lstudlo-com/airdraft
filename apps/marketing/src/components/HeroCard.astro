@@ -15,10 +15,11 @@ const app = appLabels[locale];
  * The hero object: Home's hero card from the app, without its metrics (the
  * site never shows usage counts). In the app each bar is one dictation; here
  * the forty bars are decorative and their heights are a fixed pattern, not
- * data. The caption is the app's own first-run instruction, in the page's
- * language (from the app's string catalogs, src/data/app.ts), and it works:
- * holding ⌃⌥ (or pressing and holding the waveform) plays a pretend
- * dictation that adds a bar (src/scripts/dictate.ts).
+ * data. The card is only the well, with equal insets on every side. The
+ * app's own first-run instruction (src/data/app.ts) stays for assistive
+ * technology only, and it works: holding ⌃⌥ (or pressing and holding the
+ * waveform) plays a pretend dictation that adds a bar, while the recording
+ * pill floats under the card (src/scripts/dictate.ts).
  */
 const count = 40;
 const levels = Array.from({ length: count }, (_, index) => {
@@ -33,13 +34,10 @@ const levels = Array.from({ length: count }, (_, index) => {
 
 <div class="hero-card" data-dictate>
   <Waveform levels={levels} />
-  <div class="hero-status">
-    <p class="hero-caption">
-      {app.hold} <Keys keys={["⌃", "⌥"]} label="Control Option" />{" "}
-      {app.holdAfter}
-    </p>
-    <Hud class="hero-hud" locale={locale} />
-  </div>
+  <p class="visually-hidden">
+    {app.hold} <Keys keys={["⌃", "⌥"]} label="Control Option" /> {app.holdAfter}
+  </p>
+  <Hud class="hero-hud" locale={locale} />
 </div>
 
 <script>

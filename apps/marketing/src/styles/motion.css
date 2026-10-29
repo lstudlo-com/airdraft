@@ -106,64 +106,116 @@
           exit 0% exit 90%;
       }
 
-      /* 2. The sample is a scene of separate objects, and each rises from
-         the island as it arrives: the steps fade up, then the well, the
-         pill and the card rise one after another, the card (the raised
-         payoff) furthest. Pinned, they hold still while the scroll tells
-         the story (preview.ts), so nothing here moves while it does. */
-      .sample-steps {
-        --rise-y: 24px;
-        animation: motion-fade-up linear both;
+      /* Content follows its title. A title rises as it arrives; what it
+         introduces starts a little later and further down, then catches
+         up, so it slides in behind the title at a different speed: the
+         ranges are scroll lengths from the moment the block's top enters
+         the window (cover 0), not shares of the block, so every block lags
+         its title by the same distance whatever its height. */
+      @keyframes follow-rise {
+        from {
+          opacity: 0;
+          translate: 0 var(--follow-y, 96px);
+          scale: var(--follow-scale, 0.97);
+        }
+      }
+      .home
+        :where(
+          .guide-pick,
+          .question-list,
+          .offers > .offer,
+          .sample-steps,
+          .sample-stage > :not(.sample-link),
+          .sample-hud-row,
+          .sample-controls
+        ) {
+        animation: follow-rise var(--ease-follow) both;
         animation-timeline: view();
-        animation-range: entry 0% entry 100%;
+        animation-range: cover
+          calc(var(--follow-lag, 140px) + var(--stagger, 0px)) cover
+          calc(var(--follow-lag, 140px) + var(--stagger, 0px) + 360px);
       }
-      .sample-stage > * {
-        --rise-y: 48px;
-        --rise-scale: 0.94;
-        animation: motion-rise linear both;
-        animation-timeline: view();
-        animation-range: entry var(--stagger, 0%) entry 100%;
+      /* The sample's objects arrive one after another, the inserted text
+         (the raised payoff) last and furthest. Pinned, they hold still
+         while the scroll tells the story (preview.ts). */
+      .home .sample-steps {
+        --follow-y: 48px;
+        --follow-scale: 1;
+        --follow-lag: 120px;
       }
-      .sample-stage > .sample-link {
-        --stagger: 15%;
-        --rise-scale: 0.9;
+      .home .sample-stage > .sample-said {
+        --follow-lag: 60px;
       }
-      .sample-stage > .sample-inserts {
-        --stagger: 30%;
-        --rise-y: 64px;
-        --rise-scale: 0.92;
+      .home .sample-hud-row {
+        --stagger: 60px;
+        --follow-lag: 60px;
       }
-      .sample-controls {
-        --rise-y: 20px;
-        animation: motion-fade-up linear both;
-        animation-timeline: view();
-        animation-range: entry 20% entry 100%;
+      .home .sample-controls {
+        --stagger: 100px;
+        --follow-lag: 60px;
+        --follow-y: 64px;
+      }
+      .home .sample-stage > .sample-inserts {
+        --stagger: 120px;
+        --follow-lag: 60px;
+        --follow-y: 120px;
+        --follow-scale: 0.94;
+      }
+      .home .guide-pick:nth-child(3n + 2),
+      .home .offers > .offer + .offer {
+        --stagger: 60px;
+      }
+      .home .guide-pick:nth-child(3n + 3) {
+        --stagger: 120px;
+      }
+      .home .offers > .offer-featured {
+        --follow-y: 140px;
+        --follow-scale: 0.94;
       }
 
-      /* 3. Bento. Tiles rise as they enter, left to right within a row on
-         desktop. Each graphic lags inside its well; wide tiles, the larger
-         raised faces, lead the narrow ones slightly. */
+      /* Sticky story sections (Section sticky; src/scripts/sticky.ts).
+         The title holds below the header while the content scrolls under
+         it. Content (each bento tile, each Transcribe beat, each provider
+         card, the app window) arrives one item at a time on the section's
+         own timeline: sticky.ts sets each item's --in, the scroll length
+         after the section's top enters the window, so the first items rise
+         as the title settles and later ones as they come up from below,
+         never before the one ahead. Without the script they arrive as the
+         section enters. */
+      .section-sticky
+        :where([data-follow], .bento > .tile, .ts-beat, .pipe-stage) {
+        animation: follow-rise var(--ease-follow) both;
+        animation-timeline: --sticky;
+        animation-range: cover var(--in, 0px) cover
+          calc(var(--in, 0px) + var(--follow-len, 300px));
+      }
+      /* Tiles also lift their shadow as they rise; wide tiles, the larger
+         raised faces, lead the narrow ones slightly; each graphic lags
+         inside its well. */
       .bento .tile {
-        --rise-y: 48px;
-        --stagger: calc(var(--col, 0) * 8%);
+        --follow-y: 110px;
         animation:
-          motion-rise linear both,
+          follow-rise var(--ease-follow) both,
           motion-lift linear both;
-        animation-timeline: view(), view();
+        animation-timeline: --sticky, --sticky;
         animation-range:
-          entry var(--stagger) cover calc(32% + var(--stagger)),
-          entry var(--stagger) cover calc(32% + var(--stagger));
+          cover var(--in, 0px) cover
+            calc(var(--in, 0px) + var(--follow-len, 300px)),
+          cover var(--in, 0px) cover
+            calc(var(--in, 0px) + var(--follow-len, 300px));
       }
       .bento .tile-wide {
         --depth-range: 16px;
         animation:
-          motion-rise linear both,
+          follow-rise var(--ease-follow) both,
           motion-lift linear both,
           motion-lead linear both;
-        animation-timeline: view(), view(), view();
+        animation-timeline: --sticky, --sticky, view();
         animation-range:
-          entry var(--stagger) cover calc(32% + var(--stagger)),
-          entry var(--stagger) cover calc(32% + var(--stagger)),
+          cover var(--in, 0px) cover
+            calc(var(--in, 0px) + var(--follow-len, 300px)),
+          cover var(--in, 0px) cover
+            calc(var(--in, 0px) + var(--follow-len, 300px)),
           cover 0% cover 100%;
       }
       /* The well clips its graphic (overflow: hidden), which would make it
@@ -177,24 +229,15 @@
         animation-timeline: --tile;
         animation-range: cover 0% cover 100%;
       }
-      @media (min-width: 1001px) {
-        /* wide + narrow, three narrow, narrow + wide, wide + narrow */
-        .bento
-          .tile:is(:nth-child(2), :nth-child(4), :nth-child(7), :nth-child(9)) {
-          --col: 1;
-        }
-        .bento .tile:nth-child(5) {
-          --col: 2;
-        }
-      }
 
-      /* The Transcribe story (MeetingsSection.astro). Stacked, each beat
-         plays while it crosses a line 65% down the window, so the beats
-         run one at a time, in order.
-         On a desktop window tall enough for the whole stage, the stage pins
-         under the header while the scroll runs the four beats in order;
-         scrolling back runs them backwards. While meetings.ts plays the
-         story in time, its .is-timed values win over these (meetings.css). */
+      /* The Transcribe story (MeetingsSection.astro). The four beats arrive
+         in turn, then play. Where the window has room, the stage pins under
+         the title (sticky.ts sets .is-pinned) and the scroll runs the whole
+         story, --ts-p, over the runway after it (--story-0 to --story-1);
+         scrolling back runs it backwards. Elsewhere each beat plays its own
+         part (--ts-k) as it comes up the window after arriving. While
+         meetings.ts plays the story in time, its .is-timed values win over
+         these (meetings.css). */
       @keyframes ts-beat {
         from {
           --ts-k: 0;
@@ -211,46 +254,41 @@
           --ts-p: 1;
         }
       }
-      .ts-beat {
-        animation: ts-beat linear both;
-        animation-timeline: view(block 0% 35%);
-        animation-range: entry 0% entry 100%;
+      .section-sticky .ts-beat {
+        --follow-y: 72px;
+        animation:
+          follow-rise var(--ease-follow) both,
+          ts-beat linear both;
+        animation-timeline: --sticky, --sticky;
+        animation-range:
+          cover var(--in, 0px) cover
+            calc(var(--in, 0px) + var(--follow-len, 300px)),
+          cover calc(var(--in, 0px) + 160px) cover
+            calc(var(--in, 0px) + 160px + var(--play, 320px));
       }
-      @media (min-width: 1001px) and (min-height: 760px) {
-        .ts {
-          height: calc(100svh - var(--header) + 150vh);
-          view-timeline: --ts block;
-          view-timeline-inset: var(--header) 0px;
-          animation: ts-story linear both;
-          animation-timeline: --ts;
-          animation-range: entry 65% contain 88%;
-        }
-        .ts-stage {
-          position: sticky;
-          top: var(--header);
-          min-height: calc(100svh - var(--header));
-          padding-block: var(--space-8);
-        }
-        .ts-beat {
-          animation: none;
-        }
+      .section-sticky.is-pinned .ts-beat {
+        animation: follow-rise var(--ease-follow) both;
+        animation-timeline: --sticky;
+        animation-range: cover var(--in, 0px) cover
+          calc(var(--in, 0px) + var(--follow-len, 300px));
+      }
+      .section-sticky.is-pinned .ts {
+        animation: ts-story linear both;
+        animation-timeline: --sticky;
+        animation-range: cover var(--story-0) cover var(--story-1);
       }
 
-      /* 5. The close. Both offers rise as the island settles back to its
-         inset; the license, the featured offer, rises furthest. Neither
-         leads, so the cards settle level with each other. */
+      /* 5. The close. Both offers lift their shadow as they rise. */
       .offers > .offer {
         animation:
-          motion-rise linear both,
+          follow-rise var(--ease-follow) both,
           motion-lift linear both;
         animation-timeline: view(), view();
         animation-range:
-          entry 0% cover 40%,
-          entry 0% cover 40%;
-      }
-      .offers > .offer-featured {
-        --rise-y: 72px;
-        --rise-scale: 0.92;
+          cover calc(var(--follow-lag, 140px) + var(--stagger, 0px)) cover
+            calc(var(--follow-lag, 140px) + var(--stagger, 0px) + 360px),
+          cover calc(var(--follow-lag, 140px) + var(--stagger, 0px)) cover
+            calc(var(--follow-lag, 140px) + var(--stagger, 0px) + 360px);
       }
 
       /* 6. Pricing. Plans rise left to right; each list well's contents
@@ -339,7 +377,6 @@
     .hero-actions {
       animation: rise 900ms var(--ease-out) 360ms both;
     }
-    .hero-note,
     .hero-meta {
       animation: rise 900ms var(--ease-out) 480ms both;
     }

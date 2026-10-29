@@ -4,6 +4,11 @@
  * `level={1}` with `first` makes it a page header (no section gap above): every
  * subpage (Pricing, Support, Changelog) opens with one, so their titles share
  * one size, one top inset and the same content width.
+ *
+ * `sticky` (homepage stories) holds the title one header height below the
+ * site header while the section's content scrolls up under it, through the
+ * same progressive blur as the header (global.css, src/scripts/sticky.ts).
+ * Content marked `data-follow` arrives after the title, one item at a time.
  */
 interface Props {
   id?: string;
@@ -11,6 +16,7 @@ interface Props {
   intro?: string;
   level?: 1 | 2;
   first?: boolean;
+  sticky?: boolean;
   class?: string;
 }
 
@@ -20,6 +26,7 @@ const {
   intro,
   level = 2,
   first = false,
+  sticky = false,
   class: className,
 } = Astro.props;
 const headingId = `${
@@ -37,12 +44,23 @@ const Heading = level === 1 ? "h1" : "h2";
     "section",
     "wrap",
     first ? "section-first" : "section-space",
+    sticky && "section-sticky",
     className,
   ]}
   id={id}
   aria-labelledby={headingId}
 >
   <div class="section-heading">
+    {sticky && (
+      <div class="header-blur heading-blur" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+      </div>
+    )}
     <Heading id={headingId} class:list={[level === 1 && "page-title"]}>
       {title}
     </Heading>

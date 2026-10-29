@@ -297,6 +297,12 @@ def check(base_url=None):
         image = (DIST / name).read_bytes()
         require(image[:8] == b"\x89PNG\r\n\x1a\n" and struct.unpack(">II", image[16:24]) == (1200, 630), f"{name}: social preview must be a real 1200x630 PNG.")
     require(re.fullmatch(r"[A-Za-z0-9-]{8,128}", (DIST / "indexnow-key.txt").read_text().strip()), "Invalid IndexNow key.")
+    # Chrome drops an `animation` shorthand that names a scroll timeline, so
+    # a minifier folding animation-timeline into it silently removes every
+    # scroll-driven animation from the build (astro.config.mjs).
+    for sheet in sorted((DIST / "_astro").glob("*.css")):
+        for value in re.findall(r"animation:([^;}]*)", sheet.read_text()):
+            require(not re.search(r"view\(|scroll\(|(?:^|[\s,])--[\w-]+", value), f"{sheet.name}: animation shorthand carries a timeline: {value.strip()[:80]}")
     if base_url:
         class NoRedirect(HTTPRedirectHandler):
             def redirect_request(self, *args, **kwargs):

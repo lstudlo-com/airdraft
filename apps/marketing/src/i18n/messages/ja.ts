@@ -43,8 +43,6 @@ export const ja: Messages = {
     headline: ["声で、\u200bどこでも入力。", "なんでも、\u200b文字起こし。"],
     headlineGap: "",
     lede: "Mac 用の音声入力アプリです。ショートカットを押したまま話すと、整った文章がカーソル位置に入ります。録音やファイルの文字起こしもできます。",
-    notOnSale:
-      "すぐ使えるアプリはまだ販売していません。ソースからビルドする版は無料で、すべての機能があります。",
     get: "Airdraft を入手",
     source: "ソースを見る",
     sample: "サンプルを試す",
@@ -201,8 +199,6 @@ export const ja: Messages = {
   },
   meetings: {
     title: "どんな録音も、文字起こしに",
-    intro:
-      "アプリの音声を録音するか、ファイルを読み込むと、Mac が話者ごとに書き起こします。",
     steps: [
       "録音するか、ファイルを読み込みます",
       "話者ごとにレーンに分かれます",
@@ -224,7 +220,6 @@ export const ja: Messages = {
   },
   interface: {
     title: "開くのが楽しくなるインターフェイス",
-    intro: "浮き出たキー、くぼんだ溝、刻まれた区切り線。ライトでもダークでも。",
     alt: "ライトモードの Airdraft の設定ページ。サイドバーの横に、マイクと外観の浮き出たカードがあり、録音ウインドウの 6 つのスタイルも並んでいます。",
     compare: "ライトとダークの外観を比べる",
     half: "半分ライト、半分ダーク",
@@ -255,8 +250,6 @@ export const ja: Messages = {
   },
   pipeline: {
     title: "各ステップをどこで動かすか、あなたが選ぶ",
-    intro:
-      "音声認識と整形は別々に動きます。それぞれローカルかクラウドを選べます。",
     speech: "音声認識",
     refinement: "整形",
     insertion: "入力",
@@ -279,9 +272,6 @@ export const ja: Messages = {
   },
   get: {
     title: "Airdraft を入手",
-    intro:
-      "ソースから無料でビルドするか、すぐ使えるアプリを買い切りのライセンスで。",
-    notOnSale: "公式アプリはまだ販売していません。",
     build: "自分でビルド",
     free: "無料",
     note: "すべての機能。Apple シリコンの Mac と Xcode が必要です。",

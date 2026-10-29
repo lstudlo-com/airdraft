@@ -42,8 +42,6 @@ export const es: Messages = {
     headline: ["Habla en cualquier app.", "Transcribe lo que sea."],
     headlineGap: " ",
     lede: "Una app de dictado para tu Mac: mantén un atajo, habla y el texto limpio aparece en tu cursor. También transcribe grabaciones y archivos.",
-    notOnSale:
-      "La app lista para usar aún no está a la venta. Compilada desde el código es gratis y tiene todas las funciones.",
     get: "Obtener Airdraft",
     source: "Ver el código",
     sample: "Probar el ejemplo",
@@ -200,8 +198,6 @@ export const es: Messages = {
   },
   meetings: {
     title: "Convierte cualquier grabación en texto",
-    intro:
-      "Graba una app o importa un archivo, y tu Mac lo transcribe por hablante.",
     steps: [
       "Graba o importa",
       "Cada hablante, en su carril",
@@ -223,8 +219,6 @@ export const es: Messages = {
   },
   interface: {
     title: "Una interfaz que da gusto abrir",
-    intro:
-      "Teclas en relieve, huecos hundidos y surcos tallados, en claro y en oscuro.",
     alt: "La página de ajustes de Airdraft en modo claro: una barra lateral junto a tarjetas en relieve para el micrófono y la apariencia, con los seis estilos de la ventana de grabación.",
     compare: "Comparar la apariencia clara y oscura",
     half: "Mitad claro, mitad oscuro",
@@ -269,8 +263,6 @@ export const es: Messages = {
   },
   pipeline: {
     title: "Tú eliges dónde se ejecuta cada paso",
-    intro:
-      "La voz y el refinamiento se ejecutan por separado. Elige local o nube para cada uno.",
     speech: "Voz",
     refinement: "Refinamiento",
     insertion: "Inserción",
@@ -292,9 +284,6 @@ export const es: Messages = {
   },
   get: {
     title: "Obtener Airdraft",
-    intro:
-      "Gratis si la compilas desde el código, o una licencia de pago único para la app lista para usar.",
-    notOnSale: "La app oficial aún no está a la venta.",
     build: "Compílala tú",
     free: "Gratis",
     note: "Todas las funciones. Necesita Xcode en un Mac con Apple silicon.",

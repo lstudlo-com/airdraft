@@ -5,9 +5,8 @@
 //   content    the content under them rises the same way, block by block:
 //              guide tiles, guide and text-page sections, pricing questions and changelog cards.
 //              Blocks that come into view together rise one after another.
-//              Blocks the scroll timelines already raise (bento tiles, the
-//              sample, Transcribe, the provider board, offers, plans, the app
-//              window) are left to motion.css
+//              Blocks the scroll timelines already raise (everything under a
+//              homepage title, offers, plans) are left to motion.css
 //   depth      the hero card and the copy above it drift a few pixels with
 //              the pointer, the card toward it and the copy away, so the
 //              raised card reads closer than the text. Translation only:
@@ -73,7 +72,12 @@ const contentBlocks = [
 ].join(", ");
 
 function content() {
-  const blocks = [...document.querySelectorAll<HTMLElement>(contentBlocks)];
+  // On the homepage motion.css raises these from the scroll, behind their
+  // titles, where it can.
+  const scrolled = CSS.supports("animation-timeline: view()");
+  const blocks = [
+    ...document.querySelectorAll<HTMLElement>(contentBlocks),
+  ].filter((block) => !(scrolled && block.closest(".home")));
   const watcher = new IntersectionObserver(
     (entries) => {
       // Blocks arriving in the same frame rise in reading order, a step

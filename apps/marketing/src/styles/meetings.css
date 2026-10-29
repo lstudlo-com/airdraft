@@ -3,9 +3,9 @@
    recording comes in as a raised card; its speakers split into lanes of
    Home waveform bars in a well carved into the island (HomeHero's raised
    bars; the first speaker in the caret's deeper tone so the two read apart
-   without a hue); each turn is its own raised card, the second speaker's at
-   the far side; and the export formats rise as raised tiles into recessed
-   slots. The accent marks progress only: the lanes' playhead and the
+   without a hue); the turns are rows in one raised transcript card, their
+   speaker, time and words in aligned columns; and the export formats rise
+   as raised tiles into recessed slots. The accent marks progress only: the lanes' playhead and the
    current beat's number.
 
    One registered number, --ts-p (0 to 1 across the story), drives it; each
@@ -34,15 +34,19 @@
   /* Row one: the recording and its lanes. Row two: the transcript, then
      the export beside its end, so the story reads in a Z. */
   .ts-beat-source {
+    --play: 200px;
     grid-column: 1 / span 5;
   }
   .ts-beat-lanes {
+    --play: 360px;
     grid-column: 6 / -1;
   }
   .ts-beat-turns {
+    --play: 420px;
     grid-column: 1 / span 8;
   }
   .ts-beat-export {
+    --play: 240px;
     grid-column: 9 / -1;
     align-self: start;
   }
@@ -273,12 +277,20 @@
     background: var(--accent);
   }
 
-  /* 3. The transcript: each turn its own raised card, rising in turn; the
-     first speaker's at the leading side, the second's at the far side. */
+  /* 3. The transcript: one raised card, like the app's transcript editor,
+     its turns in rows with the speaker, the time and the words in aligned
+     columns and an engraved groove between rows. Each row's words fade up
+     in turn. */
+  .ts-doc {
+    padding: var(--space-2) var(--space-6);
+    border-radius: var(--radius-card);
+    background: var(--fill-card);
+    box-shadow: var(--edge), var(--raise-card);
+  }
   .turns {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
+    display: grid;
+    grid-template-columns: max-content max-content minmax(0, 1fr);
+    column-gap: var(--space-4);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -286,30 +298,18 @@
   .turn {
     --on: clamp(0, (var(--ts-k) - var(--at, 0)) * 5, 1);
     display: grid;
-    grid-template-columns: max-content max-content minmax(0, auto);
-    align-items: center;
-    gap: var(--space-2) var(--space-4);
-    width: fit-content;
-    max-width: 88%;
-    padding-block: var(--space-3);
-    padding-inline: var(--space-3) var(--space-6);
-    border-radius: var(--radius-card);
-    background: var(--fill-card);
-    box-shadow:
-      var(--edge),
-      calc(var(--on) * 2.5px) calc(var(--on) * 3px) calc(var(--on) * 8px)
-        var(--shade),
-      calc(var(--on) * -2px) calc(var(--on) * -2.5px) calc(var(--on) * 8px)
-        var(--light);
-    translate: 0 calc((1 - var(--on)) * 16px);
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: first baseline;
+    padding-block: var(--space-4);
   }
-  /* Before its turn the card waits flat on the island, empty; then it
-     rises and its words fade in. */
+  .turn + .turn {
+    box-shadow: var(--groove);
+  }
+  /* Before its turn the row waits empty; then its words fade up. */
   .turn > * {
     opacity: var(--on);
-  }
-  .turn[data-speaker="2"] {
-    margin-inline-start: auto;
+    translate: 0 calc((1 - var(--on)) * 10px);
   }
   .turn-speaker i {
     width: 3px;
@@ -334,8 +334,8 @@
       box-shadow 120ms ease;
   }
   .turn p {
-    font-size: var(--step-1);
-    line-height: 1.45;
+    font-size: var(--step-0);
+    line-height: 1.5;
   }
 
   /* 4. The export: recessed slots that raised format tiles rise into, one
@@ -411,9 +411,6 @@
     .ts-formats {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
-    .turn {
-      max-width: 92%;
-    }
   }
   @media (max-width: 700px) {
     .ts-stage {
@@ -444,16 +441,19 @@
     .lane-bars i:nth-of-type(even) {
       display: none;
     }
+    .ts-doc {
+      padding-inline: var(--space-4);
+    }
     .turns {
-      gap: var(--space-3);
+      grid-template-columns: max-content minmax(0, 1fr);
+      row-gap: 0;
     }
     .turn {
-      grid-template-columns: max-content minmax(0, 1fr);
-      padding-inline: var(--space-3) var(--space-4);
+      row-gap: var(--space-2);
+      padding-block: var(--space-3);
     }
     .turn p {
       grid-column: 1 / -1;
-      font-size: var(--step-0);
     }
     .ts-slot {
       height: 52px;

@@ -45,7 +45,6 @@ export const zhTw: Messages = {
     headline: ["中英混著講，", "說完就打好。"],
     headlineGap: "",
     lede: "Mac 上的聽寫 App：按住快捷鍵說話，放開後整理好的文字就出現在游標位置。錄音和影音檔也能轉成逐字稿。",
-    notOnSale: "官方版目前尚未開賣；從原始碼自行編譯免費，所有功能都有。",
     get: "取得 Airdraft",
     source: "查看原始碼",
     sample: "試試範例",
@@ -163,7 +162,6 @@ export const zhTw: Messages = {
   },
   meetings: {
     title: "任何錄音，都能變成逐字稿",
-    intro: "錄下任何 App 的聲音或匯入檔案，Mac 會分講者寫成文字。",
     steps: ["錄音或匯入", "講者各自分軌", "逐段寫成文字", "匯出成文字或字幕"],
     sample: "逐字稿範例",
     meeting: "Podcast 訪談",
@@ -180,7 +178,6 @@ export const zhTw: Messages = {
   },
   interface: {
     title: "打開就想用的介面",
-    intro: "凸起的按鍵、下沉的凹槽、刻出的分隔線，淺色與深色模式都一樣。",
     alt: "Airdraft 淺色模式的「設定」頁面：側邊欄旁是麥克風與外觀的凸起卡片，包括錄音視窗的六種樣式。",
     compare: "比較淺色與深色外觀",
     half: "一半淺色，一半深色",
@@ -204,7 +201,6 @@ export const zhTw: Messages = {
   },
   pipeline: {
     title: "每個步驟在哪裡執行，由你決定",
-    intro: "語音辨識和潤稿分開執行，各自選本機或雲端。",
     speech: "語音辨識",
     refinement: "潤稿",
     insertion: "貼上",
@@ -225,8 +221,6 @@ export const zhTw: Messages = {
   },
   get: {
     title: "取得 Airdraft",
-    intro: "從原始碼自行編譯免費；現成可用的官方版一次買斷。",
-    notOnSale: "目前尚未開賣。",
     build: "自行編譯",
     free: "免費",
     note: "所有功能，需在 Apple 晶片 Mac 上用 Xcode 編譯。",

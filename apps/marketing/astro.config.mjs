@@ -55,4 +55,12 @@ export default defineConfig({
     }),
   ],
   devToolbar: { enabled: false },
+  vite: {
+    build: {
+      // Lightning CSS folds animation-timeline into the animation
+      // shorthand, which Chrome rejects, so every scroll-driven animation
+      // was dropped from production. esbuild keeps the longhands.
+      cssMinify: "esbuild",
+    },
+  },
 });

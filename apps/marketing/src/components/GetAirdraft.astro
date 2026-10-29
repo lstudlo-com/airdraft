@@ -13,12 +13,7 @@ interface Props {
 const { locale = "en" } = Astro.props;
 const onSale = Boolean(siteLinks.checkout);
 const text = messages[locale];
-const copy = {
-  ...text.get,
-  intro: onSale
-    ? text.get.intro
-    : `${text.get.intro}${text.gap}${text.get.notOnSale}`,
-};
+const copy = text.get;
 
 /**
  * The close: the two ways to get Airdraft, side by side. Build it yourself
@@ -38,7 +33,6 @@ const copy = {
 >
   <div class="section-heading">
     <h2 id="get-heading">{copy.title}</h2>
-    <p>{copy.intro}</p>
   </div>
 
   <div class="offers">
