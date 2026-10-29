@@ -9,11 +9,8 @@
 }
 
 @layer components {
-  /* A centered plate: the heading sits over the window it describes. */
-  .interface .section-heading {
-    margin-inline: auto;
-    text-align: center;
-  }
+  /* The heading (centered, like every homepage heading) sits over the
+     window it describes. */
   .interface .section-heading + .showcase {
     margin-top: 72px;
   }

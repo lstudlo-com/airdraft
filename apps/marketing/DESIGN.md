@@ -454,7 +454,7 @@ bento's profile and history graphics.
 
 ### Section, Surface, Chips, Keys, Tag, StatusDot
 
-- `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`. Owns the heading id and spacing; `level={1}` titles get `.page-title`. Its id comes from an ASCII title, so translated sections pass `id`.
+- `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`. Owns the heading id and spacing; `level={1}` titles get `.page-title`. Its id comes from an ASCII title, so translated sections pass `id`. On the homepage (`main.home`) every section's title and intro are centered over its content; subpages keep them at the leading edge.
 - `Surface`: `variant="panel"` (raised card) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel. Lists and tables go inside a raised panel, divided by grooves, as in the app's settings cards.
 - `Chips`: recessed capsules. `.chip-muted` and `.chip-strong` (raised) show a before → after pair.
 - `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles. Modifier keycaps carry `data-key` and sink while the visitor holds that key (`src/scripts/keys.ts`), on every page.
@@ -527,7 +527,7 @@ JavaScript, it is the finished frame and the play key stays hidden.
 ### Interface section (`InterfaceShowcase.astro`)
 
 "An interface you’ll love to open" follows the Transcribe section and precedes the guides.
-Its heading and one-line intro are centered over the window, `72px` above it
+Its heading and one-line intro are centered over the window, like every homepage section heading, `72px` above it
 (`48px` on phones). It shows the real app: the Settings page rendered from a Debug build by
 `scripts/render-app-window.sh` (an isolated empty data directory, so no
 history, usage count or personal setting; grayscale, as the app looks with the

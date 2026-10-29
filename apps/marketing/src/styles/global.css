@@ -1815,6 +1815,12 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .section-heading + * {
     margin-top: 44px;
   }
+  /* The homepage centers every section's title and intro over its content;
+     subpages keep them at the leading edge. */
+  .home .section-heading {
+    margin-inline: auto;
+    text-align: center;
+  }
   /* Every subpage opens with the same title block (Section level 1): one
      size, one top inset, the full content width. The title sits further
      from the island's top edge than the sections below sit from each other;

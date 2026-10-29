@@ -187,7 +187,8 @@ and Local releases below.
   guide, labels in `guideLinks.labels` of every language's messages file. Guide and
   text-page sections are `GuideSection`: the heading on the island at the top left
   over a recessed well, never a heading inside a raised card, and guide titles
-  have no intro line. The header keys sit one 10 px step apart through the
+  have no intro line. Homepage section titles and intros are centered
+  (`main.home`); subpages keep them at the leading edge. The header keys sit one 10 px step apart through the
   `.header-actions` gap, never margins. Bento tiles loop while on screen and hold
   after a touch (`bento.ts` sets up `.bento:not(.specimens)`); the dictation
   sample after the hero (`DictationPreview`, `preview.ts`), titled "Hold, speak,
