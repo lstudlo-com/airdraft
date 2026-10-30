@@ -3,13 +3,14 @@
 //   headings   section headings rise word by word (character pairs in
 //              Chinese and Japanese) as they come into view, once
 //   content    the content under them rises the same way, block by block:
-//              guide tiles, guide and text-page sections, pricing questions and changelog cards.
+//              guide tiles, guide and text-page sections, pricing's cost
+//              section and questions, and changelog cards.
 //              Blocks that come into view together rise one after another.
 //              Blocks the scroll timelines already raise (everything under a
 //              homepage title, offers) are left to motion.css; pricing plans stay still
 //
 // Nothing here follows the pointer: the hero's copy and card stay where the
-// layout puts them (the hero's depth is the machined card, hero3d.ts).
+// layout puts them (the hero's depth is the 3D ribbon, hero3d.ts).
 //
 // Resting CSS is the final state, so without JavaScript every heading reads
 // whole and nothing moves. With reduced motion none of this runs.
