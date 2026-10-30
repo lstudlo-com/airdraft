@@ -5,6 +5,26 @@ import type { ChangelogText } from "../../data/changelog";
 // labels since renamed (Configuration, Mini) keep the English name the app
 // showed before it had a Traditional Chinese interface (0.11.0).
 export const changelog: ChangelogText = {
+  "0-20-0": {
+    title: "語言和 Disco 都由你決定",
+    changes: [
+      {
+        title: "選擇 Airdraft 的語言",
+        description:
+          "「設定」>「外觀」>「語言」提供「系統預設」以及 English、Español、日本語、简体中文和繁體中文。選好後按「重新啟動」即可切換。語音語言、模型推薦和潤稿仍跟隨你 Mac 的語言。",
+      },
+      {
+        title: "Disco 強度",
+        description:
+          "開啟 Disco 後，「Disco 強度」滑桿可從「柔和」調到「鮮豔」。「柔和」維持淡雅、緩慢的粉彩色；「鮮豔」更早飽和，讓圖形鋪開更多色帶，流動也更快。中間位置就是 Disco 以前的樣子。",
+      },
+      {
+        title: "預設十分鐘",
+        description:
+          "從未改過的設定中，「最長錄音時間」現在預設是 600 秒。你已經選好的上限維持不變。",
+      },
+    ],
+  },
   "0-19-1": {
     title: "無法貼上時只顯示簡短通知",
     changes: [

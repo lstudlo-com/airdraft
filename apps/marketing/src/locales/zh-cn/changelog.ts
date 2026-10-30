@@ -3,6 +3,26 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order. App labels are the app's zh-Hans catalog values.
 export const changelog: ChangelogText = {
+  "0-20-0": {
+    title: "语言和 Disco 都由你定",
+    changes: [
+      {
+        title: "选择 Airdraft 的语言",
+        description:
+          "“设置”>“外观”>“语言”提供“系统默认”以及 English、Español、日本語、简体中文和繁體中文。选好后点按“重新启动”即可切换。语音语言、模型推荐和润色仍跟随你 Mac 的语言。",
+      },
+      {
+        title: "Disco 强度",
+        description:
+          "开启 Disco 后，“Disco 强度”滑块可从“柔和”调到“鲜艳”。“柔和”保持淡雅、缓慢的粉彩色；“鲜艳”更早饱和，让图形铺开更多色带，流动也更快。中间位置就是 Disco 以前的样子。",
+      },
+      {
+        title: "默认十分钟",
+        description:
+          "从未改过的设置中，“最长录音时间”现在默认是 600 秒。你已经选好的上限保持不变。",
+      },
+    ],
+  },
   "0-19-1": {
     title: "无法粘贴时只显示简短通知",
     changes: [

@@ -14,6 +14,33 @@ export interface ChangelogEntry {
 // Keep summaries out of this schema: release title, then described change items.
 export const changelog: ChangelogEntry[] = [
   {
+    id: "0-20-0",
+    version: "0.20.0",
+    date: "2026-10-30",
+    title: "Your language, your Disco",
+    changes: [
+      {
+        title: "Choose Airdraft's language",
+        description:
+          "Settings > Appearance > Language lists System Default and English, Español, 日本語, 简体中文 and 繁體中文. Pick one and choose Relaunch to switch. Speech languages, model recommendations and refinement keep following your Mac's languages.",
+      },
+      {
+        title: "Disco intensity",
+        description:
+          "With Disco on, a Disco intensity slider runs from Gentle to Vivid. Gentle keeps soft, slow pastel color; Vivid saturates sooner, spreads more of the palette across the artwork and moves faster. The middle is the look Disco had before.",
+      },
+      {
+        title: "Ten minutes by default",
+        description:
+          "Maximum recording now starts at 600 seconds on setups that never changed it. A limit you already chose stays.",
+      },
+    ],
+    source: {
+      label: "Release notes",
+      url: "https://github.com/lstudlo-com/airdraft/releases/tag/v0.20.0-build.553",
+    },
+  },
+  {
     id: "0-19-1",
     version: "0.19.1",
     date: "2026-10-28",

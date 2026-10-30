@@ -3,6 +3,26 @@ import type { ChangelogText } from "../../data/changelog";
 // One entry per release id in src/data/changelog.ts, with the same number of
 // changes in the same order.
 export const changelog: ChangelogText = {
+  "0-20-0": {
+    title: "Tu idioma, tu Disco",
+    changes: [
+      {
+        title: "Elige el idioma de Airdraft",
+        description:
+          "Ajustes > Apariencia > Idioma ofrece Predeterminado del sistema y English, Español, 日本語, 简体中文 y 繁體中文. Elige uno y pulsa Reiniciar para cambiar. Los idiomas de voz, las recomendaciones de modelos y el refinamiento siguen los idiomas de tu Mac.",
+      },
+      {
+        title: "Intensidad de Disco",
+        description:
+          "Con Disco activado, el control Intensidad de Disco va de Suave a Vivo. Suave mantiene colores pastel, tenues y lentos; Vivo satura antes, reparte más de la paleta por la figura y se mueve más rápido. El punto medio es el aspecto que Disco tenía antes.",
+      },
+      {
+        title: "Diez minutos por defecto",
+        description:
+          "Grabación máxima empieza ahora en 600 segundos si nunca la cambiaste. El límite que ya elegiste se mantiene.",
+      },
+    ],
+  },
   "0-19-1": {
     title: "Un aviso más corto cuando no se puede pegar",
     changes: [

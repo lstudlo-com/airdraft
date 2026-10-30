@@ -4,6 +4,26 @@ import type { ChangelogText } from "../../data/changelog";
 // changes in the same order. App labels are the app's ja catalog values;
 // releases before the Japanese interface quote their English labels.
 export const changelog: ChangelogText = {
+  "0-20-0": {
+    title: "言語もディスコも自分好みに",
+    changes: [
+      {
+        title: "Airdraft の言語を選べます",
+        description:
+          "「設定」>「外観」>「言語」で、「システムのデフォルト」と English、Español、日本語、简体中文、繁體中文 から選べます。選んだら「再起動」で切り替わります。音声の言語、モデルのおすすめ、整形は引き続き Mac の言語に従います。",
+      },
+      {
+        title: "ディスコの強さ",
+        description:
+          "「ディスコ」がオンのとき、「ディスコの強さ」スライダーで「穏やか」から「鮮やか」まで調整できます。「穏やか」は淡くゆっくりしたパステル調、「鮮やか」は早く彩度が上がり、パレットをより広く使い、速く流れます。中央はこれまでのディスコと同じ見た目です。",
+      },
+      {
+        title: "初期設定は 10 分",
+        description:
+          "一度も変更していない場合、「最大録音時間」は 600 秒から始まります。すでに選んだ上限はそのままです。",
+      },
+    ],
+  },
   "0-19-1": {
     title: "貼り付けできないときの通知を短く",
     changes: [
