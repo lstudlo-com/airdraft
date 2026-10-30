@@ -3,10 +3,12 @@
    recording comes in as a raised card; its speakers split into lanes of
    Home waveform bars in a well carved into the island (HomeHero's raised
    bars; the first speaker in the caret's deeper tone so the two read apart
-   without a hue); the turns are rows in one raised transcript card, their
-   speaker, time and words in aligned columns; and the export formats rise
-   as raised tiles into recessed slots. The accent marks progress only: the lanes' playhead and the
-   current beat's number.
+   without a hue); the turns are rows in one raised transcript card,
+   staggered like a conversation (the first speaker leads from the start
+   edge, the second answers from the end edge, chips and times in aligned
+   columns); and the export formats rise as raised tiles into recessed
+   slots that fill the column beside the transcript. The accent marks
+   progress only: the lanes' playhead and the current beat's number.
 
    One registered number, --ts-p (0 to 1 across the story), drives it; each
    beat derives its own --ts-k (0 to 1 within its --a to --b share) and
@@ -28,7 +30,8 @@
   .ts-stage {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-14) var(--space-8);
+    /* Two-thirds of the former 56px between the rows. */
+    gap: calc(var(--space-14) * 2 / 3) var(--space-8);
     align-content: center;
   }
   /* Row one: the recording and its lanes. Row two: the transcript, then
@@ -43,13 +46,13 @@
   }
   .ts-beat-turns {
     --play: 420px;
-    grid-column: 1 / span 8;
+    grid-column: 1 / span 7;
   }
   /* The export is as tall as the transcript beside it: its guide link
      rests on the line where the transcript card ends. */
   .ts-beat-export {
     --play: 240px;
-    grid-column: 9 / -1;
+    grid-column: 8 / -1;
   }
 
   .ts-beat {
@@ -279,9 +282,13 @@
   }
 
   /* 3. The transcript: one raised card, like the app's transcript editor,
-     its turns in rows with the speaker, the time and the words in aligned
-     columns and an engraved groove between rows. Each row's words fade up
-     in turn. */
+     its turns staggered like a conversation with an engraved groove between
+     rows. Five shared columns (a subgrid): chip, time, words, time, chip.
+     The first speaker's chip and time lead its row and its words run to
+     the end edge's chip column; the second speaker's chip sits in that
+     column with its time just inside it, its words ending at the time and
+     starting after the first speaker's chip column. Logical columns, so a
+     right-to-left page mirrors. Each row's words fade up in turn. */
   .ts-doc {
     padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-card);
@@ -290,8 +297,10 @@
   }
   .turns {
     display: grid;
-    grid-template-columns: max-content max-content minmax(0, 1fr);
-    column-gap: var(--space-4);
+    grid-template-columns:
+      max-content max-content minmax(0, 1fr)
+      max-content max-content;
+    column-gap: var(--space-3);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -303,6 +312,32 @@
     grid-template-columns: subgrid;
     align-items: first baseline;
     padding-block: var(--space-4);
+  }
+  .turn > * {
+    grid-row: 1;
+  }
+  .turn-speaker {
+    grid-column: 1;
+    justify-self: start;
+  }
+  .turn-time {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .turn p {
+    grid-column: 3 / 5;
+  }
+  .turn:not([data-speaker="1"]) .turn-speaker {
+    grid-column: 5;
+    justify-self: end;
+  }
+  .turn:not([data-speaker="1"]) .turn-time {
+    grid-column: 4;
+    justify-self: end;
+  }
+  .turn:not([data-speaker="1"]) p {
+    grid-column: 2 / 4;
+    text-align: end;
   }
   .turn + .turn {
     box-shadow: var(--groove);
@@ -339,20 +374,24 @@
     line-height: 1.5;
   }
 
-  /* 4. The export: recessed slots that raised format tiles rise into, one
-     after another, their light and shade clipped inside the slot. */
+  /* 4. The export: four recessed slots that raised format tiles rise
+     into, one after another, their light and shade clipped inside the
+     slot. Beside the transcript the slots fill the column from the label
+     down to just above the guide link; each tile shows what its file holds
+     (lines of text, a data object, subtitle lines) beside its name. */
   .ts-formats {
     display: grid;
+    flex: 1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(72px, 1fr);
     gap: var(--space-3);
-    margin: 0;
+    margin: 0 0 var(--space-4);
     padding: 0;
     list-style: none;
   }
   .ts-slot {
     --on: clamp(0, (var(--ts-k) - var(--at, 0)) * 5, 1);
     display: grid;
-    height: 60px;
     padding: 7px;
     overflow: hidden;
     border-radius: var(--radius-well);
@@ -362,25 +401,22 @@
   .ts-file {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 7px;
-    border-radius: 7px;
+    gap: var(--space-3);
+    padding-inline: var(--space-5);
+    border-radius: 9px;
     background: var(--fill-control);
     box-shadow:
       inset 0.75px 0.75px 0 var(--rim),
       var(--raise-small);
     color: var(--ink);
-    font: 600 var(--step--1) / 1 var(--font-rounded);
-    letter-spacing: 0.06em;
+    font: 600 var(--step-2) / 1 var(--font-rounded);
+    letter-spacing: 0.04em;
     opacity: var(--on);
     translate: 0 calc((1 - var(--on)) * 115%);
   }
   .ts-file svg {
     flex: none;
     color: var(--muted);
-  }
-  .ts-formats {
-    margin-bottom: var(--space-6);
   }
   .ts-beat-export .text-link {
     align-self: flex-start;
@@ -414,6 +450,12 @@
     }
     .ts-formats {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-auto-rows: 72px;
+      margin-bottom: var(--space-6);
+    }
+    .ts-file {
+      padding-inline: var(--space-4);
+      font-size: var(--step-1);
     }
   }
   @media (max-width: 700px) {
@@ -448,19 +490,41 @@
     .ts-doc {
       padding-inline: var(--space-4);
     }
+    /* Each turn's chip and time sit above its words: the first speaker's
+       at the start edge, the second's at the end edge, its words ending
+       there too. Each side keeps a gutter toward the other. */
     .turns {
-      grid-template-columns: max-content minmax(0, 1fr);
-      row-gap: 0;
+      grid-template-columns: minmax(0, 1fr);
     }
     .turn {
+      grid-template-columns: max-content max-content minmax(0, 1fr);
+      column-gap: var(--space-3);
       row-gap: var(--space-2);
       padding-block: var(--space-3);
     }
-    .turn p {
+    .turn:not([data-speaker="1"]) {
+      grid-template-columns: minmax(0, 1fr) max-content max-content;
+    }
+    .turn:not([data-speaker="1"]) .turn-time {
+      grid-column: 2;
+    }
+    .turn:not([data-speaker="1"]) .turn-speaker {
+      grid-column: 3;
+    }
+    .turn p,
+    .turn:not([data-speaker="1"]) p {
+      grid-row: 2;
       grid-column: 1 / -1;
+      margin-inline-end: var(--space-8);
+    }
+    .turn:not([data-speaker="1"]) p {
+      margin-inline: var(--space-8) 0;
+    }
+    .ts-formats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: 60px;
     }
     .ts-slot {
-      height: 52px;
       padding: 6px;
     }
   }
