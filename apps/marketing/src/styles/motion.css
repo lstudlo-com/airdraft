@@ -73,6 +73,53 @@
         animation-timeline: --title;
         animation-range: entry 0% entry 100%;
       }
+      /* A held title that leaves early (Section titleMotion; sticky.ts
+         measures --settle and --leave). "fade" leaves as soon as the
+         content starts to move under it; "cycle" names the items as they
+         pass, then leaves as the next section's title comes up, not when
+         its own section ends. It opens a little and blurs as it fades, and
+         its blur band fades with it. Each fades from its own layer: the
+         heading never fades as a whole (see the rule above). */
+      @keyframes title-out {
+        to {
+          opacity: 0;
+          scale: 1.08;
+          filter: blur(12px);
+        }
+      }
+      @keyframes band-out {
+        to {
+          opacity: 0;
+        }
+      }
+      .section-sticky[data-title="fade"] {
+        --title-out: calc(var(--settle, 100000px) + 24px);
+      }
+      .section-sticky[data-title="cycle"] {
+        --title-out: var(--leave, 100000px);
+      }
+      .section-sticky[data-title] > .section-heading > h2 {
+        animation:
+          motion-fade-up linear both,
+          title-out linear forwards;
+        animation-timeline: --title, --sticky;
+        animation-range:
+          entry 0% entry 100%,
+          cover var(--title-out) cover calc(var(--title-out) + 170px);
+      }
+      .section-sticky[data-title] > .section-heading > .title-cycle {
+        animation: title-out linear forwards;
+        animation-timeline: --sticky;
+        animation-range: cover var(--title-out) cover
+          calc(var(--title-out) + 170px);
+      }
+      .section-sticky[data-title] .heading-blur i,
+      .section-sticky[data-title] .heading-blur::before {
+        animation: band-out linear forwards;
+        animation-timeline: --sticky;
+        animation-range: cover var(--title-out) cover
+          calc(var(--title-out) + 170px);
+      }
 
       /* 1. Hero exit. The copy lags the scroll a little and fades before it
          can reach the card below it; Home's card sinks back into the island
@@ -308,7 +355,7 @@
 /* Entrances (src/scripts/flourish.ts). These need no scroll timeline, only
    motion. The headline's lines rise out of their own line boxes on load,
    then the keys and facts follow; section headings rise word by word as
-   they arrive. Nothing in the hero follows the pointer. Without JavaScript
+   they arrive. Nothing in the hero drifts with the pointer. Without JavaScript
    only the CSS entrances run, and with reduced motion nothing does. */
 @layer motion {
   @media (prefers-reduced-motion: no-preference) {
@@ -354,6 +401,17 @@
         translate 900ms var(--ease-out),
         filter 620ms ease;
       transition-delay: calc(var(--i, 0) * 45ms);
+    }
+    /* A held title giving way to the item titles (cycle.ts). */
+    .flourish .is-cycling > .reveal-words.is-in .reveal-word {
+      opacity: 0;
+      translate: 0 -0.6em;
+      filter: blur(8px);
+      transition:
+        opacity 260ms ease,
+        translate 320ms ease-in,
+        filter 300ms ease;
+      transition-delay: calc(var(--i, 0) * 16ms);
     }
 
     /* Content rises like its heading: up from below, out of a soft blur,

@@ -9,6 +9,13 @@
  * site header while the section's content scrolls up under it, through the
  * same progressive blur as the header (global.css, src/scripts/sticky.ts).
  * Content marked `data-follow` arrives after the title, one item at a time.
+ *
+ * `titleMotion` changes what a held title does once the content starts to
+ * move under it (motion.css, src/scripts/sticky.ts):
+ *   "fade"   it fades out at once, opening and blurring as it goes.
+ *   "cycle"  it names each item (`data-cycle`, the items' titles) as the
+ *            item passes under it, then leaves as the next section arrives
+ *            rather than when its own section ends (src/scripts/cycle.ts).
  */
 interface Props {
   id?: string;
@@ -17,6 +24,8 @@ interface Props {
   level?: 1 | 2;
   first?: boolean;
   sticky?: boolean;
+  titleMotion?: "fade" | "cycle";
+  cycle?: string;
   class?: string;
 }
 
@@ -27,6 +36,8 @@ const {
   level = 2,
   first = false,
   sticky = false,
+  titleMotion,
+  cycle,
   class: className,
 } = Astro.props;
 const headingId = `${
@@ -49,6 +60,8 @@ const Heading = level === 1 ? "h1" : "h2";
   ]}
   id={id}
   aria-labelledby={headingId}
+  data-title={sticky ? titleMotion : undefined}
+  data-cycle={sticky && titleMotion === "cycle" ? cycle : undefined}
 >
   <div class="section-heading">
     {sticky && (

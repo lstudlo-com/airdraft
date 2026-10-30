@@ -131,6 +131,10 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     --bar-bottom: #8a8a8a; /* 0.54 */
     --caret-top: #858585; /* 0.52 */
     --caret-bottom: #4d4d4d; /* 0.30 */
+    /* The homepage thread (thread.ts): a silver band's face and back. */
+    --thread-front: #fafafa;
+    --thread-back: #9c9c9c;
+    --thread-shade: rgb(0 0 0 / 0.13);
     /* Keycaps (NeumorphicSurface raised: 0.97 → 0.80). */
     --cap-top: #f7f7f7;
     --cap-bottom: #cccccc;
@@ -286,6 +290,9 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       --bar-bottom: #383838; /* 0.22 */
       --caret-top: #9e9e9e; /* 0.62 */
       --caret-bottom: #6b6b6b; /* 0.42 */
+      --thread-front: #b3b3b3;
+      --thread-back: #5c5c5c;
+      --thread-shade: rgb(0 0 0 / 0.5);
       --cap-top: #575757;
       --cap-bottom: #383838;
       /* On the dark island the high-contrast key is the light one. */
@@ -1796,6 +1803,84 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     content: "";
     display: block;
     height: var(--runway, 120vh);
+  }
+  /* The homepage thread (src/scripts/thread.ts): behind everything on the
+     island, in its open margins; shown only where they are wide enough. */
+  .thread {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    display: none;
+    width: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .thread.is-on {
+    display: block;
+  }
+  .thread-tone {
+    fill: color-mix(
+      in srgb,
+      var(--thread-front) var(--tone),
+      var(--thread-back)
+    );
+  }
+  .thread-grains {
+    fill: var(--thread-back);
+  }
+  /* Light from the top left: a hairline of shade down and to the right. */
+  .thread-shade {
+    fill: var(--thread-shade);
+    translate: 1px 1.6px;
+  }
+  /* A title that names the items passing under it (Section titleMotion
+     "cycle", src/scripts/cycle.ts): a decorative copy over the heading,
+     set in the heading's own type. While it shows, the heading's words
+     leave upward into a blur (motion.css), and each new title rises into
+     place character by character, decoding as it comes. */
+  .section-sticky > .section-heading > .title-cycle {
+    position: absolute;
+    inset-inline: 0;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .title-cycle-line {
+    grid-area: 1 / 1;
+  }
+  .title-cycle-char {
+    display: inline-block;
+    white-space: pre;
+    text-align: center;
+    animation: cycle-in 460ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 28ms);
+  }
+  .title-cycle-line.is-out .title-cycle-char {
+    animation: cycle-out 300ms ease-in both;
+    animation-delay: calc(var(--i, 0) * 12ms);
+  }
+  @keyframes cycle-in {
+    from {
+      opacity: 0;
+      translate: 0 0.6em;
+      filter: blur(8px);
+    }
+  }
+  @keyframes cycle-out {
+    to {
+      opacity: 0;
+      translate: 0 -0.6em;
+      filter: blur(8px);
+    }
+  }
+  .section-heading > h2 {
+    transition: color 260ms ease;
+  }
+  .section-heading.is-cycling > h2 {
+    color: transparent;
   }
   /* Every subpage opens with the same title block (Section level 1): one
      size, one top inset, the full content width. The title sits further

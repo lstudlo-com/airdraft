@@ -18,6 +18,11 @@
 //              last's when not.
 //   .is-held   on the section while its title rests under the header, so
 //              the title's blur band (global.css) shows only then.
+//   --settle, --leave
+//              on the section: the scroll length at which its title settles
+//              under the header, and the one at which the next section's
+//              title comes up into the window. A title with `titleMotion`
+//              (Section.astro) leaves from one of them (motion.css).
 //
 // Only lengths inside each section are measured, so nothing above it
 // changes them; they are measured again when the window changes size or the
@@ -65,6 +70,13 @@ function measure(section: HTMLElement) {
   const headingTop = top(heading);
   // The scroll length, from cover 0, at which the title settles.
   const settle = headingTop - header - sectionTop + view;
+  section.style.setProperty("--settle", `${Math.round(settle)}px`);
+  // The next section's title reaches the window's foot a little after this.
+  const next = section.nextElementSibling as HTMLElement | null;
+  const leave = next
+    ? Math.max(settle + 200, top(next) - sectionTop - view * 0.06)
+    : settle + 100000;
+  section.style.setProperty("--leave", `${Math.round(leave)}px`);
 
   // Pin the stage if it fits under the settled title.
   let pinTop = 0;

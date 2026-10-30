@@ -137,7 +137,13 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 
     <DictationPreview locale={locale} />
 
-    <Section id="features" title={copy.featuresTitle} sticky>
+    <Section
+      id="features"
+      title={copy.featuresTitle}
+      sticky
+      titleMotion="cycle"
+      cycle=".bento > .tile > h3"
+    >
       <div class="bento">
         <BentoTile
           wide
@@ -381,4 +387,6 @@ const hudLevels = [0.2, 0.45, 0.8, 0.55, 1, 0.7, 0.35, 0.6, 0.9, 0.5, 0.3, 0.2];
 <script>
   import "../scripts/story";
   import "../scripts/sticky";
+  import "../scripts/cycle";
+  import "../scripts/thread";
 </script>
