@@ -69,6 +69,10 @@ const contentBlocks = [
   ".guide-actions",
   ".question-list",
   ".release-body",
+  // Pricing's cost section, from its intro down; the plans above stay still.
+  "#provider-costs > .section-heading > p",
+  ".cost-group",
+  ".costs + .pricing-note",
 ].join(", ");
 
 function content() {
