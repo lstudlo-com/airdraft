@@ -186,7 +186,8 @@ anything."; in Traditional and Simplified Chinese the audience and the job:
 中英混著講，說完就打好。),
 the "Get Airdraft", source and sample actions, three quiet facts (open source;
 on the Mac or with your own provider; macOS 15+ on Apple silicon), and Home's waveform card from the app
-(decorative bars, no metrics, the app's first-run caption); no paragraph. The
+(decorative bars, no metrics, the app's first-run caption), drawn in 3D as one
+folded metal ribbon into the caret where WebGL allows (the HTML card otherwise); no paragraph. The
 caption works: holding ⌃⌥ or pressing the waveform plays a pretend dictation
 that adds a bar, without recording anything.
 Nothing else shows until the visitor scrolls. The headline says transcription,
@@ -202,7 +203,8 @@ waveform responds to the visitor. Pricing, Support and Changelog open with the
 same page title block: one size, one top inset and the full content width. Scroll motion tells the dictation story (speak, refine, insert) but
 the page reads fully without it. Motion stays physical: objects rise from and
 sink into the surface and selections slide; nothing tilts or flies through
-perspective. Bento tiles are one graphic and one line.
+perspective, except the hero ribbon's folds, and nothing in the hero follows the
+pointer. Bento tiles are one graphic and one line.
 
 ## Search and product guides
 

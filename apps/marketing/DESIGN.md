@@ -419,6 +419,28 @@ never add a bar), a touch that turns into a scroll, or the card leaving the
 screen cancel it; eight seconds stop it. With reduced motion the live bar holds
 one level and nothing animates.
 
+**Hero ribbon (`src/scripts/hero3d.ts`, `hero3d-scene.ts`).** Where WebGL2 is
+available, three.js draws the card again over the HTML as one folded ribbon of
+brushed metal (the app's Silk recording style): the forty bars fused into one
+band whose width follows their heights, folding slowly along its length into
+the caret, a graphite pill, where text lands. Neutral grays only, every colour
+read from the page's tokens; one key light at the top left casts its shadow down
+and to the right on the island. It draws itself from the left into the caret
+once on arrival; at rest its folds travel slowly toward the caret; while the
+pretend dictation records, its level swells the ribbon at the caret and travels
+left, the way the pill's meter scrolls; as the hero scrolls away the folds relax
+and it settles flat onto the island. Nothing follows the pointer, and the
+waveform's hover magnification and the voice stay on the HTML bars. The HTML
+card keeps its box (no layout shift), stays the pointer target and the source
+the scene reads every frame, and is the whole hero without JavaScript, without
+WebGL2, or with Save-Data or a reduced-data preference. three.js loads after
+`load` and idle, as its own chunk requested only by the homepages; the scene
+renders only while the card is on screen and the tab visible, caps the pixel
+ratio at `2` (`1.5` on phones, with a narrower ribbon and fewer folds) and frees
+the GPU on `pagehide`. With reduced motion it draws one resting frame, again
+only when something changes. The canvas is `aria-hidden` and takes no pointer
+events.
+
 ### Voice (`src/scripts/voice.ts`)
 
 Every `[data-waveform]` listens to one shared "voice": pointer speed and scroll
@@ -745,8 +767,9 @@ visitor, so they lead the scroll a little; the contents of recessed wells sit
 further away, so they lag. Objects rise from the surface as they arrive (they
 grow from `0.92–0.94` while their shadow grows from nothing) and sink back into
 it as they leave (they shrink while their shadow flattens). Light stays at the
-top left; nothing tilts or flies through perspective, and text fades and moves
-but never zooms.
+top left; nothing tilts or flies through perspective (the hero ribbon's folds,
+turning under the fixed key light, are the one exception), and text fades and
+moves but never zooms.
 
 **Scroll timelines (`src/styles/motion.css`).** Where the browser supports
 CSS scroll timelines and motion is allowed, every scroll-linked effect is a
@@ -763,7 +786,7 @@ animation; `scripts/check-search.py` rejects a build that does.
 | Where            | Motion                                                                                                                                                                                                                                                                                            |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Section headings | Fade up `28px` as they enter; on the homepage what they introduce follows from further down (`96px`, `140px` of scroll later), so it slides in behind the title at a different speed.                                                                                                             |
-| Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94` and its shadow flattens.                                                                                                                                                                |
+| Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94`; the ribbon's folds relax and it settles flat onto the island.                                                                                                                          |
 | Sample           | The steps, the well, the pill, the controls and the card follow the title one after another; above `700px` the scene pins and the scroll plays the story (`preview.ts`), otherwise it plays once mid-screen.                                                                                      |
 | Bento            | Under its sticky title, tiles rise one by one (`110px`, from `--in`, `sticky.ts`) as the title settles or as they come up, then scroll under the title's blur. Each graphic lags `±18px` in its well; wide tiles lead `±16px`.                                                                    |
 | Transcribe       | The beats arrive in turn under the sticky title; the stage pins under it where it fits and the scroll runs the story, otherwise each beat plays after it arrives (`meetings.ts`).                                                                                                                 |
@@ -798,8 +821,7 @@ follow; section headings rise word by word (character pairs in Chinese and
 Japanese) as they arrive, and the content under them rises the same way
 (`32px`, out of a `6px` blur, blocks arriving together `90ms` apart): guide tiles, guide and text-page sections,
 breadcrumbs, pricing's cost section (intro, tables, note) and questions, and changelog cards. Every page loads it
-(`Layout.astro`). Blocks the scroll timelines already raise are left to them; the hero card drifts up to `12px` toward the pointer
-and the copy `6px` away, translation only, so light stays at the top left. The
+(`Layout.astro`). Blocks the scroll timelines already raise are left to them. Nothing in the hero follows the pointer. The
 app window grows from `0.84` and `140px` below as it arrives.
 
 The hero card rises once on load (CSS) and its bars grow. Resting CSS is always
@@ -1064,7 +1086,7 @@ already running when the preference changes.
 - Don't lower a shadow's contrast to make it subtle; shrink its spread.
 - Don't use wide, low-contrast ambient shadows or blooming white halos.
 - Don't divide content with flat hairlines; use the groove or space.
-- Don't tilt, rotate or fly a lit object through perspective: its light is fixed at the top left. Objects rise from and sink into the surface, and selections slide.
+- Don't tilt, rotate or fly a lit object through perspective: its light is fixed at the top left. Objects rise from and sink into the surface, and selections slide. The hero ribbon is the one exception: its folds turn under a key light fixed at the top left.
 - Don't repeat a two-tone headline pattern or add eyebrow labels above section headings.
 - Don't add copy that restates a heading, narrates the page, or labels the obvious. If a line doesn't change a decision, cut it.
 - Don't hand-roll a key or section; extend the component instead.

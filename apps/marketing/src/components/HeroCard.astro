@@ -22,9 +22,9 @@ const app = appLabels[locale];
  * pill floats under the card (src/scripts/dictate.ts).
  *
  * Where the browser can, the card is drawn again in three dimensions over
- * this HTML (src/scripts/hero3d.ts): the same card machined as one object,
- * which mirrors these bars. This HTML stays the source of truth and the
- * complete fallback.
+ * this HTML (src/scripts/hero3d.ts): one folded metal ribbon whose width
+ * follows these bars, running into the caret. This HTML stays the source of
+ * truth, the pointer target and the complete fallback.
  */
 const count = 40;
 const levels = Array.from({ length: count }, (_, index) => {

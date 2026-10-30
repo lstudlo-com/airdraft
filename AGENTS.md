@@ -115,7 +115,8 @@ where releases are made. Keep it on `main`; it is the only checkout of `main`.
 Run `moon run airdraft:release-setup` once per release Mac. The installed pre-push
 hook builds committed sources locally for every origin/main push that can change
 the app. A push whose changes since the latest published release are only the
-website (`apps/marketing/`) and Markdown guidance (root `*.md`, `docs/`) skips the
+website (`apps/marketing/`), Markdown guidance (root `*.md`, `docs/`) and
+`pnpm-lock.yaml` changes that leave its root importer (moon) unchanged skips the
 app release, and the publish workflow skips with it; deploy the website on its own.
 `AIRDRAFT_RELEASE_FORCE=1` releases anyway. The GitHub workflow publishes the
 verified draft after the push succeeds. See `docs/updates.md`
@@ -228,8 +229,12 @@ and Local releases below.
   is as tall as the transcript, its slots filling down to the guide link on the
   card's bottom line. Pricing plans are
   separate cards and text pages frame no section in a well; headings rise word by
-  word, subpage content rises block by block, and the hero drifts with the pointer
-  (`flourish.ts`). Scroll-driven animations need `cssMinify: "esbuild"`: Lightning
+  word and subpage content rises block by block (`flourish.ts`); nothing in the
+  hero follows the pointer. Where WebGL2 is available three.js draws the hero's
+  waveform card (`hero3d.ts`, `hero3d-scene.ts`) as one folded metal ribbon (the
+  app's Silk style) running into a graphite caret, lit from the top left; it loads
+  after load and idle on the homepages only, never with Save-Data, and the HTML
+  card keeps its box and stays the pointer target and the fallback. Scroll-driven animations need `cssMinify: "esbuild"`: Lightning
   CSS folds `animation-timeline` into the `animation` shorthand, which Chrome drops,
   and `check-search.py` rejects such a build. Reduce Motion and no-JS keep resting
   frames. The one accent,
