@@ -16,6 +16,8 @@
 //              on the section: the scroll the story runs over, the runway
 //              while pinned, or from the first item's arrival to past the
 //              last's when not.
+//   .is-held   on the section while its title rests under the header, so
+//              the title's blur band (global.css) shows only then.
 //
 // Only lengths inside each section are measured, so nothing above it
 // changes them; they are measured again when the window changes size or the
@@ -111,9 +113,27 @@ function measure(section: HTMLElement) {
   root.classList.remove("sticky-measure");
 }
 
+// Held: the title's box rests at the header's foot. Approaching, it sits
+// lower; at the section's end the section pushes it up past the header.
+function hold(section: HTMLElement) {
+  const heading = section.querySelector<HTMLElement>(
+    ":scope > .section-heading",
+  )!;
+  const header = px(document.documentElement, "--header", 72);
+  const offset = heading.getBoundingClientRect().top - header;
+  section.classList.toggle("is-held", Math.abs(offset) < 1);
+}
+
 const sections = [...document.querySelectorAll<HTMLElement>(".section-sticky")];
 if (sections.length) {
-  const all = () => sections.forEach(measure);
+  // Scroll events arrive once per frame, after layout, so reading three
+  // boxes here costs no extra layout.
+  const held = () => sections.forEach(hold);
+  addEventListener("scroll", held, { passive: true });
+  const all = () => {
+    sections.forEach(measure);
+    held();
+  };
   let timer = 0;
   const later = () => {
     clearTimeout(timer);

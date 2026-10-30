@@ -61,6 +61,18 @@
         animation-timeline: view();
         animation-range: entry 0% entry 100%;
       }
+      /* A held title's heading holds the blur band (global.css), so only
+         its text rises: an opacity animation on the heading itself would
+         make it the blur's backdrop root and turn the band opaque. */
+      .section-sticky > .section-heading {
+        animation: none;
+        view-timeline: --title block;
+      }
+      .section-sticky > .section-heading > :not(.heading-blur) {
+        animation: motion-fade-up linear both;
+        animation-timeline: --title;
+        animation-range: entry 0% entry 100%;
+      }
 
       /* 1. Hero exit. The copy lags the scroll a little and fades before it
          can reach the card below it; Home's card sinks back into the island

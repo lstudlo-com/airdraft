@@ -1629,14 +1629,21 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .home .section-heading h2 {
     font-size: clamp(1.75rem, 1.35rem + 1.2vw, 2.25rem);
   }
-  /* Sticky story titles (Section sticky: the bento, Transcribe, the
-     provider board and the interface). The title rests 48px below the
-     site header while the section's content scrolls up under it, until the
-     section ends. Behind it the header's progressive blur continues (the
-     same six layers and the header row's 35% veil, without the heavier
-     tint that fades down the header's own blur), from the window's top
-     edge to just below the title, so content stays visible, blurred, as it
-     passes under the title, as it does under the header. A negative margin keeps the section's spacing unchanged.
+  /* Sticky story titles (Section sticky: the bento, Transcribe and the
+     provider board). The title rests 48px below the site header while the
+     section's content scrolls up under it, until the section ends. While
+     it is held (sticky.ts sets .is-held) the title band becomes part of the
+     header: behind it the header's progressive blur continues from the
+     window's top edge, strongest under the header row and easing over the
+     title band to nothing 40px below it, so content stays visible, blurred,
+     as it passes under the title, and the header and the band read as one
+     surface. The band carries the header row's 35% veil, faded in where the
+     header's own veil fades out, without the heavier tint. A negative
+     margin keeps the section's spacing unchanged.
+     The heading itself never fades or animates its opacity (motion.css
+     fades its text instead): an ancestor with an opacity animation becomes
+     the blur layers' backdrop root, so they would blur only the veil,
+     stacking it into an opaque band that hides the content.
      sticky.ts measures the rest: when each item arrives, and where a story
      stage pins under the title (.is-pinned, --pin-top, [data-pin]) with its
      runway ([data-pin-runway]). */
@@ -1666,53 +1673,75 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     inset: calc(-1 * var(--header)) calc(50% - 50vw) -40px;
     height: auto;
   }
-  /* The veil starts under the header, which has its own; the heavier
-     tint stays the header's alone, or the title would cover what passes
-     under it instead of blurring it. */
-  .heading-blur::before {
-    top: var(--header);
+  /* Only while the title is held; with the script off it always shows. */
+  .js .section-sticky:not(.is-held) .heading-blur i,
+  .js .section-sticky:not(.is-held) .heading-blur::before {
+    opacity: 0;
   }
   .heading-blur::after {
     display: none;
   }
-  /* The header's quadratic ramp stretched over the whole band: strongest
-     under the header, easing to a 1px blur at the band's foot, so what
-     passes under the title softens gradually instead of vanishing. */
-  .heading-blur i:nth-child(1) {
-    --solid: 93.8%;
-    --clear: 100%;
-  }
-  .heading-blur i:nth-child(2) {
-    --solid: 76.9%;
-    --clear: 93.8%;
-  }
-  .heading-blur i:nth-child(3) {
-    --solid: 64.6%;
-    --clear: 76.9%;
-  }
-  .heading-blur i:nth-child(4) {
-    --solid: 49.2%;
-    --clear: 64.6%;
-  }
-  .heading-blur i:nth-child(5) {
-    --solid: 28.5%;
-    --clear: 49.2%;
-  }
-  .heading-blur i:nth-child(6) {
-    --solid: 0%;
-    --clear: 28.5%;
-  }
+  /* The veil fades in under the header row as the header's own veil fades
+     out (its blur is 100px tall), holds behind the title and fades out
+     with the blur. */
   .heading-blur::before {
     -webkit-mask-image: linear-gradient(
       to bottom,
+      transparent var(--header),
+      black 100px,
       black calc(100% - 40px),
       transparent
     );
     mask-image: linear-gradient(
       to bottom,
+      transparent var(--header),
+      black 100px,
       black calc(100% - 40px),
       transparent
     );
+  }
+  /* The ramp. Each layer covers the band from the top down to its stop
+     (the layers stack): 32px and 16px only behind the header row, 8px
+     easing out by the title's top, then 4px, 2px and 1px easing over the
+     title band (stops as shares of the band below the header), so text
+     passing under the title is softened, still legible, and clears at the
+     band's foot. */
+  .heading-blur i {
+    --band: calc(100% - var(--header));
+  }
+  .heading-blur i:nth-child(1) {
+    --solid: calc(var(--header) + var(--band) * 0.55);
+    --clear: 100%;
+  }
+  .heading-blur i:nth-child(2) {
+    --solid: calc(var(--header) + var(--band) * 0.3);
+    --clear: calc(var(--header) + var(--band) * 0.75);
+  }
+  .heading-blur i:nth-child(3) {
+    --solid: calc(var(--header) + var(--band) * 0.1);
+    --clear: calc(var(--header) + var(--band) * 0.5);
+  }
+  .heading-blur i:nth-child(4) {
+    --solid: var(--header);
+    --clear: calc(var(--header) + var(--stick-gap));
+  }
+  .heading-blur i:nth-child(5) {
+    --solid: calc(var(--header) * 0.4);
+    --clear: var(--header);
+  }
+  .heading-blur i:nth-child(6) {
+    --solid: 0%;
+    --clear: calc(var(--header) * 0.6);
+  }
+  /* Reduce Transparency: an opaque band in the island's colour, like the
+     header, still only while the title is held. */
+  @media (prefers-reduced-transparency: reduce) {
+    .heading-blur {
+      background: none;
+    }
+    .heading-blur::before {
+      background-color: var(--blur-tint);
+    }
   }
   /* sticky.ts measures every box where it sits in the flow. */
   .sticky-measure .section-sticky > .section-heading,
