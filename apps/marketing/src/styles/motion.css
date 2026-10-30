@@ -127,7 +127,8 @@
           .sample-steps,
           .sample-stage > :not(.sample-link),
           .sample-hud-row,
-          .sample-controls
+          .sample-controls,
+          .specimens > .tile
         ) {
         animation: follow-rise var(--ease-follow) both;
         animation-timeline: view();
@@ -192,7 +193,7 @@
       /* Tiles also lift their shadow as they rise; wide tiles, the larger
          raised faces, lead the narrow ones slightly; each graphic lags
          inside its well. */
-      .bento .tile {
+      .section-sticky .bento > .tile {
         --follow-y: 110px;
         animation:
           follow-rise var(--ease-follow) both,
@@ -204,7 +205,7 @@
           cover var(--in, 0px) cover
             calc(var(--in, 0px) + var(--follow-len, 300px));
       }
-      .bento .tile-wide {
+      .section-sticky .bento > .tile-wide {
         --depth-range: 16px;
         animation:
           follow-rise var(--ease-follow) both,

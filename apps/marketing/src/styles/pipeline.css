@@ -87,7 +87,6 @@
     border-radius: var(--radius-card);
     background: var(--fill-card);
     box-shadow: var(--edge), var(--raise-small);
-    scale: calc(0.95 + 0.05 * var(--lit) + 0.015 * var(--work));
     translate: 0 calc(var(--work) * -10px);
   }
   .pipe-card::before,

@@ -1617,18 +1617,31 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     margin-inline: auto;
     text-align: center;
   }
+  /* A step smaller than a subpage title, so a held title stays a label
+     over the content scrolling under it. */
+  /* Title to content on the homepage: a quarter more than elsewhere. */
+  .home {
+    --heading-gap: calc(var(--space-11) * 1.25);
+  }
+  .home .section-heading + * {
+    margin-top: var(--heading-gap);
+  }
+  .home .section-heading h2 {
+    font-size: clamp(1.75rem, 1.35rem + 1.2vw, 2.25rem);
+  }
   /* Sticky story titles (Section sticky: the bento, Transcribe, the
-     provider board and the interface). The title rests one header height
-     below the site header while the section's content scrolls up under
-     it, until the section ends. Behind it is the header's progressive blur
-     (the same six layers), from the window's top edge to just below the
-     title, so content blurs as it passes under the title as it does under
-     the header. A negative margin keeps the section's spacing unchanged.
+     provider board and the interface). The title rests 48px below the
+     site header while the section's content scrolls up under it, until the
+     section ends. Behind it the header's progressive blur continues (the
+     same six layers and the header row's 35% veil, without the heavier
+     tint that fades down the header's own blur), from the window's top
+     edge to just below the title, so content stays visible, blurred, as it
+     passes under the title, as it does under the header. A negative margin keeps the section's spacing unchanged.
      sticky.ts measures the rest: when each item arrives, and where a story
      stage pins under the title (.is-pinned, --pin-top, [data-pin]) with its
      runway ([data-pin-runway]). */
   .section-sticky {
-    --stick-gap: var(--header);
+    --stick-gap: var(--space-12);
     --stick-pad: var(--space-5);
     /* Its own block formatting context, so the title's negative margin
        pulls it above the section instead of collapsing into the
@@ -1647,28 +1660,47 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     position: relative;
   }
   .section-sticky > .section-heading + * {
-    margin-top: calc(var(--space-11) - var(--stick-pad));
+    margin-top: calc(var(--heading-gap, var(--space-11)) - var(--stick-pad));
   }
   .heading-blur {
     inset: calc(-1 * var(--header)) calc(50% - 50vw) -40px;
     height: auto;
   }
-  /* The veil and tint start under the header, which has its own. */
-  .heading-blur::before,
-  .heading-blur::after {
+  /* The veil starts under the header, which has its own; the heavier
+     tint stays the header's alone, or the title would cover what passes
+     under it instead of blurring it. */
+  .heading-blur::before {
     top: var(--header);
   }
   .heading-blur::after {
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      black calc(100% - 48px),
-      transparent
-    );
-    mask-image: linear-gradient(
-      to bottom,
-      black calc(100% - 48px),
-      transparent
-    );
+    display: none;
+  }
+  /* The header's quadratic ramp stretched over the whole band: strongest
+     under the header, easing to a 1px blur at the band's foot, so what
+     passes under the title softens gradually instead of vanishing. */
+  .heading-blur i:nth-child(1) {
+    --solid: 93.8%;
+    --clear: 100%;
+  }
+  .heading-blur i:nth-child(2) {
+    --solid: 76.9%;
+    --clear: 93.8%;
+  }
+  .heading-blur i:nth-child(3) {
+    --solid: 64.6%;
+    --clear: 76.9%;
+  }
+  .heading-blur i:nth-child(4) {
+    --solid: 49.2%;
+    --clear: 64.6%;
+  }
+  .heading-blur i:nth-child(5) {
+    --solid: 28.5%;
+    --clear: 49.2%;
+  }
+  .heading-blur i:nth-child(6) {
+    --solid: 0%;
+    --clear: 28.5%;
   }
   .heading-blur::before {
     -webkit-mask-image: linear-gradient(
@@ -2409,6 +2441,9 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     }
     .section-heading + * {
       margin-top: var(--space-8);
+    }
+    .home {
+      --heading-gap: calc(var(--space-8) * 1.25);
     }
     .bento {
       grid-template-columns: minmax(0, 1fr);

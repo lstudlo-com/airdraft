@@ -211,13 +211,17 @@ and Local releases below.
   pill, between the two cards) and light as it plays. Every showcase is a scene of
   separate objects on the island, never one raised slab, and its story is told by
   the scroll (reversible). On the homepage a title always arrives before its content,
-  which follows from further down at a different speed. The bento, Transcribe, the
-  provider board and the interface use `Section sticky`: the title holds one header
-  height below the site header (40 px on phones) over the header's progressive blur
-  while the content scrolls under it, and `sticky.ts` makes items arrive one at a
+  which follows from further down at a different speed, a quarter further from the
+  title than on subpages. The bento, Transcribe and the provider board use `Section
+  sticky` (the interface and everything after it scroll normally): the title holds
+  48 px below the site header (40 px on phones) over a continuation of the header's
+  progressive blur (its veil but not its heavier tint), so content stays visible,
+  blurred, while it scrolls under the title, and `sticky.ts` makes items arrive one at a
   time as the title settles; Transcribe's stage and the provider cards pin under the
   title where they fit and play their story over a runway, otherwise each plays as
-  it passes. Transcribe's turns are rows in one transcript card. Pricing plans are
+  it passes; the provider cards never scale. Transcribe's turns are rows in one
+  transcript card, and its export beat is as tall as the transcript, the guide link
+  on the card's bottom line. Pricing plans are
   separate cards and text pages frame no section in a well; headings rise word by
   word, subpage content rises block by block, and the hero drifts with the pointer
   (`flourish.ts`). Scroll-driven animations need `cssMinify: "esbuild"`: Lightning

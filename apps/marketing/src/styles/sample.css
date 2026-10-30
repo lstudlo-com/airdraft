@@ -21,7 +21,7 @@
     margin-inline: auto;
   }
   .sample .section-heading + .sample-scene {
-    margin-top: var(--space-12);
+    margin-top: calc(var(--space-12) * 1.25);
   }
 
   /* The steps: a raised number over one short label, each centered in its
@@ -399,7 +399,7 @@
   }
   @media (max-width: 700px) {
     .sample .section-heading + .sample-scene {
-      margin-top: var(--space-10);
+      margin-top: calc(var(--space-10) * 1.25);
     }
     .sample-steps {
       --dot: 34px;

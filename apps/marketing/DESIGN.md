@@ -478,7 +478,7 @@ bento's profile and history graphics.
 ### Section, Surface, Chips, Keys, Tag, StatusDot
 
 - `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`, `sticky`. Owns the heading id and spacing; `level={1}` titles get `.page-title`. Its id comes from an ASCII title, so translated sections pass `id`. On the homepage (`main.home`) every section's title is centered over its content and has no intro; subpages keep title and intro at the leading edge.
-- `Section sticky` (the bento, Transcribe, the provider board and the interface): the title holds one header height below the site header (`40px` on phones, none on windows under `540px` tall) while the section's content scrolls up under it, until the section ends. Behind the title is the header's progressive blur (the same six layers, veil and tint, `.heading-blur`) from the window's top to `40px` below the title, so content blurs as it passes under the title as it does under the header. A negative margin and its own formatting context keep the section's spacing unchanged. `src/scripts/sticky.ts` measures, on the section's view timeline (`--sticky`), when each item (`data-follow`, bento tiles, Transcribe beats, provider cards) rises: in order, `70px` of scroll apart, starting `260px` before the title settles and never before the item comes into the window. A story stage (`data-pin`) that fits under the settled title pins there while its runway (`data-pin-runway`, `120vh`) scrolls past and its story runs over `--story-0` to `--story-1`.
+- `Section sticky` (the bento, Transcribe and the provider board; the interface and the sections after it scroll normally): the title holds `48px` below the site header (`40px` on phones, none on windows under `540px` tall) while the section's content scrolls up under it, until the section ends. Behind the title the header's progressive blur continues (`.heading-blur`: the same six layers, their quadratic ramp stretched over the band, and the header row's `35%` veil, never the heavier tint, which would hide the content) from the window's top to `40px` below the title, so content stays visible, blurred, as it passes under the title, as it does under the header. Homepage titles are a step smaller than subpage titles (`28–36px`), and content starts a quarter further from its title (`55px`, `40px` on phones). A negative margin and its own formatting context keep the section's spacing unchanged. `src/scripts/sticky.ts` measures, on the section's view timeline (`--sticky`), when each item (`data-follow`, bento tiles, Transcribe beats, provider cards) rises: in order, `70px` of scroll apart, starting `260px` before the title settles and never before the item comes into the window. A story stage (`data-pin`) that fits under the settled title pins there while its runway (`data-pin-runway`, `120vh`) scrolls past and its story runs over `--story-0` to `--story-1`.
 - `Surface`: `variant="panel"` (raised card) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel. Lists and tables go inside a raised panel, divided by grooves, as in the app's settings cards.
 - `Chips`: a list of recessed capsules. `Chip` is a single one: `tone` `muted` (recessed, default) or `strong` (raised), `as` `span` or `li`, and an optional leading `dot` (`ok`, `attention`, `busy`, `inactive`). The bento graphics, the transcript's speaker chips and `/design/` use it; never hand-write `.chip-*` classes.
 - `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles. Modifier keycaps carry `data-key` and sink while the visitor holds that key (`src/scripts/keys.ts`), on every page. With a `label` the caps read as one image of that name; inside decorative art that is already hidden, leave it out and they are hidden too.
@@ -552,7 +552,9 @@ plays; there is no status dot:
    computed from the turns' timestamps, a quarter-second column each.
 3. The transcript: one raised card, like the app's transcript editor, its
    turns in rows (speaker chip, time, words in aligned columns, a subgrid)
-   divided by grooves; each row waits empty, then its words fade up.
+   divided by grooves; each row waits empty, then its words fade up. The
+   export beat beside it is as tall, its guide link on the line where the
+   transcript card ends.
 4. The export: four recessed slots that TXT, JSON, SRT and VTT tiles rise
    into one by one, then the transcription guide link.
 
@@ -575,9 +577,10 @@ the guide.
 ### Interface section (`InterfaceShowcase.astro`)
 
 "An interface you’ll love to use" follows the provider board and precedes the guides.
-Its sticky title is centered over the window, like every homepage section
-heading; the window arrives as the title settles (rising from `0.84`, its
-shadow growing), its callouts after it, and it scrolls up under the title. It shows the real app: the Settings page rendered from a Debug build by
+Its title is centered over the window, like every homepage section heading,
+and scrolls with the page (from here on no title holds); the window follows
+it in from further down (rising from `0.84`, its shadow growing), its callouts
+after it. It shows the real app: the Settings page rendered from a Debug build by
 `scripts/render-app-window.sh` (an isolated empty data directory, so no
 history, usage count or personal setting; grayscale, as the app looks with the
 Graphite accent) in `public/app/`: `configuration-*` in English and
@@ -676,7 +679,8 @@ story reverses when scrolling back. One dictation runs through: Speech
 nine", the misheard words underlined; Refinement (.40–.60) outputs "Meet me
 in cooper tino at nine."; Insertion (.72–.92) strikes "cooper tino", brings
 in Cupertino from its vocabulary table (six spelling examples) and shows the
-caret. A card lifts as it is reached and floats forward while it works; the
+caret. A card's shadow grows as it is reached and it floats `10px` forward
+while it works, never changing size; the
 chosen row's check island sinks with a busy dot and rises with its check;
 finished keycaps turn ink. The cards arrive one by one as the sticky title
 settles. Above `1000px`, where they fit under the settled title, they pin there

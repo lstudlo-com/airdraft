@@ -45,10 +45,11 @@
     --play: 420px;
     grid-column: 1 / span 8;
   }
+  /* The export is as tall as the transcript beside it: its guide link
+     rests on the line where the transcript card ends. */
   .ts-beat-export {
     --play: 240px;
     grid-column: 9 / -1;
-    align-self: start;
   }
 
   .ts-beat {
@@ -378,9 +379,12 @@
     flex: none;
     color: var(--muted);
   }
+  .ts-formats {
+    margin-bottom: var(--space-6);
+  }
   .ts-beat-export .text-link {
     align-self: flex-start;
-    margin-top: var(--space-6);
+    margin-top: auto;
   }
 
   /* With JavaScript the times and the lanes play from there, and the key

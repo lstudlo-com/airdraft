@@ -402,11 +402,10 @@
 @layer motion {
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
-      /* The window arrives after its title settles (the frame's --in,
-         sticky.ts): it rises out of the island, growing from 0.84 toward
-         the visitor while its shadow grows from nothing; then the callouts
-         draw out to their places, top to bottom. The frame itself stays
-         put; only the window and the callouts move. */
+      /* The window follows its title in from further down: it rises out
+         of the island, growing from 0.84 toward the visitor while its
+         shadow grows from nothing; then the callouts draw out to their
+         places, top to bottom. The section scrolls like any other. */
       @keyframes showcase-rise {
         from {
           opacity: 0;
@@ -431,23 +430,22 @@
           translate: -16px -50%;
         }
       }
-      .interface .showcase-frame {
-        --follow-len: 420px;
-        animation: none;
+      .showcase-frame {
+        view-timeline: --showcase block;
       }
       .interface .app-window {
         animation:
           showcase-rise var(--ease-follow) both,
           showcase-lift linear both;
-        animation-timeline: --sticky, --sticky;
+        animation-timeline: --showcase, --showcase;
         animation-range:
-          cover var(--in, 0px) cover calc(var(--in, 0px) + var(--follow-len)),
-          cover var(--in, 0px) cover calc(var(--in, 0px) + var(--follow-len));
+          cover 140px cover 620px,
+          cover 140px cover 620px;
       }
       .interface .callout {
-        --at: calc(var(--in, 0px) + var(--follow-len) + var(--i) * 40px);
+        --at: calc(620px + var(--i) * 40px);
         animation: callout-left var(--ease-follow) both;
-        animation-timeline: --sticky;
+        animation-timeline: --showcase;
         animation-range: cover var(--at) cover calc(var(--at) + 160px);
       }
       .interface .callout-right {
