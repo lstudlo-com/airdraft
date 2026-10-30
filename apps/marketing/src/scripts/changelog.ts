@@ -114,10 +114,7 @@ if (root) {
         reveal.unobserve(observation.target);
         if (motion.matches) continue;
         const card = observation.target;
-        const parts = [
-          card.querySelector("h2")!,
-          ...card.querySelectorAll("li"),
-        ];
+        const parts = [...card.querySelectorAll("li")];
         // The card lifts as a whole; its engraved rows resolve in a short cascade.
         const animations = [
           card.animate(

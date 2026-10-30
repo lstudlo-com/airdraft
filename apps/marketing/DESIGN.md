@@ -713,8 +713,8 @@ Prices, Mac counts and inclusions come from `src/data/site.ts`. Each license's
 price keeps a visually hidden plan name, so text extraction reads "$29 (1 Mac)
 $49 (3 Macs)" rather than the run-together prices.
 
-Until checkout opens, `NotifyRow` sits under the offers (and on Pricing, under
-the currency note): one muted line and two quiet keys, Watch releases on
+Until checkout opens, `NotifyRow` sits under the homepage's offers (Pricing has
+none): one muted line and two quiet keys, Watch releases on
 GitHub and the changelog RSS feed in the page's language. It is the way to
 hear when the official app goes on sale; it renders nothing once it is.
 
@@ -759,7 +759,7 @@ animation; `scripts/check-search.py` rejects a build that does.
 | Transcribe       | The beats arrive in turn under the sticky title; the stage pins under it where it fits and the scroll runs the story, otherwise each beat plays after it arrives (`meetings.ts`).                                              |
 | Provider board   | The cards arrive in turn; `--p` runs one dictation through them and the channels, pinned under the title where it fits (`pipeline.ts`, `sticky.ts`).                                                                           |
 | Close            | Both offers follow their title, the license from furthest (`0.94`, `140px`); both settle level.                                                                                                                                |
-| Pricing          | Plan cards rise left to right; each list well's contents and the cost rows fade up in turn; each three-year bar fills to its share.                                                                                            |
+| Pricing          | Plan cards and what they include rest in place from the first frame (never mid-rise); the cost rows fade up in turn; each three-year bar fills to its share.                                                                   |
 
 **GSAP (`src/scripts/story.ts`).** One `gsap.matchMedia` context, off
 entirely with reduced motion. In browsers without scroll timelines, GSAP
@@ -933,7 +933,9 @@ on a recessed track; `guide-decisions` is a grid of raised cards (four make
 2 + 2); tables and troubleshooting sit in a raised panel; plain lists use
 recessed dots; Privacy's event list is a grid of small cards and its
 analytics choice a settings card. Support's "Still stuck?" is a raised card
-beside the troubleshooting (`GuideSection aside`), sticky on desktop.
+beside the troubleshooting (`GuideSection aside`), sticky on desktop; its top
+lines up with the troubleshooting card, not its heading (the section and the
+card share the article's rows through `subgrid`).
 
 With at least three sections, `GuideToc` ("On this page", `208px` wide,
 sticky `124px` from the top, hidden at `1000px` or less) lists them, a raised
@@ -1001,9 +1003,11 @@ app data, price or unverified availability claim.
 The release timeline has one entry per product version and an initial source
 build. Version, date and the latest-release chip sit in a `112px` column
 beside each card, sticky while a long card is read (above it at `1000px` or
-less). The latest release is raised with `--raise-hero`; patch releases
-(x.y.z with z above 0) are recessed wells with a title one step smaller;
-other releases are raised `Surface` cards. Its linked title leads straight into described change items, separated by
+less). A feature release (x.y.0) shows its linked title on the island above
+its raised `Surface` card, never inside it; the latest feature release is
+raised with `--raise-hero`. Patch releases (x.y.z with z above 0) show no
+title (it stays for screen readers) and are recessed wells, even when one is
+the latest release. The card holds described change items, separated by
 the shared groove, followed by a release or source link. Neither the page title
 nor release titles have summary paragraphs. Cards use the shared card radius,
 padding and neutral materials; descriptions stay within `70ch`.

@@ -2149,14 +2149,6 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     justify-content: center;
     gap: var(--space-1) var(--space-5);
   }
-  .subpage .notify {
-    justify-content: flex-start;
-    margin-top: var(--space-5);
-    text-align: start;
-  }
-  .subpage .notify-actions {
-    justify-content: flex-start;
-  }
 
   /* The license card (LicenseCard.astro): a title with the Mac choice beside
      it, then the chosen license's price and use. Only the chosen license's

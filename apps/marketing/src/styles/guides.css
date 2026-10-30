@@ -761,11 +761,22 @@
   }
 
   /* Support: troubleshooting beside a raised side card for when it does not
-     help, which stays in view while the rows open. */
+     help, which stays in view while the rows open. The card's top lines up
+     with the troubleshooting card, not its heading: the section shares the
+     article's two rows (subgrid), heading above, body and side card below. */
   .guide-article:has(> .guide-aside) {
     grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-rows: auto auto;
     align-items: start;
-    gap: var(--space-12);
+    gap: var(--space-6) var(--space-12);
+  }
+  .guide-article:has(> .guide-aside) > .guide-section:not(.guide-aside) {
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+  }
+  .guide-article > .guide-aside {
+    grid-row: 2;
+    grid-column: 2;
   }
   .guide-aside {
     position: sticky;
@@ -958,7 +969,16 @@
     }
     .guide-article:has(> .guide-aside) {
       grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
       gap: var(--space-14);
+    }
+    .guide-article:has(> .guide-aside) > .guide-section:not(.guide-aside) {
+      grid-row: auto;
+      grid-template-rows: none;
+    }
+    .guide-article > .guide-aside {
+      grid-row: auto;
+      grid-column: auto;
     }
     .guide-aside {
       position: static;

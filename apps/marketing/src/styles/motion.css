@@ -292,34 +292,10 @@
             calc(var(--follow-lag, 140px) + var(--stagger, 0px) + 360px);
       }
 
-      /* 6. Pricing. Plans rise left to right; each list well's contents
-         fade up after its cards; the cost tables' rows rise in turn (each
-         row's --row is set in PricingPage.astro) and each three-year bar
-         fills to its share. */
-      .plans .plan {
-        --stagger: calc(var(--col, 0) * 8%);
-        animation:
-          motion-rise linear both,
-          motion-lift linear both;
-        animation-timeline: view(), view();
-        animation-range:
-          entry var(--stagger) cover calc(30% + var(--stagger)),
-          entry var(--stagger) cover calc(30% + var(--stagger));
-      }
-      @media (min-width: 1001px) {
-        .plans .plan[data-col="1"] {
-          --col: 1;
-        }
-        .plans .plan[data-col="2"] {
-          --col: 2;
-        }
-      }
-      .plan-list > * {
-        --rise-y: 16px;
-        animation: motion-fade-up linear both;
-        animation-timeline: view();
-        animation-range: entry 0% cover 25%;
-      }
+      /* 6. Pricing. The plans and what they include are on the page from
+         the start, never mid-rise; the cost tables' rows rise in turn
+         (each row's --row is set in PricingPage.astro) and each three-year
+         bar fills to its share. */
       /* The tables scroll sideways in their wrappers, which would make a
          wrapper its rows' scroller; they follow the wrapper's own view
          timeline instead, each row a step later. */

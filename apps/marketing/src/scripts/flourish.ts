@@ -6,7 +6,7 @@
 //              guide tiles, guide and text-page sections, pricing questions and changelog cards.
 //              Blocks that come into view together rise one after another.
 //              Blocks the scroll timelines already raise (everything under a
-//              homepage title, offers, plans) are left to motion.css
+//              homepage title, offers) are left to motion.css; pricing plans stay still
 //   depth      the hero card and the copy above it drift a few pixels with
 //              the pointer, the card toward it and the copy away, so the
 //              raised card reads closer than the text. Translation only:
@@ -68,7 +68,7 @@ const contentBlocks = [
   ".guide-hub-note",
   ".guide-actions",
   ".question-list",
-  ".release-card",
+  ".release-body",
 ].join(", ");
 
 function content() {

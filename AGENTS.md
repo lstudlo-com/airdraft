@@ -248,8 +248,9 @@ and Local releases below.
   Keep the changelog current with published app releases: one entry per product
   version, dated from GitHub publication in Asia/Taipei, with a release/source link.
   Group rebuilds under their version and verify changes against the tagged sources.
-  The page and each release use a title followed by described change items, without
-  a title summary. Preserve the version navigator, reduced-motion behavior and
+  The page and each feature release use a title followed by described change items,
+  without a title summary; a release's title sits above its card, and patch releases
+  show no visible title and stay recessed wells, even when latest. Preserve the version navigator, reduced-motion behavior and
   readable content without JavaScript.
   Search contracts live in `apps/marketing/SEARCH.md`. Mixed-language accuracy
   statements come only from `eval/mixed-asr` through

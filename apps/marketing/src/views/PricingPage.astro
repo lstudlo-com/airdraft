@@ -7,7 +7,6 @@ import Disclosure from "../components/ui/Disclosure.astro";
 import Section from "../components/ui/Section.astro";
 import Surface from "../components/ui/Surface.astro";
 import Check from "../components/Check.astro";
-import NotifyRow from "../components/NotifyRow.astro";
 import Rich from "../components/Rich.astro";
 import { licenses, siteLinks } from "../data/site";
 import "../styles/pricing.css";
@@ -168,7 +167,6 @@ const columnClasses = ["cost-setup", "cost-month", "cost-year", "cost-three"];
         </section>
       </div>
       <p class="pricing-note">{copy.currency}</p>
-      <NotifyRow locale={locale} />
     </Section>
 
     <Section

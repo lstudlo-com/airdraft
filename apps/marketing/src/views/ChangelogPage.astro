@@ -14,8 +14,9 @@ import "../styles/changelog.css";
  * The release history, in each language: a navigator by release family
  * beside a timeline. Each entry's version and date sit in a column beside
  * its card and stay in view while the card is read (below 1000px they sit
- * above it). Feature releases are raised cards, patches recessed wells, and
- * the latest release is raised furthest.
+ * above it). A feature release's title sits on the island above its raised
+ * card; a patch shows no title and is a recessed well, even when it is the
+ * latest release. The latest feature release is raised furthest.
  */
 interface Props {
   locale: Locale;
@@ -50,8 +51,7 @@ const sourceLabel = (label: string) =>
 const series = (version?: string) =>
   version?.split(".").slice(0, 2).join(".") ?? copy.source;
 // A patch (x.y.z after x.y.0) reads lighter than the release it follows:
-// a recessed well instead of a raised card. The latest release is raised
-// furthest, whatever it is.
+// a recessed well with no visible title, even when it is the latest.
 const isPatch = (version?: string) =>
   Boolean(version && !/\.0$/.test(version) && version.split(".").length > 2);
 const milestones = changelog.filter(
@@ -90,7 +90,7 @@ const milestones = changelog.filter(
               class:list={[
                 "release-entry",
                 index === 0 && "is-latest",
-                index > 0 && isPatch(entry.version) && "is-patch",
+                isPatch(entry.version) && "is-patch",
               ]}
               aria-labelledby={`${entry.id}-title`}
               id={entry.id}
@@ -105,33 +105,41 @@ const milestones = changelog.filter(
                 <time datetime={entry.date}>{formatDate(entry.date)}</time>
                 {index === 0 && <span class="tag">{copy.latest}</span>}
               </div>
-              <Surface
-                class="release-card"
-                variant={index > 0 && isPatch(entry.version) ? "well" : "panel"}
-              >
-                <h2 id={`${entry.id}-title`}>
+              <div class="release-body">
+                <h2
+                  id={`${entry.id}-title`}
+                  class:list={[
+                    "release-title",
+                    isPatch(entry.version) && "visually-hidden",
+                  ]}
+                >
                   <a href={`#${entry.id}`}>{entry.title}</a>
                 </h2>
-                <ul class="release-changes">
-                  {entry.changes.map((change) => (
-                    <li>
-                      <h3>{change.title}</h3>
-                      <p>{change.description}</p>
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  class="text-link release-source"
-                  href={entry.source.url}
-                  aria-label={copy.sourceFor(
-                    sourceLabel(entry.source.label),
-                    entry.version ?? copy.firstBuild,
-                  )}
+                <Surface
+                  class="release-card"
+                  variant={isPatch(entry.version) ? "well" : "panel"}
                 >
-                  {sourceLabel(entry.source.label)}{" "}
-                  <Arrow direction="external" />
-                </a>
-              </Surface>
+                  <ul class="release-changes">
+                    {entry.changes.map((change) => (
+                      <li>
+                        <h3>{change.title}</h3>
+                        <p>{change.description}</p>
+                      </li>
+                    ))}
+                  </ul>
+                  <a
+                    class="text-link release-source"
+                    href={entry.source.url}
+                    aria-label={copy.sourceFor(
+                      sourceLabel(entry.source.label),
+                      entry.version ?? copy.firstBuild,
+                    )}
+                  >
+                    {sourceLabel(entry.source.label)}{" "}
+                    <Arrow direction="external" />
+                  </a>
+                </Surface>
+              </div>
             </article>
           ))}
           <p class="release-availability">
