@@ -132,7 +132,8 @@ def is_app_path(path):
     The marketing website (deployed separately) and Markdown guidance outside
     the source trees never ship in the app: the root guidance files
     (CLAUDE.md, AGENTS.md, README.md…) and docs/. Everything else, including
-    scripts, tests, project files and resources, counts as an app change.
+    scripts, tests, project files and resources, counts as an app change;
+    `app_changes` lets through a lockfile change that only the website made.
     """
     if path.startswith("apps/marketing/"):
         return False
@@ -161,7 +162,29 @@ def app_changes(commit, released):
     if ancestor.returncode:
         return [f"(history: {released[:12]} is not an ancestor of {commit[:12]})"]
     names = run("git", "diff", "--name-only", "--no-renames", released, commit, cwd=ROOT, capture=True)
-    return [name for name in names.splitlines() if name and is_app_path(name)]
+    changes = [name for name in names.splitlines() if name and is_app_path(name)]
+    # The pnpm workspace holds only apps/*; the app's tooling installs just the
+    # root importer (moon). A lockfile change that leaves it alone is the website's.
+    if LOCKFILE in changes and root_importer(released) == root_importer(commit):
+        changes.remove(LOCKFILE)
+    return changes
+
+
+LOCKFILE = "pnpm-lock.yaml"
+
+
+def root_importer(commit):
+    """The lockfile's settings and root importer at `commit`, or None without one."""
+    shown = subprocess.run(["git", "show", f"{commit}:{LOCKFILE}"], cwd=ROOT, capture_output=True, text=True)
+    if shown.returncode:
+        return None
+    lines = shown.stdout.splitlines()
+    if "  .:" not in lines:
+        return None
+    start = lines.index("  .:")
+    end = next((index for index in range(start + 1, len(lines))
+                if lines[index].startswith("  ") and not lines[index].startswith("   ")), len(lines))
+    return "\n".join(lines[:end]).rstrip()
 
 
 def needs_app_release(commit):

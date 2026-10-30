@@ -133,8 +133,9 @@ git push origin main
 Every push to `origin/main` that can change the app performs the steps below.
 The hook compares the pushed commit with the commit of the latest published
 release (its `release.json`). When every changed path is the website
-(`apps/marketing/`) or Markdown guidance (root `*.md` files and `docs/`), nothing
-in the app can differ, so the hook prints that and lets the push through without
+(`apps/marketing/`) or Markdown guidance (root `*.md` files and `docs/`), or a
+`pnpm-lock.yaml` change that leaves its root importer (moon, the only package the
+app's tooling installs) unchanged, nothing in the app can differ, so the hook prints that and lets the push through without
 building, and the publish workflow finds no draft and stops without failing.
 Deploy the website separately (`pnpm --dir apps/marketing run deploy`). A released
 commit that is not an ancestor of the push counts as an app change.

@@ -94,6 +94,14 @@ class ReleaseTests(unittest.TestCase):
                 # A website change after an app change still releases the app change.
                 later = commit('apps/marketing/src/index.astro', 'site 2')
                 self.assertEqual(release.app_changes(later, released), ['Sources/App/App.swift'])
+                # A lockfile change that leaves the root importer (moon) alone is the website's.
+                lock = "lockfileVersion: '9.0'\n\nimporters:\n\n  .:\n    devDependencies:\n      moon: 1\n\n  apps/marketing:\n    dependencies:\n"
+                base = commit('pnpm-lock.yaml', lock + '      gsap: 3\n')
+                site = commit('pnpm-lock.yaml', lock + '      gsap: 3\n      three: 1\n')
+                self.assertEqual(release.app_changes(site, base), [])
+                tooling = commit('pnpm-lock.yaml', lock.replace('moon: 1', 'moon: 2') + '      gsap: 3\n')
+                self.assertEqual(release.app_changes(tooling, site), ['pnpm-lock.yaml'])
+                self.assertEqual(release.app_changes(base, released), ['Sources/App/App.swift', 'pnpm-lock.yaml'])
                 git('checkout', '-q', '--orphan', 'other')
                 unrelated = commit('apps/marketing/x.md', 'x')
                 self.assertTrue(release.app_changes(unrelated, released))
