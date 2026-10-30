@@ -10,10 +10,12 @@ import "../styles/sample.css";
 /**
  * "Hold, speak, let go": the homepage's one telling of how dictation works
  * (src/scripts/preview.ts). The section is a scene on the island, not one
- * card: its three steps sit centered under the title on a recessed progress
- * track, and below them stand separate objects, the recessed "What you said"
- * well and the raised "What Airdraft inserts" card, with the recording pill
- * floating between them and, under it, the profile picker and the Run key.
+ * card: three columns, each step standing over the object it tells. Step 1
+ * over the recessed "What you said" well, step 2 over the recording pill
+ * floating on the groove between, step 3 over the raised "What Airdraft
+ * inserts" card. Each control sits on the object it acts on, on one line at
+ * the foot of both: the Run key in the well (it says the line again), the
+ * profile picker in the card (it tidies the same words another way).
  *
  * On wide windows the scene pins while the visitor scrolls and the scroll
  * tells the story: step 1 listens, step 2 tidies, step 3 types at the cursor;
@@ -91,13 +93,38 @@ const profiles = [
                 ),
               )}
             </p>
+            <div class="sample-foot">
+              <Button class="run-button" data-play hidden>
+                <svg
+                  slot="icon"
+                  class="play-symbol"
+                  viewBox="0 0 24 24"
+                  width="14"
+                  height="14"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
+                </svg>
+                <span slot="icon" class="stop-symbol" aria-hidden="true"></span>
+                <span data-play-label>{copy.run}</span>
+              </Button>
+            </div>
           </div>
 
-          <div class="sample-link">
-            <div class="sample-hud-row" aria-hidden="true">
-              <Hud locale={locale} class="sample-hud" />
+          <div class="sample-hud-row" aria-hidden="true">
+            <Hud locale={locale} class="sample-hud" />
+          </div>
+
+          <div class="sample-inserts" data-written>
+            <span class="field-label">{copy.inserts}</span>
+            <div class="result-copy" aria-live="polite" data-result>
+              <p>
+                {copy.examples.clean}
+                <span class="caret" aria-hidden="true"></span>
+              </p>
             </div>
-            <div class="sample-controls">
+            <div class="sample-foot">
               <div
                 class="segmented"
                 role="group"
@@ -115,31 +142,6 @@ const profiles = [
                   </button>
                 ))}
               </div>
-              <Button class="run-button" data-play hidden>
-                <svg
-                  slot="icon"
-                  class="play-symbol"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  height="16"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M8 5.8a1 1 0 0 1 1.52-.85l9.24 5.7a1.58 1.58 0 0 1 0 2.7l-9.24 5.7A1 1 0 0 1 8 18.2Z"></path>
-                </svg>
-                <span slot="icon" class="stop-symbol" aria-hidden="true"></span>
-                <span data-play-label>{copy.run}</span>
-              </Button>
-            </div>
-          </div>
-
-          <div class="sample-inserts" data-written>
-            <span class="field-label">{copy.inserts}</span>
-            <div class="result-copy" aria-live="polite" data-result>
-              <p>
-                {copy.examples.clean}
-                <span class="caret" aria-hidden="true"></span>
-              </p>
             </div>
           </div>
         </div>

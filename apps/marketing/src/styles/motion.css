@@ -137,9 +137,7 @@
           .question-list,
           .offers > .offer,
           .sample-steps,
-          .sample-stage > :not(.sample-link),
-          .sample-hud-row,
-          .sample-controls,
+          .sample-stage > *,
           .specimens > .tile
         ) {
         animation: follow-rise var(--ease-follow) both;
@@ -162,11 +160,6 @@
       .home .sample-hud-row {
         --stagger: 60px;
         --follow-lag: 60px;
-      }
-      .home .sample-controls {
-        --stagger: 100px;
-        --follow-lag: 60px;
-        --follow-y: 64px;
       }
       .home .sample-stage > .sample-inserts {
         --stagger: 120px;

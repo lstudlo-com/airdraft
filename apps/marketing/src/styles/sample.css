@@ -1,10 +1,11 @@
 /* "Hold, speak, let go" (components/DictationPreview.astro,
-   src/scripts/preview.ts): a scene on the island rather than one card. The
-   three steps stand centered under the title on a recessed progress track;
-   below them, separate objects: the recessed "What you said" well and the
-   raised "What Airdraft inserts" card, with the recording pill floating on
-   the groove between them and the profile picker and the Run key under it,
-   so the scene is one row.
+   src/scripts/preview.ts): a scene on the island rather than one card,
+   laid out in three columns that the steps and the objects share. Each
+   step stands over what it tells: step 1 over the recessed "What you said"
+   well, step 2 over the recording pill floating on the groove between, step
+   3 over the raised "What Airdraft inserts" card; recessed tracks join the
+   steps. The controls sit on the objects they act on, at the foot of both
+   on one line: the Run key in the well, the profile picker in the card.
 
    The script sets data-state (idle, listening, decoding, refining, typing,
    done) and the two track fills (--fill-1, --fill-2, 0 to 1). On wide
@@ -16,7 +17,12 @@
   .sample-pin {
     display: grid;
   }
+  /* The middle column fits the pill's widest state (--hud-column, measured
+     by preview.ts), so nothing moves while the pill grows and shrinks from
+     its centre, as in the app, and leaves step 2's label room. */
   .sample-scene {
+    --mid: max(var(--hud-column, 13.5rem), 15rem);
+    --columns: minmax(0, 1fr) var(--mid) minmax(0, 1fr);
     width: min(100%, 1040px);
     margin-inline: auto;
   }
@@ -24,28 +30,29 @@
     margin-top: calc(var(--space-12) * 1.25);
   }
 
-  /* The steps: a raised number over one short label, each centered in its
-     column; recessed tracks join the numbers and fill with the accent as
-     the story moves from one step to the next. */
+  /* The steps: a raised number over one short label, each centered over
+     its object; recessed tracks join the numbers and fill with the accent
+     as the story moves from one step to the next. The tracks are measured
+     on the list: a side column's centre is a quarter of what the middle
+     column leaves. */
   .sample-steps {
     --dot: 40px;
-    --steps-gap: var(--space-6);
     --track-inset: 14px;
+    --side-centre: calc((100% - var(--mid)) / 4);
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 16rem));
-    justify-content: center;
-    column-gap: var(--steps-gap);
+    grid-template-columns: var(--columns);
     margin: 0;
     padding: 0;
     list-style: none;
   }
   .sample-steps li {
-    position: relative;
     display: grid;
     grid-template-rows: var(--dot) auto;
     justify-items: center;
     row-gap: var(--space-4);
     min-width: 0;
+    padding-inline: var(--space-2);
     color: var(--ink);
     font-size: var(--step-0);
     font-weight: 500;
@@ -59,11 +66,18 @@
     position: absolute;
     top: calc(var(--dot) / 2 - 2.5px);
     inset-inline-start: calc(
-      -50% - var(--steps-gap) + var(--dot) / 2 + var(--track-inset)
+      var(--side-centre) + var(--dot) / 2 + var(--track-inset)
     );
     inset-inline-end: calc(50% + var(--dot) / 2 + var(--track-inset));
     height: 5px;
     border-radius: 3px;
+  }
+  .sample-steps li + li + li::before,
+  .sample-steps li + li + li::after {
+    inset-inline-start: calc(50% + var(--dot) / 2 + var(--track-inset));
+    inset-inline-end: calc(
+      var(--side-centre) + var(--dot) / 2 + var(--track-inset)
+    );
   }
   .sample-steps li + li::before {
     background: var(--well);
@@ -167,23 +181,19 @@
     user-select: none;
   }
 
-  /* The stage: the well, the pill on the groove between, the card. The
-     middle column is at least as wide as the pill's widest state
-     (--hud-column, measured by preview.ts), so the well and the card never
-     move while the pill grows and shrinks from its centre, as in the app;
-     the picker under the pill may widen it. */
+  /* The stage: the well, the pill on the groove between, the card, in the
+     steps' columns. */
   .sample-stage {
-    --side: minmax(0, 1fr);
     display: grid;
-    grid-template-columns:
-      var(--side) minmax(var(--hud-column, 13.5rem), max-content)
-      var(--side);
+    grid-template-columns: var(--columns);
     align-items: stretch;
     margin-top: var(--space-16);
     text-align: start;
   }
   .sample-said,
   .sample-inserts {
+    display: flex;
+    flex-direction: column;
     padding: var(--space-7) var(--space-8) var(--space-8);
     border-radius: var(--radius-card);
   }
@@ -263,28 +273,19 @@
     animation-play-state: paused;
   }
 
-  /* The middle column: the pill, then the controls under it. The pill
-     floats over an engraved groove that joins the well to the card: it
-     hangs higher, with a longer shadow, while it works, and rests dimmed,
-     closer to the island, before and after. */
-  .sample-link {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: var(--space-6);
-  }
+  /* The middle column: the pill floats over an engraved groove that joins
+     the well to the card. It hangs higher, with a longer shadow, while it
+     works, and rests dimmed, closer to the island, before and after. */
   .sample-hud-row {
     position: relative;
     display: grid;
     place-items: center;
-    align-self: stretch;
     min-height: 56px;
   }
   .sample-hud-row::before {
     content: "";
     position: absolute;
-    inset-inline: var(--space-3);
+    inset-inline: 0;
     top: calc(50% - 1px);
     height: 3px;
     box-shadow: var(--groove);
@@ -318,18 +319,30 @@
     opacity: 0.3;
   }
 
-  /* Standalone controls under the pill: the profile picker re-runs the
-     refinement, the key under it runs the sample again (or stops it). */
-  .sample-controls {
+  /* Each object's control on one line at its foot, at the text's leading
+     edge: the Run key (it says the line again, or stops) in the well, the
+     profile picker (it tidies the same words another way) in the card.
+     The key is as tall as the picker's track and sets its label the same
+     size, so the two read as one family. Without the script there is
+     nothing to run: the feet go and the Clean result rests. */
+  .sample-foot {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-4);
-    padding-inline: var(--space-4);
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-6);
+  }
+  html:not(.js) .sample-foot {
+    display: none;
+  }
+  .sample-foot .segmented {
+    max-width: 100%;
   }
   .run-button {
-    min-height: 44px;
-    padding: 0 18px 0 var(--space-4);
+    min-height: 38px;
+    padding: 0 var(--space-4) 0 14px;
+    font-size: var(--step--1);
   }
   .stop-symbol {
     display: none;
@@ -379,10 +392,8 @@
 
 @layer responsive {
   @media (max-width: 1000px) {
-    .sample-stage {
-      grid-template-columns:
-        var(--side) minmax(var(--hud-column, 11rem), max-content)
-        var(--side);
+    .sample-scene {
+      --mid: max(var(--hud-column, 11rem), 12rem);
     }
     .sample-said,
     .sample-inserts {
@@ -397,41 +408,20 @@
       scale: 1;
     }
   }
-  @media (max-width: 700px) {
-    .sample .section-heading + .sample-scene {
-      margin-top: calc(var(--space-10) * 1.25);
+  /* Too narrow for the picker in a side card: the objects stack in one
+     centred column, the well, the pill on its groove, then the card, under
+     the steps in three equal columns. */
+  @media (max-width: 900px) {
+    .sample-scene {
+      --mid: 33.333%;
     }
-    .sample-steps {
-      --dot: 34px;
-      --steps-gap: var(--space-3);
-      --track-inset: 8px;
-    }
-    .sample-steps li {
-      row-gap: var(--space-3);
-      font-size: var(--step--1);
-    }
-    .step-hold {
-      gap: 4px 6px;
-    }
-    /* Stacked: the well, the pill on its groove, the card, then the
-       controls. */
     .sample-stage {
       grid-template-columns: minmax(0, 1fr);
-      margin-top: var(--space-12);
-    }
-    .sample-link {
-      display: contents;
+      width: min(100%, 36rem);
+      margin: var(--space-12) auto 0;
     }
     .sample-hud-row {
-      order: 1;
       height: 76px;
-    }
-    .sample-inserts {
-      order: 2;
-    }
-    .sample-controls {
-      order: 3;
-      margin-top: var(--space-8);
     }
     /* The groove stands upright between the well and the card. */
     .sample-hud-row::before {
@@ -443,12 +433,32 @@
         inset 1px 0 0 var(--groove-shade),
         inset 2px 0 0 var(--groove-light);
     }
+    .result-copy {
+      min-height: 0;
+    }
+  }
+  @media (max-width: 700px) {
+    .sample .section-heading + .sample-scene {
+      margin-top: calc(var(--space-10) * 1.25);
+    }
+    .sample-steps {
+      --dot: 34px;
+      --track-inset: 8px;
+    }
+    .sample-steps li {
+      row-gap: var(--space-3);
+      padding-inline: var(--space-1);
+      font-size: var(--step--1);
+    }
+    .step-hold {
+      gap: 4px 6px;
+    }
     .sample-said,
     .sample-inserts {
       padding: 18px 18px var(--space-5);
     }
-    .result-copy {
-      min-height: 0;
+    .sample-foot {
+      padding-top: var(--space-5);
     }
   }
   /* Increase Contrast adds explicit edges, as in the app. */

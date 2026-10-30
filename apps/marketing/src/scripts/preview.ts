@@ -431,8 +431,9 @@ function setup(root: HTMLElement) {
     });
   };
 
-  // The stage's middle column fits the pill's widest state, so the well
-  // and the card never move while the pill changes (sample.css).
+  // The scene's middle column fits the pill's widest state, so the well,
+  // the card and the steps over them never move while the pill changes
+  // (sample.css).
   const pill = find<HTMLElement>("[data-hud]");
   const measurePill = () => {
     const shown = hudLabel.textContent;
@@ -560,7 +561,12 @@ function setup(root: HTMLElement) {
     ...root.querySelectorAll<HTMLElement>(".step-hold kbd"),
   ]) {
     target.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0) return;
+      // The Run key sits in the well; it is a key, not the well.
+      if (
+        event.button !== 0 ||
+        (event.target as Element).closest("[data-play]")
+      )
+        return;
       try {
         target.setPointerCapture(event.pointerId);
       } catch {
