@@ -206,22 +206,27 @@ and Local releases below.
   is only the well with equal insets (the pretend dictation's pill floats under
   it); the dictation
   sample after the hero (`DictationPreview`, `preview.ts`), titled "Hold, speak,
-  let go", is the one telling of how dictation works: its three steps sit centered
-  on the island above separate objects (the profile picker and Run key under the
-  pill, between the two cards) and light as it plays. Every showcase is a scene of
+  let go", is the one telling of how dictation works: its three steps stand over
+  separate objects in three shared columns (the well, the pill on its groove, the
+  card), each control on the object it acts on (the Run key in the well, the
+  profile picker in the card) and light as it plays. Every showcase is a scene of
   separate objects on the island, never one raised slab, and its story is told by
   the scroll (reversible). On the homepage a title always arrives before its content,
   which follows from further down at a different speed, a quarter further from the
   title than on subpages. The bento, Transcribe and the provider board use `Section
   sticky` (the interface and everything after it scroll normally): the title holds
-  48 px below the site header (40 px on phones) over a continuation of the header's
-  progressive blur (its veil but not its heavier tint), so content stays visible,
-  blurred, while it scrolls under the title, and `sticky.ts` makes items arrive one at a
+  48 px below the site header (40 px on phones) and, only while held (`.is-held`), over a
+  continuation of the header's progressive blur that eases out across the title
+  band (its veil but not its heavier tint; the heading never animates its own
+  opacity, which would make the band opaque), so content stays visible, blurred,
+  while it scrolls under the title, and `sticky.ts` makes items arrive one at a
   time as the title settles; Transcribe's stage and the provider cards pin under the
   title where they fit and play their story over a runway, otherwise each plays as
   it passes; the provider cards never scale. Transcribe's turns are rows in one
-  transcript card, and its export beat is as tall as the transcript, the guide link
-  on the card's bottom line. Pricing plans are
+  transcript card, staggered like a conversation (the first speaker's chip and time
+  at the leading edge, the second speaker's at the trailing edge); its export beat
+  is as tall as the transcript, its slots filling down to the guide link on the
+  card's bottom line. Pricing plans are
   separate cards and text pages frame no section in a well; headings rise word by
   word, subpage content rises block by block, and the hero drifts with the pointer
   (`flourish.ts`). Scroll-driven animations need `cssMinify: "esbuild"`: Lightning

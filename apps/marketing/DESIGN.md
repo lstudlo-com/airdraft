@@ -478,7 +478,7 @@ bento's profile and history graphics.
 ### Section, Surface, Chips, Keys, Tag, StatusDot
 
 - `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`, `sticky`. Owns the heading id and spacing; `level={1}` titles get `.page-title`. Its id comes from an ASCII title, so translated sections pass `id`. On the homepage (`main.home`) every section's title is centered over its content and has no intro; subpages keep title and intro at the leading edge.
-- `Section sticky` (the bento, Transcribe and the provider board; the interface and the sections after it scroll normally): the title holds `48px` below the site header (`40px` on phones, none on windows under `540px` tall) while the section's content scrolls up under it, until the section ends. Behind the title the header's progressive blur continues (`.heading-blur`: the same six layers, their quadratic ramp stretched over the band, and the header row's `35%` veil, never the heavier tint, which would hide the content) from the window's top to `40px` below the title, so content stays visible, blurred, as it passes under the title, as it does under the header. Homepage titles are a step smaller than subpage titles (`28–36px`), and content starts a quarter further from its title (`55px`, `40px` on phones). A negative margin and its own formatting context keep the section's spacing unchanged. `src/scripts/sticky.ts` measures, on the section's view timeline (`--sticky`), when each item (`data-follow`, bento tiles, Transcribe beats, provider cards) rises: in order, `70px` of scroll apart, starting `260px` before the title settles and never before the item comes into the window. A story stage (`data-pin`) that fits under the settled title pins there while its runway (`data-pin-runway`, `120vh`) scrolls past and its story runs over `--story-0` to `--story-1`.
+- `Section sticky` (the bento, Transcribe and the provider board; the interface and the sections after it scroll normally): the title holds `48px` below the site header (`40px` on phones, none on windows under `540px` tall) while the section's content scrolls up under it, until the section ends. While the title is held (`sticky.ts` sets `.is-held`; before and after, nothing shows) the header's progressive blur continues behind it (`.heading-blur`, the same six layers from the window's top: `32px` and `16px` only behind the header row, `8px` easing out by the title's top, then `4px`, `2px` and `1px` easing over the title band to nothing `40px` below it) with the header row's `35%` veil faded in where the header's own veil fades out, never the heavier tint, so content stays visible, softened but legible, as it passes under the title. The heading itself never animates its opacity (only its text rises): an opacity animation on it would make it the blur layers' backdrop root and turn the band opaque. Homepage titles are a step smaller than subpage titles (`28–36px`), and content starts a quarter further from its title (`55px`, `40px` on phones). A negative margin and its own formatting context keep the section's spacing unchanged. `src/scripts/sticky.ts` measures, on the section's view timeline (`--sticky`), when each item (`data-follow`, bento tiles, Transcribe beats, provider cards) rises: in order, `70px` of scroll apart, starting `260px` before the title settles and never before the item comes into the window. A story stage (`data-pin`) that fits under the settled title pins there while its runway (`data-pin-runway`, `120vh`) scrolls past and its story runs over `--story-0` to `--story-1`.
 - `Surface`: `variant="panel"` (raised card) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel. Lists and tables go inside a raised panel, divided by grooves, as in the app's settings cards.
 - `Chips`: a list of recessed capsules. `Chip` is a single one: `tone` `muted` (recessed, default) or `strong` (raised), `as` `span` or `li`, and an optional leading `dot` (`ok`, `attention`, `busy`, `inactive`). The bento graphics, the transcript's speaker chips and `/design/` use it; never hand-write `.chip-*` classes.
 - `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles. Modifier keycaps carry `data-key` and sink while the visitor holds that key (`src/scripts/keys.ts`), on every page. With a `label` the caps read as one image of that name; inside decorative art that is already hidden, leave it out and they are hidden too.
@@ -511,11 +511,15 @@ upcoming ones fade. Below them stand a deep recessed "What you said" well
 groove between them (scaled 1.12 on desktop, riding higher with a longer
 shadow while it works, dimmed at rest), and the "What Airdraft inserts" card,
 pressed in (`--sink-soft`, 0.985) while it waits and raised (`--raise-card`)
-once typed. The profile picker and, under it, the Run key stand in the middle
-column under the pill, so the scene is one row. The middle column is at least
-as wide as the pill's widest state (`--hud-column`, measured by the script), so
-the well and card never move while the pill changes; at `700px` or less the
-controls follow the card.
+once typed. The steps and the objects share three columns, each step over
+what it tells (step 1 over the well, step 2 over the pill, step 3 over the
+card). Each control sits on the object it acts on, at the foot of both on one
+line at the text's leading edge: the Run key in the well, the profile picker in
+the card, the key as tall as the picker's track (`38px`). The middle column
+holds only the pill and is at least as wide as its widest state
+(`--hud-column`, measured by the script, at least `15rem`), so nothing moves
+while the pill changes; at `900px` or less the objects stack in one centred
+column (at most `36rem`) under the steps in three equal columns.
 
 The scroll tells the story. Above `700px`, with motion allowed and when the
 scene plus `32px` fits under the header, it pins at the vertical centre below
@@ -528,8 +532,8 @@ Scrolling back reverses every part. Run, a profile change or holding ⌃⌥
 cancels) plays it in real time, and the scroll takes over again after about
 `48px`. Phones, short windows and browsers without IntersectionObserver do not
 pin: it plays once as it reaches the middle of the screen and jumps to its
-finished frame off screen. At `700px` or less the objects stack and the
-groove stands upright. Pinned objects rise only within their entry range, so
+finished frame off screen. Where the objects stack the groove stands
+upright. Pinned objects rise only within their entry range, so
 none freezes half risen. A visually hidden status line speaks the state.
 Without JavaScript the Clean result shows with every step readable; reduced
 motion shows the finished frame and never pins or plays. Its accessible name
@@ -551,15 +555,21 @@ plays; there is no status dot:
    tone), lying flat until the accent playhead reaches them. The lanes are
    computed from the turns' timestamps, a quarter-second column each.
 3. The transcript: one raised card, like the app's transcript editor, its
-   turns in rows (speaker chip, time, words in aligned columns, a subgrid)
-   divided by grooves; each row waits empty, then its words fade up. The
-   export beat beside it is as tall, its guide link on the line where the
-   transcript card ends.
-4. The export: four recessed slots that TXT, JSON, SRT and VTT tiles rise
-   into one by one, then the transcription guide link.
+   turns staggered like a conversation in a five-column subgrid (chip, time,
+   words, time, chip): the first speaker's chip and time lead its row, the
+   second speaker's chip sits at the end edge with its time just inside it
+   and its words ending there; each side keeps a chip-wide gutter toward the
+   other (logical columns, so a right-to-left language mirrors), divided by
+   grooves; each row waits empty, then its words fade up. On desktop it spans
+   seven of twelve columns. The export beat beside it is as tall, its guide
+   link on the line where the transcript card ends.
+4. The export: four recessed slots, filling the column from its label to just
+   above the guide link, that larger TXT, JSON, SRT and VTT tiles rise into
+   one by one, each tile's file glyph showing what it holds (text lines, a
+   data object, subtitle lines); then the transcription guide link.
 
 On desktop the first row is the recording and the lanes, the second the
-transcript and the export. One number from 0 to 1 drives the story and rests
+transcript and the export; the two rows are two-thirds of `56px` apart. One number from 0 to 1 drives the story and rests
 at 1, so without JavaScript or with reduced motion the finished transcript
 shows. The beats arrive one by one as the title settles. Above `1000px`,
 where the stage fits under the settled title, it pins there and the story
@@ -745,7 +755,7 @@ never jitters; never move content from a scroll listener. Transforms and
 opacity run apart from shadows so the browser can composite them. An element
 inside a scroll container (`overflow: hidden` or `auto` included) would take
 that container as its scroller, so its timeline comes from an ancestor
-outside it (`--tile`, `--cost-table`). Production CSS is minified with esbuild
+outside it (`--tile`). Production CSS is minified with esbuild
 (`astro.config.mjs`): Lightning CSS folds `animation-timeline` into the
 `animation` shorthand, which Chrome drops, removing every scroll-driven
 animation; `scripts/check-search.py` rejects a build that does.
@@ -759,7 +769,7 @@ animation; `scripts/check-search.py` rejects a build that does.
 | Transcribe       | The beats arrive in turn under the sticky title; the stage pins under it where it fits and the scroll runs the story, otherwise each beat plays after it arrives (`meetings.ts`).                                              |
 | Provider board   | The cards arrive in turn; `--p` runs one dictation through them and the channels, pinned under the title where it fits (`pipeline.ts`, `sticky.ts`).                                                                           |
 | Close            | Both offers follow their title, the license from furthest (`0.94`, `140px`); both settle level.                                                                                                                                |
-| Pricing          | Plan cards and what they include rest in place from the first frame (never mid-rise); the cost rows fade up in turn; each three-year bar fills to its share.                                                                   |
+| Pricing          | Plan cards and what they include rest in place from the first frame (never mid-rise); from the cost section down, the intro, each cost table and the note rise like the questions (`flourish.ts`); inside a rising table the rows follow `60ms` apart and each three-year bar fills to its share.                                                                   |
 
 **GSAP (`src/scripts/story.ts`).** One `gsap.matchMedia` context, off
 entirely with reduced motion. In browsers without scroll timelines, GSAP
@@ -787,7 +797,7 @@ rises line by line out of its own line boxes on load, then the keys and facts
 follow; section headings rise word by word (character pairs in Chinese and
 Japanese) as they arrive, and the content under them rises the same way
 (`32px`, out of a `6px` blur, blocks arriving together `90ms` apart): guide tiles, guide and text-page sections,
-breadcrumbs, pricing questions and changelog cards. Every page loads it
+breadcrumbs, pricing's cost section (intro, tables, note) and questions, and changelog cards. Every page loads it
 (`Layout.astro`). Blocks the scroll timelines already raise are left to them; the hero card drifts up to `12px` toward the pointer
 and the copy `6px` away, translation only, so light stays at the top left. The
 app window grows from `0.84` and `140px` below as it arrives.
@@ -1020,8 +1030,13 @@ raised thumb follows the current family on the established `360ms`
 `cubic-bezier(0.65, 0, 0.35, 1)` selection curve; links retain visible keyboard
 focus and `aria-current` identifies the selected family.
 
-A thin recessed rail fills with reading progress. Each entry has a raised stud;
-the current entry's stud turns to the ink color and sinks into its socket.
+Each entry has a raised stud on a thin recessed rail. An ink knob, sunk into
+its socket, marks the current release: it sits on that release's stud and
+travels down beside its sticky version and date; the rail is filled down to the
+knob, never past it. Knob and fill follow a critically damped, time-based
+spring (`0.28s` smoothing, settled in about a second at any frame rate, no
+overshoot), so they trail fast scrolling and ease back; the fill slides, never
+scales. Reduced motion moves them directly.
 Version links and linked release titles land below the shared header and move
 focus to the entry. The timeline uses `36px` of leading space and `64px` between
 entries, reduced to `24px` and `40px` on phones.
