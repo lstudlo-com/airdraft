@@ -206,9 +206,12 @@ sink into the surface and selections slide; nothing tilts or flies through
 perspective, except the hero ribbon's folds. Nothing in the hero drifts with the
 pointer; the ribbon only answers it where it is (it opens, ripples and catches a
 small light). As the hero leaves, the ribbon comes apart into a sound wave of
-grains, and a thin silver thread carries on from it down the page's margins,
-drawn by the scroll. Held story titles give way as their content moves: the
-bento's title names each feature in turn, the others fade. Bento tiles are one
+grains, and a thin silver thread carries on from it beside the content,
+crossing sides only in the space between sections and ending over Get
+Airdraft's title, drawn by the scroll. Held story titles stay while their
+content plays and leave as the visitor moves on to the next section; the
+bento's title names each feature in turn, and the bento scrolls at half speed
+meanwhile so those names can be read. Bento tiles are one
 graphic and one line.
 
 ## Search and product guides

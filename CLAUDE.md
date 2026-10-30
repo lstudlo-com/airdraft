@@ -221,12 +221,15 @@ and Local releases below.
   band (its veil but not its heavier tint; the heading never animates its own
   opacity, which would make the band opaque), so content stays visible, blurred,
   while it scrolls under the title, and `sticky.ts` makes items arrive one at a
-  time as the title settles. A held title gives way as its content moves
-  (Section `titleMotion`, from `sticky.ts`'s `--settle` and `--leave`):
-  Transcribe's and the provider board's fade out, opening and blurring, as the
-  content starts to move; the bento's names each tile in turn (`cycle.ts`, an
-  `aria-hidden` copy over the real heading, decoding character by character)
-  and fades as the next section's title comes up, not when its section ends; Transcribe's stage and the provider cards pin under the
+  time as the title settles. A held title stays while its content plays and
+  leaves as the visitor leaves its section (Section `titleMotion`, from
+  `sticky.ts`'s `--leave`: the next section's title coming up into the window),
+  opening and blurring, never as soon as the content starts to move; the bento's
+  names each tile in turn first (`cycle.ts`, an `aria-hidden` copy over the real
+  heading, decoding through its own characters). The bento scrolls at half speed
+  (Section `slow`, `sticky.ts`): eased down once its first tile rises and back to
+  full speed before the next section, by moving into a space added after it,
+  never by changing the visitor's scroll; Transcribe's stage and the provider cards pin under the
   title where they fit and play their story over a runway, otherwise each plays as
   it passes; the provider cards never scale. Transcribe's turns are rows in one
   transcript card, staggered like a conversation (the first speaker's chip and time
@@ -242,9 +245,11 @@ and Local releases below.
   hero scrolls away it comes apart into a three-strand sound wave of grains
   (reversible). It loads after load and idle on the homepages only, never with
   Save-Data, and the HTML card keeps its box and stays the pointer target and the
-  fallback. A thin silver thread (`thread.ts`) carries on from the ribbon's end
-  down the island's margins, swinging sides between sections and drawn by the
-  scroll, only where the margins are at least 64 px wide. Scroll-driven animations need `cssMinify: "esbuild"`: Lightning
+  fallback. A fine silver thread (`thread.ts`) carries on from the ribbon's end
+  beside the content, 48 px out from its edge, crosses sides only inside the
+  space between two tall sections (never over a title or card) and ends as a
+  bead over Get Airdraft's title, drawn by the scroll, only where the margins are
+  at least 64 px wide. Scroll-driven animations need `cssMinify: "esbuild"`: Lightning
   CSS folds `animation-timeline` into the `animation` shorthand, which Chrome drops,
   and `check-search.py` rejects such a build. Reduce Motion and no-JS keep resting
   frames. The one accent,
