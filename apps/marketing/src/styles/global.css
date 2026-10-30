@@ -1790,6 +1790,11 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       background-color: var(--blur-tint);
     }
   }
+  /* A slowed section (Section slow): the space its content moves down into
+     (sticky.ts sets --slow-extra; motion.css moves it). */
+  .section-sticky[data-slow] > .section-heading + * {
+    margin-block-end: var(--slow-extra, 0px);
+  }
   /* sticky.ts measures every box where it sits in the flow. */
   .sticky-measure .section-sticky > .section-heading,
   .sticky-measure .section-sticky [data-pin] {
@@ -1805,7 +1810,8 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     height: var(--runway, 120vh);
   }
   /* The homepage thread (src/scripts/thread.ts): behind everything on the
-     island, in its open margins; shown only where they are wide enough. */
+     island, beside the content and across the space between sections;
+     shown only where the margins are wide enough. */
   .thread {
     position: absolute;
     top: 0;
@@ -1833,6 +1839,13 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
   .thread-shade {
     fill: var(--thread-shade);
     translate: 1px 1.6px;
+  }
+  /* Its tip: a small silver bead, lit from the top left. */
+  .thread-bead {
+    fill: var(--thread-front);
+    stroke: var(--thread-back);
+    stroke-width: 0.6px;
+    filter: drop-shadow(1px 1.5px 1px var(--thread-shade));
   }
   /* A title that names the items passing under it (Section titleMotion
      "cycle", src/scripts/cycle.ts): a decorative copy over the heading,

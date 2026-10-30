@@ -10,12 +10,19 @@
  * same progressive blur as the header (global.css, src/scripts/sticky.ts).
  * Content marked `data-follow` arrives after the title, one item at a time.
  *
- * `titleMotion` changes what a held title does once the content starts to
- * move under it (motion.css, src/scripts/sticky.ts):
- *   "fade"   it fades out at once, opening and blurring as it goes.
+ * `titleMotion` makes a held title leave as the visitor leaves the section,
+ * when the next section's title comes up into the window, instead of being
+ * pushed up with the section's end (motion.css, src/scripts/sticky.ts):
+ *   "fade"   it holds while the content plays, then fades, opening and
+ *            blurring as it goes.
  *   "cycle"  it names each item (`data-cycle`, the items' titles) as the
- *            item passes under it, then leaves as the next section arrives
- *            rather than when its own section ends (src/scripts/cycle.ts).
+ *            item passes under it, then fades the same way
+ *            (src/scripts/cycle.ts).
+ *
+ * `slow` (a share of the scroll's speed, such as 0.5) slows the content
+ * after the heading once its first item starts to rise, easing down to that
+ * speed and back up to the scroll's own before the visitor leaves the
+ * section (src/scripts/sticky.ts).
  */
 interface Props {
   id?: string;
@@ -26,6 +33,7 @@ interface Props {
   sticky?: boolean;
   titleMotion?: "fade" | "cycle";
   cycle?: string;
+  slow?: number;
   class?: string;
 }
 
@@ -38,6 +46,7 @@ const {
   sticky = false,
   titleMotion,
   cycle,
+  slow,
   class: className,
 } = Astro.props;
 const headingId = `${
@@ -62,6 +71,7 @@ const Heading = level === 1 ? "h1" : "h2";
   aria-labelledby={headingId}
   data-title={sticky ? titleMotion : undefined}
   data-cycle={sticky && titleMotion === "cycle" ? cycle : undefined}
+  data-slow={sticky && slow ? slow : undefined}
 >
   <div class="section-heading">
     {sticky && (

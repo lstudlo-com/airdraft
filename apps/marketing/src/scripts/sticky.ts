@@ -21,8 +21,19 @@
 //   --settle, --leave
 //              on the section: the scroll length at which its title settles
 //              under the header, and the one at which the next section's
-//              title comes up into the window. A title with `titleMotion`
-//              (Section.astro) leaves from one of them (motion.css).
+//              title comes up into the window, as the visitor leaves the
+//              section. A title with `titleMotion` (Section.astro) holds
+//              while its content plays and leaves from --leave (motion.css).
+//   slowing    a section with `data-slow` (Section `slow`) moves its content
+//              (the element after the heading) slower than the scroll from
+//              the moment its first item starts to rise until the visitor
+//              leaves it: the speed eases down to that share, holds, and
+//              eases back to the scroll's own before the next section comes
+//              up. The scroll reading the section grows by --slow-extra, a
+//              space after the content, which the content moves down into
+//              (.is-slowed, --slow-0, --slow-1, --slow-ease: motion.css), so
+//              everything after the section stays where it was. Items arrive
+//              and the title leaves where they would without it, on screen.
 //
 // Only lengths inside each section are measured, so nothing above it
 // changes them; they are measured again when the window changes size or the
@@ -53,6 +64,59 @@ const top = (element: HTMLElement) => {
   return y;
 };
 
+// The next section in the flow (scripts and other boxless siblings skipped).
+function following(section: HTMLElement) {
+  let next = section.nextElementSibling;
+  while (next && !(next instanceof HTMLElement && next.offsetHeight > 0))
+    next = next.nextElementSibling;
+  return next as HTMLElement | null;
+}
+
+const smoothstep = (t: number) => {
+  const c = Math.min(1, Math.max(0, t));
+  return c * c * (3 - 2 * c);
+};
+
+// The slowing (see above), between two scroll lengths of the unslowed
+// section: from `from`, where the first item starts to rise, to `to`, where
+// the visitor leaves. `share` is the speed it eases down to. Returns how far
+// the content has been held back after each unslowed length (`held`), the
+// space that adds, and the CSS easing that holds it back on the scroll.
+function slowing(from: number, to: number, share: number, view: number) {
+  const ramp = Math.min(view * 0.32, (to - from) / 4);
+  const speed = (y: number) =>
+    1 -
+    (1 - share) *
+      Math.min(smoothstep((y - from) / ramp), smoothstep((to - y) / ramp));
+  const steps = 240;
+  const step = (to - from) / steps;
+  const lengths = [from];
+  const holds = [0];
+  for (let i = 1; i <= steps; i++) {
+    const y = from + i * step;
+    const middle = y - step / 2;
+    lengths.push(y);
+    holds.push(holds[i - 1] + (1 / speed(middle) - 1) * step);
+  }
+  const extra = holds[steps];
+  const held = (y: number) => {
+    if (y <= from) return 0;
+    if (y >= to) return extra;
+    const i = Math.min(steps - 1, Math.floor((y - from) / step));
+    const t = (y - lengths[i]) / step;
+    return holds[i] + (holds[i + 1] - holds[i]) * t;
+  };
+  // The easing maps the scroll's progress through the slowing (the unslowed
+  // length plus what has been held back) to the share of --slow-extra held.
+  const span = to - from + extra;
+  const points: string[] = [];
+  for (let i = 0; i <= steps; i += 8) {
+    const progress = ((lengths[i] - from + holds[i]) / span) * 100;
+    points.push(`${(holds[i] / extra).toFixed(4)} ${progress.toFixed(3)}%`);
+  }
+  return { extra, held, ease: `linear(${points.join(", ")})` };
+}
+
 function measure(section: HTMLElement) {
   const root = document.documentElement;
   const view = innerHeight;
@@ -63,22 +127,21 @@ function measure(section: HTMLElement) {
   const stage = section.querySelector<HTMLElement>("[data-pin]");
   const runway = section.querySelector<HTMLElement>("[data-pin-runway]");
   const motion = timelines && !reduced.matches;
+  const share = parseFloat(section.dataset.slow ?? "");
+  const slow = motion && share > 0 && share < 1;
 
-  // Natural positions: sticky boxes measured where they sit in the flow.
+  // Natural positions: sticky boxes measured where they sit in the flow,
+  // and no space added for a slowing.
   root.classList.add("sticky-measure");
+  section.style.setProperty("--slow-extra", "0px");
   const sectionTop = top(section);
   const headingTop = top(heading);
   // The scroll length, from cover 0, at which the title settles.
   const settle = headingTop - header - sectionTop + view;
   section.style.setProperty("--settle", `${Math.round(settle)}px`);
-  // The next section's title reaches the window's foot a little after this.
-  const next = section.nextElementSibling as HTMLElement | null;
-  const leave = next
-    ? Math.max(settle + 200, top(next) - sectionTop - view * 0.06)
-    : settle + 100000;
-  section.style.setProperty("--leave", `${Math.round(leave)}px`);
 
-  // Pin the stage if it fits under the settled title.
+  // Pin the stage if it fits under the settled title. Its runway then adds
+  // to the section, so this comes before anything below it is measured.
   let pinTop = 0;
   let pinned = false;
   if (stage && motion && innerWidth > 1000) {
@@ -88,21 +151,52 @@ function measure(section: HTMLElement) {
   section.classList.toggle("is-pinned", pinned);
   if (pinned) section.style.setProperty("--pin-top", `${pinTop}px`);
 
+  // The visitor leaves as the next section's title comes up into the
+  // window: its top a little above the window's foot.
+  const next = following(section);
+  let leave = next
+    ? Math.max(settle + 200, top(next) - sectionTop - view * 0.06)
+    : settle + 100000;
+
   // Each item rises in order, a step after the one before.
   const lead = settle - px(section, "--follow-lead", 260);
   let previous = -Infinity;
+  const list = [...section.querySelectorAll<HTMLElement>(items)];
   const arrivals: number[] = [];
-  for (const item of section.querySelectorAll<HTMLElement>(items)) {
+  for (const item of list) {
     const entry = top(item) - sectionTop + view * 0.1;
-    const arrival = Math.round(Math.max(lead, entry, previous));
-    item.style.setProperty("--in", `${arrival}px`);
+    const arrival = Math.max(lead, entry, previous);
     arrivals.push(arrival);
     previous = arrival + px(item, "--follow-step", 70);
   }
 
-  if (runway && stage && arrivals.length) {
-    const first = arrivals[0];
-    const last = arrivals[arrivals.length - 1];
+  // Slow the content from the first item's arrival until the visitor
+  // leaves; what arrives meanwhile arrives where it would on screen.
+  let held = (_: number) => 0;
+  section.classList.remove("is-slowed");
+  if (slow && arrivals.length && leave - arrivals[0] > 600) {
+    const from = arrivals[0];
+    const slowed = slowing(from, leave, share, view);
+    held = slowed.held;
+    section.style.setProperty("--slow-extra", `${Math.round(slowed.extra)}px`);
+    section.style.setProperty("--slow-0", `${Math.round(from)}px`);
+    section.style.setProperty(
+      "--slow-1",
+      `${Math.round(leave + slowed.extra)}px`,
+    );
+    section.style.setProperty("--slow-ease", slowed.ease);
+    section.classList.add("is-slowed");
+    leave += slowed.extra;
+  }
+  section.style.setProperty("--leave", `${Math.round(leave)}px`);
+  const shown = arrivals.map((arrival) => Math.round(arrival + held(arrival)));
+  list.forEach((item, index) =>
+    item.style.setProperty("--in", `${shown[index]}px`),
+  );
+
+  if (runway && stage && shown.length) {
+    const first = shown[0];
+    const last = shown[shown.length - 1];
     let from: number;
     let to: number;
     if (pinned) {

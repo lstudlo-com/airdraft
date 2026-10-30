@@ -9,8 +9,11 @@
 //
 // The change: the outgoing characters rise out of a blur, the incoming ones
 // rise into place behind them one after another, each running briefly
-// through other characters of the same titles before it settles, so every
-// language decodes in its own script.
+// through the other characters of its own title before it settles, so a
+// title never flashes words from another and every language decodes in its
+// own script. When titles follow one another faster than a decoding takes
+// (a quick scroll, though sticky.ts slows the bento's), the new one rises
+// without decoding.
 //
 // The section's real heading stays where it is for assistive technology;
 // the changing title is a decorative copy over it (aria-hidden). Without
@@ -55,16 +58,6 @@ function setUp(section: HTMLElement) {
   stage.setAttribute("aria-hidden", "true");
   heading.append(stage);
 
-  // Every character the titles use, for the decoding.
-  const pool = [
-    ...new Set(
-      sources.flatMap((source) =>
-        graphemes(source.textContent ?? "").filter((g) => g.trim()),
-      ),
-    ),
-  ];
-  const pick = () => pool[Math.floor(Math.random() * pool.length)] ?? "";
-
   const titles = sources.map((source) => (source.textContent ?? "").trim());
   let sectionTop = 0;
   function measure() {
@@ -103,7 +96,11 @@ function setUp(section: HTMLElement) {
   }
 
   let decoding = 0;
+  let shownAt = -Infinity;
   function show(text: string | null) {
+    const now = performance.now();
+    const quick = now - shownAt < 320;
+    shownAt = now;
     // The line on screen leaves upward; more than one leaving goes at once.
     const leaving = stage.querySelectorAll(".title-cycle-line.is-out");
     leaving.forEach((line, index) => {
@@ -122,7 +119,11 @@ function setUp(section: HTMLElement) {
 
     const line = document.createElement("span");
     line.className = "title-cycle-line";
-    const characters = graphemes(text).map((grapheme, index) => {
+    const letters = graphemes(text);
+    // The title's own characters, for the decoding.
+    const pool = [...new Set(letters.filter((letter) => letter.trim()))];
+    const pick = () => pool[Math.floor(Math.random() * pool.length)] ?? "";
+    const characters = letters.map((grapheme, index) => {
       const character = document.createElement("span");
       character.className = "title-cycle-char";
       character.style.setProperty("--i", String(Math.min(index, 16)));
@@ -141,6 +142,7 @@ function setUp(section: HTMLElement) {
     for (const character of characters)
       if (character.final.trim())
         character.element.style.width = `${character.element.getBoundingClientRect().width}px`;
+    if (quick || pool.length < 2) return;
     const start = performance.now();
     const tick = (now: number) => {
       let busy = false;

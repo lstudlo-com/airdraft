@@ -73,13 +73,14 @@
         animation-timeline: --title;
         animation-range: entry 0% entry 100%;
       }
-      /* A held title that leaves early (Section titleMotion; sticky.ts
-         measures --settle and --leave). "fade" leaves as soon as the
-         content starts to move under it; "cycle" names the items as they
-         pass, then leaves as the next section's title comes up, not when
-         its own section ends. It opens a little and blurs as it fades, and
-         its blur band fades with it. Each fades from its own layer: the
-         heading never fades as a whole (see the rule above). */
+      /* A held title that leaves as the visitor leaves its section
+         (Section titleMotion; sticky.ts measures --leave): it holds while
+         the content plays under it ("cycle" names the items as they pass),
+         then, as the next section's title comes up into the window and
+         before its own section has scrolled away, it opens a little and
+         blurs as it fades, and its blur band fades with it. Each fades
+         from its own layer: the heading never fades as a whole (see the
+         rule above). */
       @keyframes title-out {
         to {
           opacity: 0;
@@ -92,10 +93,7 @@
           opacity: 0;
         }
       }
-      .section-sticky[data-title="fade"] {
-        --title-out: calc(var(--settle, 100000px) + 24px);
-      }
-      .section-sticky[data-title="cycle"] {
+      .section-sticky[data-title] {
         --title-out: var(--leave, 100000px);
       }
       .section-sticky[data-title] > .section-heading > h2 {
@@ -119,6 +117,21 @@
         animation-timeline: --sticky;
         animation-range: cover var(--title-out) cover
           calc(var(--title-out) + 170px);
+      }
+
+      /* A slowed section (Section slow; sticky.ts): its content moves down
+         into the space after it as the scroll passes, so it rises at a
+         share of the scroll's speed, eased in and out (--slow-ease). */
+      @keyframes slow-hold {
+        to {
+          translate: 0 var(--slow-extra, 0px);
+        }
+      }
+      .section-sticky.is-slowed > .section-heading + * {
+        animation: slow-hold both;
+        animation-timing-function: var(--slow-ease, linear);
+        animation-timeline: --sticky;
+        animation-range: cover var(--slow-0, 0px) cover var(--slow-1, 0px);
       }
 
       /* 1. Hero exit. The copy lags the scroll a little and fades before it
