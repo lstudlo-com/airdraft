@@ -138,7 +138,7 @@ struct ModelLanguagesSheet: View {
     }
 
     private var userCodes: Set<String> {
-        var codes = Set(Locale.preferredLanguages.compactMap(LocalSpeechRecommendation.normalized))
+        var codes = Set(SystemLanguages.preferred.compactMap(LocalSpeechRecommendation.normalized))
         if let system = LocalSpeechRecommendation.normalized(ModelCatalogue.systemLanguage) { codes.insert(system) }
         return codes
     }

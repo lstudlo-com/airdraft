@@ -259,7 +259,7 @@ public enum ChineseScript: String, Codable, CaseIterable, Sendable, Identifiable
     /// a Chinese script rule would rewrite Japanese kanji and steer refinement of
     /// every other language toward Chinese. Only unsaved settings use it; saved
     /// choices are kept.
-    public static func systemDefault(preferredLanguages: [String] = Locale.preferredLanguages) -> ChineseScript {
+    public static func systemDefault(preferredLanguages: [String] = SystemLanguages.preferred) -> ChineseScript {
         for identifier in preferredLanguages {
             let language = Locale.Language(identifier: identifier)
             guard language.languageCode?.identifier.lowercased() == "zh" else { continue }
@@ -333,7 +333,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
 
     /// A new setup's speech config: the Chinese script and the Apple Speech locale
     /// follow the system's languages.
-    public static func systemDefault(preferredLanguages: [String] = Locale.preferredLanguages,
+    public static func systemDefault(preferredLanguages: [String] = SystemLanguages.preferred,
                                      region: String? = Locale.current.region?.identifier) -> ASRConfig {
         ASRConfig(appleLocale: systemAppleLocale(preferredLanguages: preferredLanguages, region: region),
                   chineseScript: ChineseScript.systemDefault(preferredLanguages: preferredLanguages))
@@ -344,7 +344,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
     /// first preferred language with its region (fr-FR, es-MX), and en-US without
     /// any. The OS resolves an unsupported region to a supported one of the same
     /// language (`AppleSpeechTranscriber.resolvedLocale`).
-    public static func systemAppleLocale(preferredLanguages: [String] = Locale.preferredLanguages,
+    public static func systemAppleLocale(preferredLanguages: [String] = SystemLanguages.preferred,
                                          region: String? = Locale.current.region?.identifier) -> String {
         let script = ChineseScript.systemDefault(preferredLanguages: preferredLanguages)
         if script != .auto { return script.appleMandarinLocale }
@@ -408,7 +408,7 @@ public struct ASRConfig: Codable, Sendable, Equatable {
     /// language notes: the selected speech language, or under Auto the user's
     /// first three preferred languages. Captured with the recording's settings,
     /// so the warm-up prompt prefix matches the final request.
-    public func refinementLanguages(preferredLanguages: [String] = Locale.preferredLanguages) -> [String] {
+    public func refinementLanguages(preferredLanguages: [String] = SystemLanguages.preferred) -> [String] {
         let selected = kind == .apple ? effectiveAppleLocale : language
         if let code = (try? SpeechLanguagePolicy.canonicalLanguage(selected)) ?? nil { return [code] }
         var codes: [String] = []

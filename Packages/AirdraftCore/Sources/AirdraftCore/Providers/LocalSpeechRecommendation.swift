@@ -193,7 +193,7 @@ public struct LocalSpeechRecommendation: Equatable, Sendable {
     /// The first preferred language in System Settings, which sets the interface
     /// language, falling back to the formatting locale.
     public static var systemLanguageCode: String? {
-        Locale.preferredLanguages.first ?? Locale.current.identifier
+        SystemLanguages.preferred.first ?? Locale.current.identifier
     }
 
     /// `zh-Hant-TW`, `zh_TW` and `zh-Hans` are all Chinese.

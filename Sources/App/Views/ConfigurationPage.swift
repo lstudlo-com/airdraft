@@ -21,6 +21,8 @@ struct ConfigurationPage: View {
 
             PageSection("Appearance") {
                 SettingsCard {
+                    InterfaceLanguageRow(store: container.interfaceLanguage)
+                    RowDivider()
                     SettingRow(title: "Theme") {
                         HStack(spacing: 10) {
                             ForEach(AppearanceMode.allCases) { mode in
@@ -47,7 +49,8 @@ struct ConfigurationPage: View {
                             ForEach(HUDStyle.allCases) { style in
                                 ChoiceTile(title: style.title, selected: settings.hudStyle == style,
                                            action: { settings.hudStyle = style }, previewSize: HUDPreview.size) {
-                                    HUDPreview(style: style, timer: settings.hudTimer, discoEnabled: settings.hudDiscoEnabled)
+                                    HUDPreview(style: style, timer: settings.hudTimer, discoEnabled: settings.hudDiscoEnabled,
+                                               discoIntensity: settings.hudDiscoIntensity)
                                 }
                             }
                         }
@@ -60,6 +63,15 @@ struct ConfigurationPage: View {
                                 .labelsHidden().toggleStyle(.softSwitch)
                                 .disabled(settings.hudStyle == .none)
                                 .accessibilityIdentifier("settings.hudDisco")
+                        }
+                        if settings.hudDiscoEnabled || search.isSearching {
+                            RowDivider()
+                            SettingRow(title: "Disco intensity",
+                                       detail: settings.hudStyle == .none ? String(localized: "Choose a recording window style and enable Disco")
+                                           : !settings.hudDiscoEnabled ? String(localized: "Enable Disco") : nil) {
+                                DiscoIntensitySlider(value: $settings.hudDiscoIntensity)
+                                    .disabled(settings.hudStyle == .none || !settings.hudDiscoEnabled)
+                            }
                         }
                         RowDivider()
                         SettingRow(title: "Show timer", subtitle: settings.hudStyle == .none ? "Choose a recording window style" : nil) {
@@ -288,6 +300,51 @@ struct ConfigurationPage: View {
     }
 }
 
+/// Gentle at the leading end, vivid at the trailing end; 50% is the original palette.
+private struct DiscoIntensitySlider: View {
+    @Binding var value: Double
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text("Gentle", comment: "Disco intensity slider, lowest end").supportingText().fixedSize()
+            SoftSlider(title: "Disco intensity", value: $value, range: 0...1, step: 0.05, keyboardStep: 0.1,
+                       valueDescription: { $0.formatted(.percent.precision(.fractionLength(0))) })
+                .frame(width: 160)
+                .accessibilityIdentifier("settings.hudDiscoIntensity")
+            Text("Vivid", comment: "Disco intensity slider, highest end").supportingText().fixedSize()
+        }
+    }
+}
+
+/// System Default follows the Mac; a language chosen here applies after relaunching.
+private struct InterfaceLanguageRow: View {
+    let store: InterfaceLanguageStore
+
+    var body: some View {
+        SettingRow(title: "Language",
+                   detail: store.needsRelaunch ? String(localized: "Relaunch Airdraft to switch languages")
+                       : String(localized: "Speech languages are set in Models")) {
+            HStack(spacing: 8) {
+                if store.needsRelaunch {
+                    Button("Relaunch") { AppRelaunch.request() }
+                        .primaryButtonStyle()
+                        .accessibilityIdentifier("settings.interfaceLanguage.relaunch")
+                }
+                SoftPicker("Language", selection: Binding(get: { store.selection?.code ?? "" },
+                                                          set: { code in store.select(InterfaceLanguage.shipped.first { $0.code == code }) }),
+                           width: SoftPickerWidth.fitting([String(localized: "System Default")] + InterfaceLanguage.shipped.map(\.name),
+                                                          minimum: 160)) {
+                    Text("System Default").tag("")
+                    ForEach(InterfaceLanguage.shipped) { language in
+                        Text(verbatim: language.name).tag(language.code)
+                    }
+                }
+                .accessibilityIdentifier("settings.interfaceLanguage")
+            }
+        }
+    }
+}
+
 private struct AppIconSettingRow: View {
     let title: LocalizedStringResource
     @Binding var selection: AppIconStyle
@@ -455,6 +512,7 @@ struct HUDPreview: View {
     let style: HUDStyle
     var timer = HUDTimerOptions()
     var discoEnabled = false
+    var discoIntensity = AppSettings.defaultDiscoIntensity
     /// A fixed phase lets the native fixture capture the actual Settings preview.
     var frozenTime: TimeInterval?
     var reduceMotionOverride: Bool?
@@ -480,12 +538,12 @@ struct HUDPreview: View {
                     let energy = SpatialHUDMotion.energy(levels: samples, recording: true)
                     IndicatorView(snapshot: HUDSnapshot(state: .recording, levels: samples,
                                                         elapsed: 4.2, visualizerTime: time,
-                                                        visualizerDisco: pausesMotion ? .still(energy: energy) : disco.frame),
+                                                        visualizerDisco: pausesMotion ? .still(energy: energy, intensity: discoIntensity) : disco.frame),
                                   style: style, timer: timer, discoEnabled: discoEnabled)
                         .scaleEffect(Self.specimenScale)
                         .onChange(of: context.date, initial: true) { _, date in
                             guard discoEnabled, !pausesMotion else { return }
-                            disco.advance(to: date.timeIntervalSinceReferenceDate, target: energy)
+                            disco.advance(to: date.timeIntervalSinceReferenceDate, target: energy, intensity: discoIntensity)
                         }
                 }
             case .none:

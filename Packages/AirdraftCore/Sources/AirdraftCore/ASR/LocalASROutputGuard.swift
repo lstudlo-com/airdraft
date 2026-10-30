@@ -72,7 +72,7 @@ public enum LocalASROutputGuard {
 
         /// The system's preferred languages plus English, which dictation mixes in everywhere.
         public static var current: Policy {
-            Policy(expectedLanguages: LocalASROutputGuard.expectedLanguages(preferred: Locale.preferredLanguages))
+            Policy(expectedLanguages: LocalASROutputGuard.expectedLanguages(preferred: SystemLanguages.preferred))
         }
     }
 

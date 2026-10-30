@@ -3,6 +3,8 @@ import Foundation
 public enum SpeechInputLimits {
     /// Microphone dictation only; imported audio keeps its provider's input limits.
     public static let recordingSecondsRange = 10...600
+    /// Unsaved setups record up to the full ten minutes; saved choices are kept.
+    public static let defaultRecordingSeconds = 600
 
     public static func clampedRecordingSeconds(_ requested: Int) -> Int {
         min(max(recordingSecondsRange.lowerBound, requested), recordingSecondsRange.upperBound)

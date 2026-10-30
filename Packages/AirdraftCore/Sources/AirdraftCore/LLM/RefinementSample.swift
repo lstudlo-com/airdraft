@@ -4,7 +4,7 @@ import Foundation
 /// fillers and a spoken list, in the language the user dictates, so the result
 /// can be read. Languages without a sample use English.
 public enum RefinementSample {
-    public static func transcript(for config: ASRConfig, preferredLanguages: [String] = Locale.preferredLanguages) -> String {
+    public static func transcript(for config: ASRConfig, preferredLanguages: [String] = SystemLanguages.preferred) -> String {
         let selected = config.kind == .apple ? config.effectiveAppleLocale : config.language
         let explicit = (try? SpeechLanguagePolicy.canonicalLanguage(selected)) ?? nil
         let language = explicit ?? preferredLanguages.lazy.compactMap { (try? SpeechLanguagePolicy.canonicalLanguage($0)) ?? nil }.first

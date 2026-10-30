@@ -117,7 +117,7 @@ enum SettingsSearchVerification {
             query("when you quit", title: "Download updates automatically", file: "description")
             let bottom = scroll.contentView.bounds.origin.y
             precondition(bottom > 500, "A lower setting must actually scroll into view")
-            query("appearance", title: "Theme", file: "section")
+            query("appearance", title: "Language", file: "section")
             precondition(search.matches.count >= 2, "Section search must include its settings")
             precondition(scroll.contentView.bounds.origin.y < bottom, "An earlier result must scroll upward")
             let first = search.selectedID
@@ -143,6 +143,11 @@ enum SettingsSearchVerification {
             query("light app icon", title: "Light app icon", file: "app-icon")
             query("disco", title: "Disco", file: "disco")
             precondition(!container.settings.hudDiscoEnabled, "Finding Disco must not enable it")
+            query("disco intensity", title: "Disco intensity", file: "conditional-disco-intensity")
+            precondition(!container.settings.hudDiscoEnabled && container.settings.hudDiscoIntensity == AppSettings.defaultDiscoIntensity,
+                         "Finding Disco intensity must neither enable Disco nor change its intensity")
+            query("speech languages", title: "Language", file: "interface-language")
+            precondition(container.interfaceLanguage.selection == nil, "Finding Language must not choose one")
             query("physical inputs", title: "Input channel", file: "conditional-channel")
             query("usage data", title: "Share anonymous usage data and crash reports", file: "telemetry")
             precondition(container.settings.telemetryConsent == .undecided, "Finding the telemetry switch must not answer it")

@@ -45,6 +45,7 @@ final class AppContainer {
     let isolatedData: Bool
     var dataAccessIssue: String? { dataLease?.holdsLease != true ? String(localized: "Another app copy may be changing local data, or the data folder is unavailable. Quit other copies, check folder access, then reopen Airdraft.") : nil }
     let settings: AppSettings
+    let interfaceLanguage: InterfaceLanguageStore
     let dictionary: DictionaryStore
     let profiles: ProfileStore
     var effectiveProfile: RefinementProfile { settings.effectiveProfile(profiles.activeProfile) }
@@ -108,6 +109,7 @@ final class AppContainer {
         cleanup = DataCleanupCoordinator(directory: readableDirectory)
         let settings = suppliedSettings ?? AppSettings()
         self.settings = settings
+        interfaceLanguage = InterfaceLanguageStore(storage: isolatedData ? .memory() : .appDomain)
         let license = suppliedLicense ?? AppLicense.make(isolated: suppliedSettings != nil || RenderMode.isActive || RenderMode.excludesCredentials)
         self.license = license
         let telemetry = TelemetryService.make(settings: settings, isolated: isolatedData)
@@ -238,6 +240,7 @@ final class AppContainer {
         let panel = IndicatorPanelController(pipeline: pipeline,
             style: { [weak self] in self?.settings.hudStyle ?? .classic },
             disco: { [weak self] in self?.settings.hudDiscoEnabled ?? false },
+            discoIntensity: { [weak self] in self?.settings.hudDiscoIntensity ?? AppSettings.defaultDiscoIntensity },
             timer: { [weak self] in self?.settings.hudTimer ?? HUDTimerOptions() },
             liveText: { [weak self] in self?.settings.liveText ?? LiveTextOptions() })
         indicator = panel
@@ -374,6 +377,7 @@ final class AppContainer {
             _ = self?.settings.livePreviewEnabled
             _ = self?.settings.hudStyle
             _ = self?.settings.hudDiscoEnabled
+            _ = self?.settings.hudDiscoIntensity
             _ = self?.settings.hudTimer
             _ = self?.settings.liveText
         }) { [weak self] in

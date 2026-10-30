@@ -14,6 +14,7 @@ struct SpatialHUDVisualizer: View {
     let levels: [Float]
     let recording: Bool
     var discoEnabled = false
+    var discoIntensity = AppSettings.defaultDiscoIntensity
     var frozenTime: TimeInterval?
     var frozenEnergy: Double?
     var frozenDisco: HUDDiscoFrame?
@@ -33,7 +34,7 @@ struct SpatialHUDVisualizer: View {
             let energy = frozenEnergy ?? (frozenTime != nil || reduceMotion ? target : animation.motion.energy)
             let phase = reduceMotion ? 0.65 : frozenTime ?? animation.motion.phase
             let disco: HUDDiscoFrame? = discoEnabled
-                ? frozenDisco ?? (frozenTime != nil || reduceMotion ? .still(energy: target) : animation.disco.frame)
+                ? frozenDisco ?? (frozenTime != nil || reduceMotion ? .still(energy: target, intensity: discoIntensity) : animation.disco.frame)
                 : nil
             Group {
                 if style == .classic || style == .none {
@@ -60,7 +61,9 @@ struct SpatialHUDVisualizer: View {
                 if style != .classic && style != .none {
                     animation.motion.advance(to: date.timeIntervalSinceReferenceDate, target: target, recording: recording)
                 }
-                if discoEnabled { animation.disco.advance(to: date.timeIntervalSinceReferenceDate, target: target) }
+                if discoEnabled {
+                    animation.disco.advance(to: date.timeIntervalSinceReferenceDate, target: target, intensity: discoIntensity)
+                }
             }
         }
         .accessibilityHidden(true)

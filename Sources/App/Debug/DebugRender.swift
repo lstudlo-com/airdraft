@@ -169,6 +169,14 @@ enum DebugRender {
             container.settings.hudTimer = HUDTimerOptions(isEnabled: true, position: position)
         }
         if env["AIRDRAFT_RENDER_HUD_DISCO"] == "1" { container.settings.hudDiscoEnabled = true }
+        if let intensity = env["AIRDRAFT_RENDER_HUD_DISCO_INTENSITY"].flatMap(Double.init) {
+            container.settings.hudDiscoIntensity = intensity
+        }
+        // AD-137: a language chosen for the next launch shows Relaunch. Isolated
+        // containers keep it in memory, never in the real per-app preference.
+        if let code = env["AIRDRAFT_RENDER_INTERFACE_LANGUAGE"], container.isolatedData {
+            container.interfaceLanguage.select(InterfaceLanguage.shipped.first { $0.code == code })
+        }
         if let stage = env["AIRDRAFT_RENDER_DOWNLOAD"] {
             let progress: ModelDownloader.Progress
             switch stage {
@@ -237,7 +245,7 @@ enum DebugRender {
         }
         if pageName == "meeting-recording" {
             // AD-084: `text` or `issue` adds the display-only live transcript row.
-            let chinese = Locale.preferredLanguages.first?.hasPrefix("zh") == true
+            let chinese = SystemLanguages.preferred.first?.hasPrefix("zh") == true
             switch env["AIRDRAFT_RENDER_LIVE_TRANSCRIPT"] {
             case "text":
                 container.meeting?.previewRecording(liveText: chinese

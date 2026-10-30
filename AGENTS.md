@@ -751,6 +751,14 @@ and Local releases below.
   Preserve each style's directional shading. Reduce Motion stops color travel
   while retaining static level-driven color, and delivery freezes the palette
   together with geometry. Previews use the same palette and synthetic levels.
+  Disco intensity (`AppSettings.hudDiscoIntensity`, 0–1, default 0.5, the original
+  palette exactly) sits under Disco as a Gentle–Vivid `SoftSlider`, shown while Disco
+  is on and revealed disabled by search. `HUDDiscoFrame` carries it: low stays pastel
+  (a lower saturation cap and gain), samples a narrower band of the ring and travels
+  slower; high saturates sooner, purifies the pigments, spreads more of the ring
+  across the artwork and travels faster. Silence still holds color, Reduce Motion
+  keeps static level color at the chosen intensity, and the lit palette keeps its
+  contrast in the dark well at every intensity.
   Drive spatial motion from those same recent microphone
   levels, with bounded fast attack and slower release; never open another audio
   input or call it a frequency spectrum. Keep motion in the visualization well and
@@ -1146,7 +1154,22 @@ The app ships the interface languages listed in `Config/languages.json`: English
 Traditional Chinese (Taiwan, zh-Hant), following the macOS language (the
 2026-10-25 interface-language decision; another language needs a new decision). `scripts/localization.py`, `LocalizationCatalogTests`, the
 menu fixture and project.yml's `CFBundleLocalizations` follow that one list; add a
-language there first. Strings live in String Catalogs: `Sources/App/Localizable.xcstrings`, `Sources/App/InfoPlist.xcstrings`
+language there first, and to `InterfaceLanguage.shipped` (English first, then the
+list's order and own names; `LocalizationCatalogTests` compares them).
+Settings > Appearance > Language (AD-137) offers System Default plus each shipped
+language by its own name, never translated. It stores the choice where macOS keeps
+a per-app language, `AppleLanguages` in Airdraft's own preferences domain
+(`InterfaceLanguageStore.Storage.appDomain`; System Settings' per-app choice writes
+the same value, System Default removes it), never the global domain. The running
+interface keeps its launch language: when the next launch would differ, the row
+says so and offers Relaunch (`AppRelaunch`), which quits through the normal path
+and opens the bundle again from `applicationWillTerminate` once the process is
+gone, so the new copy never meets the old data lease; a cancelled quit relaunches
+nothing. Isolated containers keep the choice in memory. The interface language
+never changes speech: speech defaults, recommendations, refinement languages and
+guards read the Mac's languages through `SystemLanguages.preferred`, never
+`Locale.preferredLanguages`, which a per-app language narrows to that one language
+(a `-AppleLanguages` launch argument still stands in for the Mac's languages). Strings live in String Catalogs: `Sources/App/Localizable.xcstrings`, `Sources/App/InfoPlist.xcstrings`
 and AirdraftCore's `Resources/Localizable.xcstrings`. Write user-facing copy as
 localizable literals: SwiftUI `Text`/`Button` literals, the shared components'
 resource parameters, `String(localized:)` in the app and
@@ -1439,6 +1462,8 @@ Live text animations and live text that keeps scrolling are 0.17.0.
 The Transcribe page (formerly Meetings) is 0.18.0.
 Live text that becomes the transcript when it matches the model, and cloud live
 text through providers' real-time APIs, are 0.19.0.
+The in-app interface language, Disco intensity and the 600-second default
+recording limit are 0.20.0.
 
 When API-key or credential testing is explicitly excluded, prepare with
 `--test-scope credential-free` and push with
@@ -1583,6 +1608,10 @@ scripts and docs cite.
   `AIRDRAFT_RENDER_RULE_SPEECH=<kind>[:model]` for a blocked rule's speech model.
   `AIRDRAFT_RENDER_SIDEBAR_COLLAPSED=1` renders the compact icon rail; compare
   it with the expanded sidebar at the same window height.
+  `AIRDRAFT_RENDER_INTERFACE_LANGUAGE=<code>` chooses a next-launch language in the
+  isolated store, so Settings shows the Language row's Relaunch state.
+  `AIRDRAFT_RENDER_HUD_DISCO=1` with `AIRDRAFT_RENDER_HUD_DISCO_INTENSITY=<0…1>`
+  renders the recording-window previews at that Disco intensity.
   `AIRDRAFT_RENDER_SAMPLE_DATA=1` uses isolated preview records. Verify the
   progressive header blur in a live window; bitmap captures do not reproduce
   compositor backdrop blur. Check the full-height radius ramp, not just opacity.
@@ -1891,7 +1920,8 @@ history/statistics. Only the user's Copy action changes the clipboard.
 
 Microphone dictation has a hard 600-second maximum. Keep Settings and persisted
 settings within `SpeechInputLimits.recordingSecondsRange` (10–600 seconds), with the
-300-second default and shorter user choices preserved. Clamp older saved values.
+600-second default (`SpeechInputLimits.defaultRecordingSeconds`; 300 before 0.20.0)
+and saved shorter choices preserved. Clamp older saved values.
 The recording timer stops capture and processes once at the effective limit;
 shorter provider limits still apply. Recording limits and the kept-audio checks use
 the recording snapshot's speech config. Imported audio keeps its provider input limits.

@@ -26,7 +26,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         resumingAfterDeliveryWait = false
         if !shutdownStarted {
             let app = AppContainer.shared
-            if app.cleanup.isRunning { return .terminateCancel }
+            if app.cleanup.isRunning {
+                AppRelaunch.cancel()
+                return .terminateCancel
+            }
             // Repeated quit requests join the wait already running.
             if deliveryWait != nil { return .terminateCancel }
             // A delivered dictation releases the pipeline before its history
@@ -58,7 +61,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     : String(localized: "Saved media jobs can resume from Transcribe. Unsaved changes and captured audio kept for retry will be lost. Active dictation and downloads will stop. Keep Airdraft open to finish or save your work.")
                 alert.addButton(withTitle: String(localized: "Keep Open"))
                 alert.addButton(withTitle: app.meeting?.isBusy == true ? String(localized: "Save Recording and Quit") : String(localized: "Quit and Discard"))
-                guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
+                guard alert.runModal() == .alertSecondButtonReturn else {
+                    AppRelaunch.cancel()
+                    return .terminateCancel
+                }
                 app.media?.cancel()
                 app.pipeline.cancel()
                 app.downloads.cancelAll()
@@ -73,6 +79,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         return .terminateCancel
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        AppRelaunch.launchHelperIfRequested()
     }
 
     /// Opening the app again (Finder, Spotlight, `open`) while it runs shows the main window.

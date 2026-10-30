@@ -214,6 +214,23 @@ public final class AppSettings {
     public var unloadLLMOnQuit: Bool { didSet { persist("unloadLLMOnQuit", unloadLLMOnQuit) } }
     public var hudStyle: HUDStyle { didSet { persist("hudStyle", hudStyle) } }
     public var hudDiscoEnabled: Bool { didSet { persist("hudDiscoEnabled", hudDiscoEnabled) } }
+    /// How vivid and extreme Disco colors are, from 0 (gentle) to 1 (vivid).
+    /// The default is the original palette; unsaved setups and invalid values use it.
+    public var hudDiscoIntensity: Double {
+        didSet {
+            let clamped = Self.clampedDiscoIntensity(hudDiscoIntensity)
+            if hudDiscoIntensity != clamped {
+                hudDiscoIntensity = clamped
+                return
+            }
+            persist("hudDiscoIntensity", hudDiscoIntensity)
+        }
+    }
+    public nonisolated static let defaultDiscoIntensity = 0.5
+
+    public nonisolated static func clampedDiscoIntensity(_ value: Double) -> Double {
+        value.isFinite ? min(1, max(0, value)) : defaultDiscoIntensity
+    }
     public var hudTimer: HUDTimerOptions { didSet { persist("hudTimer", hudTimer) } }
     public var livePreviewEnabled: Bool { didSet { persist("livePreviewEnabled", livePreviewEnabled) } }
     public var livePreviewLocale: String { didSet { persist("livePreviewLocale", livePreviewLocale) } }
@@ -259,7 +276,7 @@ public final class AppSettings {
 
     /// `preferredLanguages` only chooses defaults for settings that were never saved,
     /// such as the Chinese script of a new setup.
-    public init(defaults: UserDefaults = .standard, preferredLanguages: [String] = Locale.preferredLanguages) {
+    public init(defaults: UserDefaults = .standard, preferredLanguages: [String] = SystemLanguages.preferred) {
         self.defaults = defaults
         if defaults === UserDefaults.standard, Bundle.main.bundleIdentifier == AppIdentity.bundleID {
             AppIdentity.importLegacyDefaults(into: defaults,
@@ -287,7 +304,7 @@ public final class AppSettings {
         profileHotkeys = Array((Self.load("profileHotkeys", from: defaults) ?? [ProfileHotkey]()).prefix(ProfileHotkey.maximumCount))
         editHotkey = Self.load("editHotkey", from: defaults) ?? nil
         vocabularyBiasesOnDeviceSpeech = Self.load("vocabularyBiasesOnDeviceSpeech", from: defaults) ?? true
-        let savedRecordingSeconds: Int = Self.load("maxRecordingSeconds", from: defaults) ?? 300
+        let savedRecordingSeconds: Int = Self.load("maxRecordingSeconds", from: defaults) ?? SpeechInputLimits.defaultRecordingSeconds
         maxRecordingSeconds = SpeechInputLimits.clampedRecordingSeconds(savedRecordingSeconds)
         appearance = Self.load("appearance", from: defaults) ?? .auto
         appIcons = Self.load("appIcons", from: defaults) ?? AppIconPreferences()
@@ -297,6 +314,7 @@ public final class AppSettings {
         let savedHUDStyle: String? = Self.load("hudStyle", from: defaults)
         hudStyle = savedHUDStyle.flatMap(HUDStyle.init(rawValue:)) ?? .classic
         hudDiscoEnabled = Self.load("hudDiscoEnabled", from: defaults) ?? false
+        hudDiscoIntensity = Self.clampedDiscoIntensity(Self.load("hudDiscoIntensity", from: defaults) ?? Self.defaultDiscoIntensity)
         hudTimer = Self.load("hudTimer", from: defaults) ?? HUDTimerOptions()
         livePreviewEnabled = Self.load("livePreviewEnabled", from: defaults) ?? false
         livePreviewLocale = Self.load("livePreviewLocale", from: defaults) ?? systemSpeech.appleLocale

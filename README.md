@@ -8,8 +8,9 @@ Speech recognition and refinement are chosen independently. Each can run on your
 Mac or use a cloud service with your own API key. If refinement fails or times
 out, Airdraft inserts the raw transcript instead of losing your dictation.
 
-The interface is available in English, Simplified Chinese and Traditional
-Chinese (Taiwan) and follows your macOS language.
+The interface is available in English, Spanish, Japanese, Simplified Chinese and
+Traditional Chinese (Taiwan). It follows your macOS language unless you choose one
+in Settings > Appearance > Language.
 
 ## Features
 

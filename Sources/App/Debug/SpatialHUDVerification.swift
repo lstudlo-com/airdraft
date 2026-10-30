@@ -169,8 +169,8 @@ enum SpatialHUDVerification {
         let settled = disco.frame.travel
         for step in 601...660 { disco.advance(to: Double(step) / 60, target: 0) }
         precondition(disco.frame.travel == settled, "Quiet color must hold after the release")
-        for phase in stride(from: 0.0, to: 1.0, by: 0.025) {
-            let frame = HUDDiscoFrame(travel: phase, energy: 1, accent: 0.4)
+        for intensity in [0, AppSettings.defaultDiscoIntensity, 1] { for phase in stride(from: 0.0, to: 1.0, by: 0.025) {
+            let frame = HUDDiscoFrame(travel: phase, energy: 1, accent: 0.4, intensity: intensity)
             let rgb = frame.components(at: 0.5)
             precondition([rgb.red, rgb.green, rgb.blue].allSatisfy { $0.isFinite && (0...1).contains($0) })
             func linear(_ value: Double) -> Double {
@@ -178,13 +178,13 @@ enum SpatialHUDVerification {
             }
             let luminance = 0.2126 * linear(rgb.red) + 0.7152 * linear(rgb.green) + 0.0722 * linear(rgb.blue)
             precondition((luminance + 0.05) / (linear(0.08) + 0.05) > 3,
-                         "Disco's lit palette must remain visible in the dark well")
-        }
+                         "Disco's lit palette must remain visible in the dark well at every intensity")
+        } }
         let seamA = HUDDiscoFrame(travel: 0.99999, energy: 0.8).components(at: 0)
         let seamB = HUDDiscoFrame(travel: 0.00001, energy: 0.8).components(at: 0)
         precondition(abs(seamA.red - seamB.red) + abs(seamA.green - seamB.green) + abs(seamA.blue - seamB.blue) < 0.001)
         precondition(speaking != .still(energy: 0), "Speech must change color independently of geometry")
-        print("PASS: Disco silence gate, attack/release, bounded palette, contrast and continuous loop seam")
+        print("PASS: Disco silence gate, attack/release, bounded palette, contrast at every intensity and continuous loop seam")
     }
 
     private static func chromaticPixels(in data: Data) -> Int {

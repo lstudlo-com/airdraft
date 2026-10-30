@@ -27,6 +27,24 @@ final class AppSettingsTests: XCTestCase {
                 XCTAssertEqual(AppSettings(defaults: defaults).hudTimer, timer)
             }
         }
+        // DiscoIntensityDefaultsToTheOriginalLookClampsAndSurvivesDisablingDisco
+        do {
+            try withDefaults { defaults in
+                let settings = AppSettings(defaults: defaults)
+                XCTAssertEqual(settings.hudDiscoIntensity, AppSettings.defaultDiscoIntensity)
+                for (requested, expected) in [(0.8, 0.8), (1.7, 1.0), (-0.2, 0.0), (Double.nan, 0.5), (0.25, 0.25)] {
+                    settings.hudDiscoIntensity = requested
+                    XCTAssertEqual(settings.hudDiscoIntensity, expected)
+                    XCTAssertEqual(AppSettings(defaults: defaults).hudDiscoIntensity, expected)
+                }
+                settings.hudDiscoEnabled = false
+                XCTAssertEqual(AppSettings(defaults: defaults).hudDiscoIntensity, 0.25, "Turning Disco off keeps its intensity")
+                defaults.set(try JSONEncoder().encode(4.0), forKey: "settings.hudDiscoIntensity")
+                XCTAssertEqual(AppSettings(defaults: defaults).hudDiscoIntensity, 1)
+                defaults.set(Data("\"invalid\"".utf8), forKey: "settings.hudDiscoIntensity")
+                XCTAssertEqual(AppSettings(defaults: defaults).hudDiscoIntensity, AppSettings.defaultDiscoIntensity)
+            }
+        }
         // ClassicIsDefaultAndMiniMigratesWithoutChangingTimerPreferences
         do {
             try withDefaults { defaults in
@@ -177,10 +195,10 @@ final class AppSettingsTests: XCTestCase {
                 XCTAssertEqual(AppSettings(defaults: defaults).triggerDelayMilliseconds, 0)
             }
         }
-        // RecordingLimitClampsSavedValuesAndPersistsMigration
+        // RecordingLimitDefaultsToTenMinutesClampsSavedValuesAndPersistsMigration
         do {
             try withDefaults { defaults in
-                XCTAssertEqual(AppSettings(defaults: defaults).maxRecordingSeconds, 300)
+                XCTAssertEqual(AppSettings(defaults: defaults).maxRecordingSeconds, 600)
                 for (saved, expected) in [(1_800, 600), (601, 600), (600, 600), (300, 300), (10, 10), (0, 10)] {
                     defaults.set(try JSONEncoder().encode(saved), forKey: "settings.maxRecordingSeconds")
                     XCTAssertEqual(AppSettings(defaults: defaults).maxRecordingSeconds, expected)

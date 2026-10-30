@@ -96,6 +96,17 @@ final class LocalizationCatalogTests: XCTestCase {
             }
         }
 
+        // Settings > Appearance > Language lists the same languages and names (AD-137).
+        do {
+            let url = Self.repository.appendingPathComponent("Config/languages.json")
+            let config = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+            let listed = try XCTUnwrap(config["languages"] as? [[String: Any]]).compactMap { entry -> InterfaceLanguage? in
+                guard let code = entry["code"] as? String, let name = entry["name"] as? String else { return nil }
+                return InterfaceLanguage(code: code, name: name)
+            }
+            XCTAssertEqual(InterfaceLanguage.shipped, [InterfaceLanguage(code: "en", name: "English")] + listed)
+        }
+
         // The Core bundle resolves Traditional Chinese.
         do {
             XCTAssertTrue(Bundle.module.localizations.contains("zh-Hant"), "\(Bundle.module.localizations)")

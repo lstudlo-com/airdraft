@@ -35,7 +35,7 @@ public enum PracticeSentence {
     ///     (`Bundle.main.preferredLocalizations.first`).
     ///   - localized: the interface catalog's sentence in that language.
     public static func sentence(for config: ASRConfig, interfaceLanguage: String, localized: String,
-                                preferredLanguages: [String] = Locale.preferredLanguages) -> String {
+                                preferredLanguages: [String] = SystemLanguages.preferred) -> String {
         let interface = family(canonical(interfaceLanguage) ?? "en")
         let spoken = spokenLanguage(for: config, interface: interface, preferredLanguages: preferredLanguages)
         if family(spoken) == interface { return localized }

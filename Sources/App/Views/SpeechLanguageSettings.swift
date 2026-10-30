@@ -90,7 +90,7 @@ struct SpeechLanguageSettings: View {
         guard ChineseScript.applies(toSpeechLanguage: language) else { return false }
         if !language.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
         return config.chineseScript != .auto
-            || Locale.preferredLanguages.contains { Locale.Language(identifier: $0).languageCode?.identifier == "zh" }
+            || SystemLanguages.preferred.contains { Locale.Language(identifier: $0).languageCode?.identifier == "zh" }
     }
 
     private var appleLocaleChoices: [String] {

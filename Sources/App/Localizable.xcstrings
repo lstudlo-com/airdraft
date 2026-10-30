@@ -7415,6 +7415,34 @@
         }
       }
     },
+    "Choose a recording window style and enable Disco" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige un estilo de ventana de grabación y activa Disco"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録音ウインドウのスタイルを選択し、「ディスコ」をオンにしてください"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择录音窗口样式并开启“Disco”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇錄音視窗樣式並開啟「Disco」"
+          }
+        }
+      }
+    },
     "Choose a recording window style and enable Show timer" : {
       "localizations" : {
         "es" : {
@@ -11139,6 +11167,34 @@
         }
       }
     },
+    "Disco intensity" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intensidad de Disco"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ディスコの強さ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disco 强度"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disco 強度"
+          }
+        }
+      }
+    },
     "Dismiss" : {
       "localizations" : {
         "es" : {
@@ -11807,6 +11863,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "編輯⋯"
+          }
+        }
+      }
+    },
+    "Enable Disco" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa Disco"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「ディスコ」をオンにしてください"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请开启“Disco”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請開啟「Disco」"
           }
         }
       }
@@ -13241,6 +13325,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "完整尺寸模型，下載檔較大"
+          }
+        }
+      }
+    },
+    "Gentle" : {
+      "comment" : "Disco intensity slider, lowest end",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suave"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "穏やか"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "柔和"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "柔和"
           }
         }
       }
@@ -26513,6 +26626,62 @@
         }
       }
     },
+    "Relaunch" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再起動"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新启动"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新啟動"
+          }
+        }
+      }
+    },
+    "Relaunch Airdraft to switch languages" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinicia Airdraft para cambiar de idioma"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語を切り替えるには Airdraft を再起動してください"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新启动 Airdraft 以切换语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新啟動 Airdraft 以切換語言"
+          }
+        }
+      }
+    },
     "Reload History" : {
       "localizations" : {
         "es" : {
@@ -31523,6 +31692,34 @@
         }
       }
     },
+    "Speech languages are set in Models" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los idiomas de voz se configuran en Modelos"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声の言語は「モデル」で設定します"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音语言在“模型”中设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音語言在「模型」中設定"
+          }
+        }
+      }
+    },
     "Speech model" : {
       "localizations" : {
         "es" : {
@@ -35976,6 +36173,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檢視授權條款"
+          }
+        }
+      }
+    },
+    "Vivid" : {
+      "comment" : "Disco intensity slider, highest end",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vivo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鮮やか"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鲜艳"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鮮豔"
           }
         }
       }

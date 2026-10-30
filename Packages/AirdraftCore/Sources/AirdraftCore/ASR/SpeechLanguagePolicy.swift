@@ -276,7 +276,7 @@ public enum SpeechLanguagePolicy {
 
     /// Language choices for a model without a known list: the user's own
     /// languages, then widely spoken ones, without duplicates.
-    public static func commonLanguages(preferred: [String] = Locale.preferredLanguages) -> [String] {
+    public static func commonLanguages(preferred: [String] = SystemLanguages.preferred) -> [String] {
         var codes: [String] = []
         for identifier in preferred {
             guard let code = try? canonicalLanguage(identifier), code != "zh-hk", !codes.contains(code) else { continue }

@@ -55,7 +55,7 @@ public struct AppleIntelligenceRefiner: Refiner {
     /// an unsupported language tends to come back unchanged or refused, which keeps
     /// the raw transcript, so setup says so instead of offering it as the answer.
     public static func unsupportedLanguageName(for config: ASRConfig,
-                                               preferredLanguages: [String] = Locale.preferredLanguages) -> String? {
+                                               preferredLanguages: [String] = SystemLanguages.preferred) -> String? {
         guard #available(macOS 26, *) else { return nil }
         let supported = Set(SystemLanguageModel.default.supportedLanguages.compactMap { $0.languageCode?.identifier })
         return unsupportedLanguageName(for: config, preferredLanguages: preferredLanguages, supported: supported)

@@ -544,7 +544,7 @@ enum SpeechLanguage {
         let currentKey = key(current)
         var codes = supported.filter { key($0) != currentKey }
         if !current.isEmpty { codes.append(current) }
-        let preferred = Locale.preferredLanguages.compactMap { Locale.Language(identifier: $0).languageCode?.identifier }
+        let preferred = SystemLanguages.preferred.compactMap { Locale.Language(identifier: $0).languageCode?.identifier }
         func rank(_ code: String) -> Int {
             preferred.firstIndex(of: Locale.Language(identifier: code).languageCode?.identifier ?? "") ?? preferred.count
         }

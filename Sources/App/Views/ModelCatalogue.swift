@@ -344,7 +344,7 @@ extension ModelCatalogue {
     /// language). Chinese-only strengths are shown only to those users.
     static var speaksChinese: Bool {
         if let rendered = RenderMode.value("SYSTEM_LANGUAGE") { return LocalSpeechRecommendation.normalized(rendered) == "zh" }
-        return Locale.preferredLanguages.contains { LocalSpeechRecommendation.normalized($0) == "zh" }
+        return SystemLanguages.preferred.contains { LocalSpeechRecommendation.normalized($0) == "zh" }
     }
 
     static var physicalMemory: UInt64 {

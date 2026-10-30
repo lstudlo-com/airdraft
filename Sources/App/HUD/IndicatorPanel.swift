@@ -11,6 +11,7 @@ final class IndicatorPanelController {
     private let pipeline: DictationPipeline
     private let styleProvider: () -> HUDStyle
     private let discoProvider: () -> Bool
+    private let discoIntensityProvider: () -> Double
     private let timerProvider: () -> HUDTimerOptions
     private let liveTextProvider: () -> LiveTextOptions
     private let messagePasteboard: NSPasteboard
@@ -18,6 +19,7 @@ final class IndicatorPanelController {
     private let screenFrame: () -> NSRect?
     private var currentStyle: HUDStyle = .classic
     private var currentDisco = false
+    private var currentDiscoIntensity = AppSettings.defaultDiscoIntensity
     private var currentTimer = HUDTimerOptions()
     private var currentLiveText = LiveTextOptions()
     private var currentPreview = false
@@ -31,6 +33,7 @@ final class IndicatorPanelController {
 
     init(pipeline: DictationPipeline, style: @escaping () -> HUDStyle,
          disco: @escaping () -> Bool = { false },
+         discoIntensity: @escaping () -> Double = { AppSettings.defaultDiscoIntensity },
          timer: @escaping () -> HUDTimerOptions = { HUDTimerOptions() },
          liveText: @escaping () -> LiveTextOptions = { LiveTextOptions() },
          messagePasteboard: NSPasteboard = .general,
@@ -39,6 +42,7 @@ final class IndicatorPanelController {
         self.pipeline = pipeline
         self.styleProvider = style
         self.discoProvider = disco
+        self.discoIntensityProvider = discoIntensity
         self.timerProvider = timer
         self.liveTextProvider = liveText
         self.messagePasteboard = messagePasteboard
@@ -66,6 +70,7 @@ final class IndicatorPanelController {
     private func applyStyle(_ style: HUDStyle, preview: Bool) -> CGSize {
         currentStyle = style
         currentDisco = discoProvider()
+        currentDiscoIntensity = discoIntensityProvider()
         currentTimer = timerProvider()
         currentLiveText = liveTextProvider()
         currentPreview = preview
@@ -77,7 +82,8 @@ final class IndicatorPanelController {
             HUDSnapshot(state: lastVisibleState, levels: [], elapsed: 0)
         let bounds = screenFrame()?.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(pipeline: messageSnapshot == nil ? pipeline : nil,
-            snapshot: messageSnapshot, style: style, timer: currentTimer, discoEnabled: currentDisco, showPreview: preview,
+            snapshot: messageSnapshot, style: style, timer: currentTimer, discoEnabled: currentDisco,
+            discoIntensity: currentDiscoIntensity, showPreview: preview,
             liveText: currentLiveText,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
             messagePasteboard: messagePasteboard,
@@ -102,7 +108,8 @@ final class IndicatorPanelController {
         switch state {
         case .idle:
             if messageTimeoutTask != nil, dismissalID == nil {
-                if styleProvider() != currentStyle || discoProvider() != currentDisco || timerProvider() != currentTimer
+                if styleProvider() != currentStyle || discoProvider() != currentDisco
+                    || discoIntensityProvider() != currentDiscoIntensity || timerProvider() != currentTimer
                     || liveTextProvider() != currentLiveText { show() }
                 return
             }
@@ -165,10 +172,11 @@ final class IndicatorPanelController {
                                    elapsed: pipeline.lastRecordingDuration,
                                    visualizerTime: spatialAnimation.motion.phase,
                                    visualizerEnergy: reduced ? staticEnergy : spatialAnimation.motion.energy,
-                                   visualizerDisco: reduced ? .still(energy: staticEnergy) : spatialAnimation.disco.frame)
+                                   visualizerDisco: reduced ? .still(energy: staticEnergy, intensity: currentDiscoIntensity)
+                                       : spatialAnimation.disco.frame)
         let bounds = screenFrame()?.size ?? CGSize(width: 800, height: 600)
         let host = NSHostingView(rootView: RecordingHUDView(snapshot: snapshot, style: currentStyle,
-            timer: currentTimer, discoEnabled: currentDisco, showPreview: currentPreview,
+            timer: currentTimer, discoEnabled: currentDisco, discoIntensity: currentDiscoIntensity, showPreview: currentPreview,
             liveText: currentLiveText,
             sampleText: currentPreview ? pipeline.previewIssue ?? pipeline.previewText : nil,
             messageMaxWidth: min(560, bounds.width - 36), messageMaxHeight: min(420, bounds.height - 60),
@@ -247,6 +255,7 @@ struct RecordingHUDView: View {
     var style: HUDStyle
     var timer = HUDTimerOptions()
     var discoEnabled = false
+    var discoIntensity = AppSettings.defaultDiscoIntensity
     var showPreview: Bool
     var liveText = LiveTextOptions()
     var sampleText: String?
@@ -271,7 +280,7 @@ struct RecordingHUDView: View {
                 LivePreviewCard(text: shownText, options: liveText)
             }
             IndicatorView(pipeline: pipeline, snapshot: snapshot, style: style, timer: timer,
-                          discoEnabled: discoEnabled,
+                          discoEnabled: discoEnabled, discoIntensity: discoIntensity,
                           messageMaxWidth: messageMaxWidth, messageMaxHeight: messageMaxHeight,
                           messagePasteboard: messagePasteboard, spatialAnimation: spatialAnimation)
         }
@@ -712,6 +721,7 @@ struct IndicatorView: View {
     var style: HUDStyle = .classic
     var timer: HUDTimerOptions
     var discoEnabled: Bool
+    var discoIntensity: Double
     var messageMaxWidth: CGFloat = 560
     var messageMaxHeight: CGFloat = 420
     var messagePasteboard: NSPasteboard = .general
@@ -720,6 +730,7 @@ struct IndicatorView: View {
     init(pipeline: DictationPipeline? = nil, snapshot: HUDSnapshot? = nil, style: HUDStyle = .classic,
          timer: HUDTimerOptions = HUDTimerOptions(),
          discoEnabled: Bool = false,
+         discoIntensity: Double = AppSettings.defaultDiscoIntensity,
          messageMaxWidth: CGFloat = 560, messageMaxHeight: CGFloat = 420,
          messagePasteboard: NSPasteboard = .general,
          spatialAnimation: SpatialHUDAnimation = SpatialHUDAnimation()) {
@@ -728,6 +739,7 @@ struct IndicatorView: View {
         self.style = style
         self.timer = timer
         self.discoEnabled = discoEnabled
+        self.discoIntensity = discoIntensity
         self.messageMaxWidth = messageMaxWidth
         self.messageMaxHeight = messageMaxHeight
         self.messagePasteboard = messagePasteboard
@@ -809,7 +821,7 @@ struct IndicatorView: View {
 
     private var visualizer: some View {
         SpatialHUDVisualizer(style: style, levels: levels, recording: state == .recording,
-                             discoEnabled: discoEnabled,
+                             discoEnabled: discoEnabled, discoIntensity: discoIntensity,
                              frozenTime: snapshot?.visualizerTime,
                              frozenEnergy: snapshot?.visualizerEnergy,
                              frozenDisco: snapshot?.visualizerDisco, animation: spatialAnimation)
