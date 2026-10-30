@@ -802,14 +802,16 @@ there is no FAQ markup (see `SEARCH.md`).
 
 ### Motion
 
-Motion follows height, as the material does. Raised objects sit closer to the
-visitor, so they lead the scroll a little; the contents of recessed wells sit
-further away, so they lag. Objects rise from the surface as they arrive (they
+Motion follows the material. Objects rise from the surface as they arrive (they
 grow from `0.92–0.94` while their shadow grows from nothing) and sink back into
 it as they leave (they shrink while their shadow flattens). Light stays at the
 top left; nothing tilts or flies through perspective (the hero ribbon's folds,
 turning under the fixed key light, are the one exception), and text fades and
-moves but never zooms.
+moves but never zooms. What is laid out together moves together: once risen,
+tiles in a row share one baseline and a graphic stays centered in its well.
+No tile or graphic runs a parallax of its own; a view-timeline parallax reads
+the layout position, which the bento's slowing leaves ahead of the screen, so
+it would sit at its extreme just where the tiles are read.
 
 **Scroll timelines (`src/styles/motion.css`).** Where the browser supports
 CSS scroll timelines and motion is allowed, every scroll-linked effect is a
@@ -818,7 +820,7 @@ never jitters; never move content from a scroll listener. Transforms and
 opacity run apart from shadows so the browser can composite them. An element
 inside a scroll container (`overflow: hidden` or `auto` included) would take
 that container as its scroller, so its timeline comes from an ancestor
-outside it (`--tile`). Production CSS is minified with esbuild
+outside it. Production CSS is minified with esbuild
 (`astro.config.mjs`): Lightning CSS folds `animation-timeline` into the
 `animation` shorthand, which Chrome drops, removing every scroll-driven
 animation; `scripts/check-search.py` rejects a build that does.
@@ -828,7 +830,7 @@ animation; `scripts/check-search.py` rejects a build that does.
 | Section headings | Fade up `28px` as they enter; on the homepage what they introduce follows from further down (`96px`, `140px` of scroll later), so it slides in behind the title at a different speed.                                                                                                             |
 | Hero exit        | The copy lags the scroll (up to `70px`) and fades before it reaches the card; Home's card sinks to `0.94`; the ribbon's folds relax and it settles flat onto the island.                                                                                                                          |
 | Sample           | The steps, the well, the pill, the controls and the card follow the title one after another; above `700px` the scene pins and the scroll plays the story (`preview.ts`), otherwise it plays once mid-screen.                                                                                      |
-| Bento            | Under its sticky title, tiles rise one by one (`110px`, from `--in`, `sticky.ts`) as the title settles or as they come up, then scroll under the title's blur. Each graphic lags `±18px` in its well; wide tiles lead `±16px`.                                                                    |
+| Bento            | Under its sticky title, tiles rise one by one (`110px`, from `--in`, `sticky.ts`) as the title settles or as they come up, then scroll under the title's blur. Rows keep one baseline and graphics stay centered in their wells; nothing drifts against its neighbor.                             |
 | Transcribe       | The beats arrive in turn under the sticky title; the stage pins under it where it fits and the scroll runs the story, otherwise each beat plays after it arrives (`meetings.ts`).                                                                                                                 |
 | Provider board   | The cards arrive in turn; `--p` runs one dictation through them and the channels, pinned under the title where it fits (`pipeline.ts`, `sticky.ts`).                                                                                                                                              |
 | Close            | Both offers follow their title, the license from furthest (`0.94`, `140px`); both settle level.                                                                                                                                                                                                   |

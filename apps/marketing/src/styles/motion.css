@@ -1,11 +1,11 @@
 /* Scroll motion: depth, rise and sink, told by the scroll position.
 
-   One rule, from the app's material: motion follows height. Raised objects
-   sit closer to the visitor, so they lead the scroll a little; the contents of
-   recessed wells sit further away, so they lag. Objects rise from the surface
-   as they arrive (scale up, shadow grows from nothing) and sink back into it
-   as they leave (scale down, shadow flattens). Light stays at the top left;
-   nothing tilts or flies through perspective.
+   One rule, from the app's material: objects rise from the surface as they
+   arrive (scale up, shadow grows from nothing) and sink back into it as they
+   leave (scale down, shadow flattens). What is laid out together moves
+   together: tiles in a row keep one baseline and a graphic stays centered in
+   its well; nothing drifts against its neighbors with the scroll. Light
+   stays at the top left; nothing tilts or flies through perspective.
 
    Everything here is a CSS scroll timeline, so it moves in the same frame as
    the scroll and never jitters. Translate, scale and opacity run in their own
@@ -37,24 +37,6 @@
           translate: 0 var(--rise-y, 28px);
         }
       }
-      /* Parallax by height: --depth-range px either way across the view. */
-      @keyframes motion-lead {
-        from {
-          transform: translateY(var(--depth-range, 10px));
-        }
-        to {
-          transform: translateY(calc(-1 * var(--depth-range, 10px)));
-        }
-      }
-      @keyframes motion-lag {
-        from {
-          translate: 0 calc(-1 * var(--depth-range, 8px));
-        }
-        to {
-          translate: 0 var(--depth-range, 8px);
-        }
-      }
-
       /* Section headings rise as they enter; text never zooms. */
       .section-heading {
         animation: motion-fade-up linear both;
@@ -260,9 +242,12 @@
         animation-range: cover var(--in, 0px) cover
           calc(var(--in, 0px) + var(--follow-len, 300px));
       }
-      /* Tiles also lift their shadow as they rise; wide tiles, the larger
-         raised faces, lead the narrow ones slightly; each graphic lags
-         inside its well. */
+      /* Tiles also lift their shadow as they rise. Once risen, a row keeps
+         one baseline and each graphic stays centered in its well: no tile or
+         graphic runs a parallax of its own, which would part a wide tile from
+         its narrow neighbor (and, read from the layout position, which the
+         bento's slowing leaves ahead of the screen, would sit at its extreme
+         just where the tiles are read). */
       .section-sticky .bento > .tile {
         --follow-y: 110px;
         animation:
@@ -275,32 +260,6 @@
           cover var(--in, 0px) cover
             calc(var(--in, 0px) + var(--follow-len, 300px));
       }
-      .section-sticky .bento > .tile-wide {
-        --depth-range: 16px;
-        animation:
-          follow-rise var(--ease-follow) both,
-          motion-lift linear both,
-          motion-lead linear both;
-        animation-timeline: --sticky, --sticky, view();
-        animation-range:
-          cover var(--in, 0px) cover
-            calc(var(--in, 0px) + var(--follow-len, 300px)),
-          cover var(--in, 0px) cover
-            calc(var(--in, 0px) + var(--follow-len, 300px)),
-          cover 0% cover 100%;
-      }
-      /* The well clips its graphic (overflow: hidden), which would make it
-         the graphic's scroller; the graphic follows the tile's timeline. */
-      .bento .tile {
-        view-timeline: --tile block;
-      }
-      .bento .tile-art > * {
-        --depth-range: 18px;
-        animation: motion-lag linear both;
-        animation-timeline: --tile;
-        animation-range: cover 0% cover 100%;
-      }
-
       /* The Transcribe story (MeetingsSection.astro). The four beats arrive
          in turn, then play. Where the window has room, the stage pins under
          the title (sticky.ts sets .is-pinned) and the scroll runs the whole
