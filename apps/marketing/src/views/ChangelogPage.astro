@@ -16,7 +16,9 @@ import "../styles/changelog.css";
  * its card and stay in view while the card is read (below 1000px they sit
  * above it). A feature release's title sits on the island above its raised
  * card; a patch shows no title and is a recessed well, even when it is the
- * latest release. The latest feature release is raised furthest.
+ * latest release. The latest feature release is raised furthest. A knob
+ * marks the current release on its stud, travelling down beside its sticky
+ * version, the rail filled down to it (src/scripts/changelog.ts).
  */
 interface Props {
   locale: Locale;
@@ -85,6 +87,7 @@ const milestones = changelog.filter(
           <div class="release-track" aria-hidden="true">
             <span></span>
           </div>
+          <span class="release-knob" aria-hidden="true"></span>
           {changelog.map((entry, index) => (
             <article
               class:list={[

@@ -1,13 +1,32 @@
-/** The reading position fills a recessed rail and slides the version selection.
- * Reveals play once; CSS is already readable if scripts or motion are disabled. */
+/** The reading position moves a knob down a recessed rail and slides the
+ * version selection. The knob marks the current release: it sits on that
+ * release's stud and, while the release's version and date stay in view
+ * beside a long card (sticky), travels down with them. The rail is filled
+ * down to the knob, never past it. The knob and the fill follow on a
+ * critically damped spring measured in time, not frames, so they trail the
+ * same way at any frame rate, never overshoot, trail further the faster the
+ * page moves and ease back to rest. With reduced motion they move directly.
+ * Reveals play once; CSS is already readable if scripts or motion are
+ * disabled. */
 import { settleIsland } from "./island";
 
 const root = document.querySelector<HTMLElement>("[data-changelog]");
 
+// The spring's smoothing time: half way in a quarter second, 87% in half a
+// second, settled in about a second, at any frame rate.
+const SMOOTH_SECONDS = 0.28;
+
 if (root) {
   const nav = root.querySelector<HTMLElement>(".release-nav")!;
   const timeline = root.querySelector<HTMLElement>(".release-timeline")!;
+  const track = timeline.querySelector<HTMLElement>(".release-track")!;
   const entries = [...root.querySelectorAll<HTMLElement>("[data-release]")];
+  const studs = entries.map((entry) =>
+    entry.querySelector<HTMLElement>(".release-stud")!,
+  );
+  const metas = entries.map((entry) =>
+    entry.querySelector<HTMLElement>(".release-meta")!,
+  );
   const links = [
     ...root.querySelectorAll<HTMLAnchorElement>("[data-release-link]"),
   ];
@@ -17,9 +36,89 @@ if (root) {
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   let frame = 0;
   let selected: HTMLAnchorElement | undefined;
-  let current: HTMLElement | undefined;
 
-  function update() {
+  // Stud centres and the rail's top, in the timeline's coordinates. Both
+  // sides of each difference share every transform above the timeline (the
+  // island's opening hold), and the studs sit outside the rising cards.
+  let centres: number[] = [];
+  let railTop = 0;
+  const measure = () => {
+    const origin = timeline.getBoundingClientRect().top;
+    centres = studs.map((stud) => {
+      const box = stud.getBoundingClientRect();
+      return box.top + box.height / 2 - origin;
+    });
+    railTop = track.getBoundingClientRect().top - origin;
+  };
+
+  // The knob's position and speed, and where it is heading.
+  let position = 0;
+  let velocity = 0;
+  let target = 0;
+  let glide = 0;
+  let last = 0;
+
+  const draw = () => {
+    timeline.style.setProperty("--knob", `${position.toFixed(2)}px`);
+    timeline.style.setProperty(
+      "--fill",
+      `${Math.max(0, position - railTop).toFixed(2)}px`,
+    );
+  };
+  // One step of a critically damped spring over dt seconds (the closed
+  // form's usual polynomial approximation of e^-x), stopped at the target.
+  const step = (dt: number) => {
+    const omega = 2 / SMOOTH_SECONDS;
+    const x = omega * dt;
+    const decay = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    const offset = position - target;
+    const pull = (velocity + omega * offset) * dt;
+    velocity = (velocity - omega * pull) * decay;
+    const next = target + (offset + pull) * decay;
+    // Never past the target: a spring that overshot would carry the fill
+    // beyond the stud it is heading for.
+    if (target - position > 0 === next > target) {
+      position = target;
+      velocity = 0;
+    } else position = next;
+  };
+  const tick = (now: number) => {
+    // Frames are rarely longer than this; a backgrounded tab resumes from
+    // where it was instead of jumping.
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    step(dt);
+    if (Math.abs(target - position) < 0.25 && Math.abs(velocity) < 2) {
+      position = target;
+      velocity = 0;
+      glide = 0;
+    } else glide = requestAnimationFrame(tick);
+    draw();
+  };
+  const aim = (index: number, snap: boolean) => {
+    // How far the release's sticky version and date have travelled down
+    // its entry (none where they don't stick).
+    const shift = Math.max(
+      0,
+      metas[index].getBoundingClientRect().top -
+        entries[index].getBoundingClientRect().top,
+    );
+    target = (centres[index] ?? 0) + shift;
+    if (snap || motion.matches) {
+      cancelAnimationFrame(glide);
+      glide = 0;
+      position = target;
+      velocity = 0;
+      draw();
+      return;
+    }
+    if (!glide && position !== target) {
+      last = performance.now();
+      glide = requestAnimationFrame(tick);
+    }
+  };
+
+  function update(snap = false) {
     frame = 0;
     // Actual viewport coordinates account for the shared island's opening hold.
     const readingLine = Math.min(200, innerHeight * 0.3);
@@ -39,31 +138,27 @@ if (root) {
     nav.style.setProperty("--thumb-height", `${link.offsetHeight}px`);
     nav.dataset.ready = "";
 
-    let active = entries[0];
-    for (const entry of entries) {
-      if (entry.getBoundingClientRect().top <= readingLine) active = entry;
-      else break;
+    let active = 0;
+    for (let i = 1; i < entries.length; i++) {
+      if (entries[i].getBoundingClientRect().top > readingLine) break;
+      active = i;
     }
-    if (current !== active) {
-      current?.removeAttribute("data-current");
-      active.dataset.current = "";
-      current = active;
-    }
-    const bounds = timeline.getBoundingClientRect();
-    const progress = Math.max(
-      0,
-      Math.min(1, (readingLine - bounds.top) / bounds.height),
-    );
-    timeline.style.setProperty("--read-progress", String(progress));
+    aim(active, snap);
   }
   function schedule() {
-    if (!frame) frame = requestAnimationFrame(update);
+    if (!frame) frame = requestAnimationFrame(() => update());
   }
+  // A changed layout moves every stud: the knob follows at once.
+  const relayout = () => {
+    measure();
+    update(true);
+  };
   addEventListener("scroll", schedule, { passive: true });
-  addEventListener("resize", schedule);
+  addEventListener("resize", relayout);
   addEventListener("hashchange", schedule);
-  new ResizeObserver(schedule).observe(timeline);
-  update();
+  new ResizeObserver(relayout).observe(timeline);
+  relayout();
+  timeline.dataset.ready = "";
 
   function jump(hash: string, behavior: ScrollBehavior) {
     const target = entries.find((entry) => `#${entry.id}` === hash);

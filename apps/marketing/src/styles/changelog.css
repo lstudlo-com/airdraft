@@ -79,12 +79,37 @@
     background: var(--well);
     box-shadow: var(--sink-chip);
   }
+  /* The fill is the rail's full length, slid down so its end meets the
+     knob's centre. Sliding, not scaling: a layer thousands of pixels tall
+     scaled anew each frame is re-rastered at every scale and can show
+     stale slivers below its end. */
   .release-track > span {
     display: block;
     height: 100%;
     background: var(--muted);
-    transform: scaleY(var(--read-progress, 0));
-    transform-origin: top;
+    transform: translateY(calc(var(--fill, 0px) - 100%));
+  }
+  /* The current release's stud in ink, sunk into its socket. It sits on
+     that release's stud, travels down beside the release's sticky version
+     and date, and glides on to the next with the fill
+     (src/scripts/changelog.ts); without the script it stays hidden. */
+  .release-knob {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow: var(--sink-chip);
+    opacity: 0;
+    transform: translateY(calc(var(--knob, 0px) - 7px));
+    pointer-events: none;
+    transition: opacity 180ms;
+  }
+  .release-timeline[data-ready] .release-knob {
+    opacity: 1;
   }
   /* An entry: its version and date in a column beside the card, staying
      in view while a long card is read. */
@@ -109,13 +134,6 @@
     border-radius: 50%;
     background: var(--fill-cap);
     box-shadow: var(--edge), var(--raise-small);
-    transition:
-      background 240ms,
-      box-shadow 240ms;
-  }
-  .release-entry[data-current] .release-stud {
-    background: var(--ink);
-    box-shadow: var(--sink-chip);
   }
   .release-meta {
     position: sticky;
