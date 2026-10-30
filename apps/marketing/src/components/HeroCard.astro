@@ -20,6 +20,11 @@ const app = appLabels[locale];
  * technology only, and it works: holding ⌃⌥ (or pressing and holding the
  * waveform) plays a pretend dictation that adds a bar, while the recording
  * pill floats under the card (src/scripts/dictate.ts).
+ *
+ * Where the browser can, the card is drawn again in three dimensions over
+ * this HTML (src/scripts/hero3d.ts): the same card machined as one object,
+ * which mirrors these bars. This HTML stays the source of truth and the
+ * complete fallback.
  */
 const count = 40;
 const levels = Array.from({ length: count }, (_, index) => {
@@ -42,4 +47,5 @@ const levels = Array.from({ length: count }, (_, index) => {
 
 <script>
   import "../scripts/dictate";
+  import "../scripts/hero3d";
 </script>

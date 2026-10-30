@@ -1284,13 +1284,23 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
 
   /* Home's hero card (HeroCard.astro, HomeHero.swift): a raised card with a
      faint top-left sheen around the waveform well, the same inset on every
-     side. */
+     side. The face is drawn on its own layer (::before) so that it can fade
+     when the machined card takes its place (src/scripts/hero3d.ts). */
   .hero-card {
     position: relative;
+    isolation: isolate;
     width: min(100%, 880px);
     margin-top: var(--space-21);
     padding: calc(var(--space-8) * 2 / 3);
     border-radius: var(--radius-card);
+    animation: rise 900ms var(--ease-out) both;
+  }
+  .hero-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
     background:
       radial-gradient(
         70% 120% at 15% 0%,
@@ -1302,12 +1312,42 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
       inset 1px 1px 0 color-mix(in srgb, var(--rim), transparent 30%),
       inset 0 0 0 0.5px var(--hairline),
       var(--raise-hero);
-    animation: rise 900ms var(--ease-out) both;
+    transition: opacity 600ms ease;
+  }
+  /* The machined card (src/scripts/hero3d-scene.ts): a canvas over the
+     card, reaching past it so its pillars and shadows have room (BLEED in
+     the script). It never takes the pointer; the HTML well under it still
+     does, and stays the fallback without JavaScript or WebGL. When the
+     scene's first frame is drawn the canvas fades in as the HTML card's
+     face, well and bars fade out; the card keeps its box, so nothing
+     moves. */
+  .hero-3d {
+    position: absolute;
+    /* BLEED in hero3d-scene.ts: 56px either side, 40px above, 60px below. */
+    top: -40px;
+    left: -56px;
+    z-index: 0;
+    width: calc(100% + 112px);
+    height: calc(100% + 100px);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 600ms ease;
+  }
+  .hero-card.is-3d .hero-3d {
+    opacity: 1;
+  }
+  .hero-card.is-3d::before,
+  .hero-card.is-3d .wave {
+    opacity: 0;
+  }
+  .hero-card .wave {
+    transition: opacity 600ms ease;
   }
   /* While a dictation records (src/scripts/dictate.ts) the recording pill
      rises under the card, where the app's own pill floats over the Dock. */
   .hero-hud {
     position: absolute;
+    z-index: 1;
     top: calc(100% + var(--space-4));
     inset-inline: 0;
     width: max-content;
@@ -2598,6 +2638,10 @@ html:active-view-transition-type(nav-slide)::view-transition-new(nav-well) {
     .art-output {
       outline: 1px solid color-mix(in srgb, var(--ink), transparent 50%);
       outline-offset: -1px;
+    }
+    /* The machined card draws its own edges in light and shade. */
+    .hero-card.is-3d {
+      outline: none;
     }
   }
   @media (prefers-reduced-motion: reduce) {

@@ -7,15 +7,13 @@
 //              Blocks that come into view together rise one after another.
 //              Blocks the scroll timelines already raise (everything under a
 //              homepage title, offers) are left to motion.css; pricing plans stay still
-//   depth      the hero card and the copy above it drift a few pixels with
-//              the pointer, the card toward it and the copy away, so the
-//              raised card reads closer than the text. Translation only:
-//              the light stays at the top left, nothing tilts
+//
+// Nothing here follows the pointer: the hero's copy and card stay where the
+// layout puts them (the hero's depth is the machined card, hero3d.ts).
 //
 // Resting CSS is the final state, so without JavaScript every heading reads
 // whole and nothing moves. With reduced motion none of this runs.
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
 
 function headings() {
   const targets = [
@@ -116,43 +114,10 @@ function content() {
   }
 }
 
-function depth() {
-  const hero = document.querySelector<HTMLElement>("[data-hero]");
-  if (!hero) return;
-  const target = { x: 0, y: 0 };
-  const current = { x: 0, y: 0 };
-  let frame = 0;
-  const step = () => {
-    current.x += (target.x - current.x) * 0.08;
-    current.y += (target.y - current.y) * 0.08;
-    hero.style.setProperty("--px", current.x.toFixed(4));
-    hero.style.setProperty("--py", current.y.toFixed(4));
-    frame =
-      Math.abs(target.x - current.x) + Math.abs(target.y - current.y) > 0.001
-        ? requestAnimationFrame(step)
-        : 0;
-  };
-  const aim = (x: number, y: number) => {
-    target.x = x;
-    target.y = y;
-    if (!frame) frame = requestAnimationFrame(step);
-  };
-  hero.addEventListener("pointermove", (event) => {
-    if (event.pointerType !== "mouse" || !finePointer.matches) return;
-    const box = hero.getBoundingClientRect();
-    aim(
-      ((event.clientX - box.left) / box.width) * 2 - 1,
-      ((event.clientY - box.top) / box.height) * 2 - 1,
-    );
-  });
-  hero.addEventListener("pointerleave", () => aim(0, 0));
-}
-
 if (!reduced.matches) {
   document.documentElement.classList.add("flourish");
   headings();
   content();
-  depth();
 }
 
 export {};

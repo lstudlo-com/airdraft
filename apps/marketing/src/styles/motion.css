@@ -109,13 +109,18 @@
         /* Keeps its one-time rise on load (global.css). */
         animation:
           rise 900ms var(--ease-out) both,
-          hero-sink linear both,
-          hero-flatten linear both;
-        animation-timeline: auto, --hero-stage, --hero-stage;
+          hero-sink linear both;
+        animation-timeline: auto, --hero-stage;
         animation-range:
           normal,
-          exit 0% exit 90%,
           exit 0% exit 90%;
+      }
+      /* The card's face (its ::before) flattens; the machined card draws
+         its own exit (hero3d-scene.ts). */
+      .hero-card::before {
+        animation: hero-flatten linear both;
+        animation-timeline: --hero-stage;
+        animation-range: exit 0% exit 90%;
       }
 
       /* Content follows its title. A title rises as it arrives; what it
@@ -300,11 +305,10 @@
   }
 }
 
-/* Entrances and pointer depth (src/scripts/flourish.ts). These need no
-   scroll timeline, only motion. The headline's lines rise out of their own
-   line boxes on load, then the keys and facts follow; section headings rise
-   word by word as they arrive; the hero card and its copy drift a few
-   pixels with the pointer, the raised card toward it. Without JavaScript
+/* Entrances (src/scripts/flourish.ts). These need no scroll timeline, only
+   motion. The headline's lines rise out of their own line boxes on load,
+   then the keys and facts follow; section headings rise word by word as
+   they arrive. Nothing in the hero follows the pointer. Without JavaScript
    only the CSS entrances run, and with reduced motion nothing does. */
 @layer motion {
   @media (prefers-reduced-motion: no-preference) {
@@ -395,29 +399,6 @@
       scale: 1 1;
       transition: scale 480ms var(--ease-out);
       transition-delay: calc(320ms + var(--i, 0) * 90ms + var(--row, 0) * 60ms);
-    }
-
-    .flourish .hero-copy {
-      transform: translate3d(
-        calc(var(--px, 0) * -6px),
-        calc(var(--py, 0) * -4px),
-        0
-      );
-    }
-    .flourish .hero-card {
-      transform: translate3d(
-        calc(var(--px, 0) * 12px),
-        calc(var(--py, 0) * 9px),
-        0
-      );
-    }
-    /* Inside the well the bars sit further away, so they move less. */
-    .flourish .hero-card .wave {
-      transform: translate3d(
-        calc(var(--px, 0) * -4px),
-        calc(var(--py, 0) * -3px),
-        0
-      );
     }
   }
 }
