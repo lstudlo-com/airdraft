@@ -221,7 +221,12 @@ and Local releases below.
   band (its veil but not its heavier tint; the heading never animates its own
   opacity, which would make the band opaque), so content stays visible, blurred,
   while it scrolls under the title, and `sticky.ts` makes items arrive one at a
-  time as the title settles; Transcribe's stage and the provider cards pin under the
+  time as the title settles. A held title gives way as its content moves
+  (Section `titleMotion`, from `sticky.ts`'s `--settle` and `--leave`):
+  Transcribe's and the provider board's fade out, opening and blurring, as the
+  content starts to move; the bento's names each tile in turn (`cycle.ts`, an
+  `aria-hidden` copy over the real heading, decoding character by character)
+  and fades as the next section's title comes up, not when its section ends; Transcribe's stage and the provider cards pin under the
   title where they fit and play their story over a runway, otherwise each plays as
   it passes; the provider cards never scale. Transcribe's turns are rows in one
   transcript card, staggered like a conversation (the first speaker's chip and time
@@ -230,11 +235,16 @@ and Local releases below.
   card's bottom line. Pricing plans are
   separate cards and text pages frame no section in a well; headings rise word by
   word and subpage content rises block by block (`flourish.ts`); nothing in the
-  hero follows the pointer. Where WebGL2 is available three.js draws the hero's
+  hero drifts with the pointer. Where WebGL2 is available three.js draws the hero's
   waveform card (`hero3d.ts`, `hero3d-scene.ts`) as one folded metal ribbon (the
-  app's Silk style) running into a graphite caret, lit from the top left; it loads
-  after load and idle on the homepages only, never with Save-Data, and the HTML
-  card keeps its box and stays the pointer target and the fallback. Scroll-driven animations need `cssMinify: "esbuild"`: Lightning
+  app's Silk style), pointed at both ends with no caret object, lit from the top
+  left; near the pointer it opens, ripples and catches a small light, and as the
+  hero scrolls away it comes apart into a three-strand sound wave of grains
+  (reversible). It loads after load and idle on the homepages only, never with
+  Save-Data, and the HTML card keeps its box and stays the pointer target and the
+  fallback. A thin silver thread (`thread.ts`) carries on from the ribbon's end
+  down the island's margins, swinging sides between sections and drawn by the
+  scroll, only where the margins are at least 64 px wide. Scroll-driven animations need `cssMinify: "esbuild"`: Lightning
   CSS folds `animation-timeline` into the `animation` shorthand, which Chrome drops,
   and `check-search.py` rejects such a build. Reduce Motion and no-JS keep resting
   frames. The one accent,

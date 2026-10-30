@@ -187,7 +187,7 @@ anything."; in Traditional and Simplified Chinese the audience and the job:
 the "Get Airdraft", source and sample actions, three quiet facts (open source;
 on the Mac or with your own provider; macOS 15+ on Apple silicon), and Home's waveform card from the app
 (decorative bars, no metrics, the app's first-run caption), drawn in 3D as one
-folded metal ribbon into the caret where WebGL allows (the HTML card otherwise); no paragraph. The
+folded metal ribbon, pointed at both ends, where WebGL allows (the HTML card otherwise); no paragraph. The
 caption works: holding ⌃⌥ or pressing the waveform plays a pretend dictation
 that adds a bar, without recording anything.
 Nothing else shows until the visitor scrolls. The headline says transcription,
@@ -203,8 +203,13 @@ waveform responds to the visitor. Pricing, Support and Changelog open with the
 same page title block: one size, one top inset and the full content width. Scroll motion tells the dictation story (speak, refine, insert) but
 the page reads fully without it. Motion stays physical: objects rise from and
 sink into the surface and selections slide; nothing tilts or flies through
-perspective, except the hero ribbon's folds, and nothing in the hero follows the
-pointer. Bento tiles are one graphic and one line.
+perspective, except the hero ribbon's folds. Nothing in the hero drifts with the
+pointer; the ribbon only answers it where it is (it opens, ripples and catches a
+small light). As the hero leaves, the ribbon comes apart into a sound wave of
+grains, and a thin silver thread carries on from it down the page's margins,
+drawn by the scroll. Held story titles give way as their content moves: the
+bento's title names each feature in turn, the others fade. Bento tiles are one
+graphic and one line.
 
 ## Search and product guides
 

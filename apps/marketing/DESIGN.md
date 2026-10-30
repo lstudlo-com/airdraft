@@ -421,25 +421,56 @@ one level and nothing animates.
 
 **Hero ribbon (`src/scripts/hero3d.ts`, `hero3d-scene.ts`).** Where WebGL2 is
 available, three.js draws the card again over the HTML as one folded ribbon of
-brushed metal (the app's Silk recording style): the forty bars fused into one
-band whose width follows their heights, folding slowly along its length into
-the caret, a graphite pill, where text lands. Neutral grays only, every colour
-read from the page's tokens; one key light at the top left casts its shadow down
-and to the right on the island. It draws itself from the left into the caret
-once on arrival; at rest its folds travel slowly toward the caret; while the
-pretend dictation records, its level swells the ribbon at the caret and travels
-left, the way the pill's meter scrolls; as the hero scrolls away the folds relax
-and it settles flat onto the island. Nothing follows the pointer, and the
-waveform's hover magnification and the voice stay on the HTML bars. The HTML
-card keeps its box (no layout shift), stays the pointer target and the source
-the scene reads every frame, and is the whole hero without JavaScript, without
-WebGL2, or with Save-Data or a reduced-data preference. three.js loads after
-`load` and idle, as its own chunk requested only by the homepages; the scene
-renders only while the card is on screen and the tab visible, caps the pixel
-ratio at `2` (`1.5` on phones, with a narrower ribbon and fewer folds) and frees
-the GPU on `pagehide`. With reduced motion it draws one resting frame, again
-only when something changes. The canvas is `aria-hidden` and takes no pointer
-events.
+brushed metal under a thin clear coat (the app's Silk recording style): the
+forty bars fused into one band whose width follows their heights, folding
+slowly along its length. It starts as a point at the oldest bar, swells through
+the waveform and narrows back to a point where the caret stands; there is no
+caret object. Neutral grays only, every colour read from the page's tokens; one
+key light at the top left casts its shadow down and to the right on the island.
+It draws itself from the left once on arrival; at rest its folds travel slowly
+to the right; while the pretend dictation records, its level swells the ribbon
+at its right end and travels left, the way the pill's meter scrolls.
+
+The pointer touches it where it is, never moving the hero as a whole: near the
+pointer (a band about `120px` either side of the ribbon) the ribbon opens toward
+the visitor, widens by up to 42% on a Gaussian about `95px` wide and leans up to
+`11px` toward the pointer, a small light travels with the pointer across the
+metal, and moving the pointer sends ripples along the ribbon (a damped wave, one
+value per ribbon segment, stepped every `8ms`) that run out both ways, widen and
+turn it as they pass, and fade. As the hero scrolls away (from 5% to 55% of
+seven tenths of the hero's height) the ribbon comes apart from left to right:
+behind the break it narrows to nothing, and its grains (2,600, 1,400 on phones;
+graphite to silver to a few white glints, lit from the top left, additive in
+dark) arc out toward the visitor and settle into a living sound wave of three
+strands of different lengths and speeds, as tall as the waveform there and
+closed at both ends, while the view rises `10°` so its depth shows. Scrolling
+back gathers them into the ribbon again.
+
+The waveform's hover magnification and the voice stay on the HTML bars. The
+HTML card keeps its box (no layout shift), stays the pointer target and the
+source the scene reads every frame, and is the whole hero without JavaScript,
+without WebGL2, or with Save-Data or a reduced-data preference. three.js loads
+after `load` and idle, as its own chunk requested only by the homepages; the
+scene renders only while the card is on screen and the tab visible, caps the
+pixel ratio at `2` (`1.5` on phones, with a narrower ribbon and fewer folds) and
+frees the GPU on `pagehide`. With reduced motion it draws one resting frame,
+again only when something changes, and neither the pointer nor the scroll
+moves it. The canvas is `aria-hidden` and takes no pointer events.
+
+**Thread (`src/scripts/thread.ts`).** What is left of the ribbon carries on down
+the homepage: a narrow silver band (`7.6px` at its widest) seen face on, turning
+slowly about its length (a full turn every `460px`, a little more as the page
+scrolls), each piece shaded in one of eleven tones between `--thread-back` and
+`--thread-front` by its face's angle to the top-left light, with a hairline of
+`--thread-shade` down and to the right. It leaves the ribbon's right end, runs
+down the island's open margins with a slow meander, swings across to the other
+margin in the middle of the space between two sections (over `220px`, so it
+never crosses text) and ends over Get Airdraft's title. Its tip is where the
+scroll has reached, seven tenths of the way down the window, narrowing to a
+point with a few grains trailing it; scrolling up takes it back. It lies behind
+everything on the island (`z-index: -1`), redraws only the part on screen, and
+shows only where the margins are at least `64px` wide. Without JavaScript there
+is none; with reduced motion it rests whole and still.
 
 ### Voice (`src/scripts/voice.ts`)
 
@@ -500,7 +531,7 @@ bento's profile and history graphics.
 ### Section, Surface, Chips, Keys, Tag, StatusDot
 
 - `Section`: `title`, optional one-line `intro`, `level` 1 or 2, `first`, `sticky`. Owns the heading id and spacing; `level={1}` titles get `.page-title`. Its id comes from an ASCII title, so translated sections pass `id`. On the homepage (`main.home`) every section's title is centered over its content and has no intro; subpages keep title and intro at the leading edge.
-- `Section sticky` (the bento, Transcribe and the provider board; the interface and the sections after it scroll normally): the title holds `48px` below the site header (`40px` on phones, none on windows under `540px` tall) while the section's content scrolls up under it, until the section ends. While the title is held (`sticky.ts` sets `.is-held`; before and after, nothing shows) the header's progressive blur continues behind it (`.heading-blur`, the same six layers from the window's top: `32px` and `16px` only behind the header row, `8px` easing out by the title's top, then `4px`, `2px` and `1px` easing over the title band to nothing `40px` below it) with the header row's `35%` veil faded in where the header's own veil fades out, never the heavier tint, so content stays visible, softened but legible, as it passes under the title. The heading itself never animates its opacity (only its text rises): an opacity animation on it would make it the blur layers' backdrop root and turn the band opaque. Homepage titles are a step smaller than subpage titles (`28–36px`), and content starts a quarter further from its title (`55px`, `40px` on phones). A negative margin and its own formatting context keep the section's spacing unchanged. `src/scripts/sticky.ts` measures, on the section's view timeline (`--sticky`), when each item (`data-follow`, bento tiles, Transcribe beats, provider cards) rises: in order, `70px` of scroll apart, starting `260px` before the title settles and never before the item comes into the window. A story stage (`data-pin`) that fits under the settled title pins there while its runway (`data-pin-runway`, `120vh`) scrolls past and its story runs over `--story-0` to `--story-1`.
+- `Section sticky` (the bento, Transcribe and the provider board; the interface and the sections after it scroll normally): the title holds `48px` below the site header (`40px` on phones, none on windows under `540px` tall) while the section's content scrolls up under it, until the section ends. While the title is held (`sticky.ts` sets `.is-held`; before and after, nothing shows) the header's progressive blur continues behind it (`.heading-blur`, the same six layers from the window's top: `32px` and `16px` only behind the header row, `8px` easing out by the title's top, then `4px`, `2px` and `1px` easing over the title band to nothing `40px` below it) with the header row's `35%` veil faded in where the header's own veil fades out, never the heavier tint, so content stays visible, softened but legible, as it passes under the title. The heading itself never animates its opacity (only its text rises): an opacity animation on it would make it the blur layers' backdrop root and turn the band opaque. Held titles give way as their content moves (`titleMotion`; `sticky.ts` measures `--settle`, where the title settles, and `--leave`, where the next section's title comes up into the window): Transcribe's and the provider board's (`fade`) fade out over the `170px` of scroll after `24px` past settling, opening to 108% and blurring to `12px`, their blur band fading with them; the bento's (`cycle`, `src/scripts/cycle.ts`) names each tile in turn, an equal share of the scroll each from settling to leaving, then fades the same way from `--leave`. The changing title is an `aria-hidden` copy in the heading's own type over the real heading, whose words leave upward into a blur; each new title rises character by character out of a blur, decoding through other characters of the same titles for a moment, and a title wider than the heading shrinks to fit one line. Each part fades on its own layer, never the heading as a whole. Without scroll timelines, JavaScript or motion the titles hold as before. Homepage titles are a step smaller than subpage titles (`28–36px`), and content starts a quarter further from its title (`55px`, `40px` on phones). A negative margin and its own formatting context keep the section's spacing unchanged. `src/scripts/sticky.ts` measures, on the section's view timeline (`--sticky`), when each item (`data-follow`, bento tiles, Transcribe beats, provider cards) rises: in order, `70px` of scroll apart, starting `260px` before the title settles and never before the item comes into the window. A story stage (`data-pin`) that fits under the settled title pins there while its runway (`data-pin-runway`, `120vh`) scrolls past and its story runs over `--story-0` to `--story-1`.
 - `Surface`: `variant="panel"` (raised card) or `"well"` (recessed), any element via `as`. Never nest a panel in a panel. Lists and tables go inside a raised panel, divided by grooves, as in the app's settings cards.
 - `Chips`: a list of recessed capsules. `Chip` is a single one: `tone` `muted` (recessed, default) or `strong` (raised), `as` `span` or `li`, and an optional leading `dot` (`ok`, `attention`, `busy`, `inactive`). The bento graphics, the transcript's speaker chips and `/design/` use it; never hand-write `.chip-*` classes.
 - `Keys`: raised keycaps in the rounded system face; `size="lg"` and `keys-xl` for feature tiles. Modifier keycaps carry `data-key` and sink while the visitor holds that key (`src/scripts/keys.ts`), on every page. With a `label` the caps read as one image of that name; inside decorative art that is already hidden, leave it out and they are hidden too.
@@ -821,7 +852,7 @@ follow; section headings rise word by word (character pairs in Chinese and
 Japanese) as they arrive, and the content under them rises the same way
 (`32px`, out of a `6px` blur, blocks arriving together `90ms` apart): guide tiles, guide and text-page sections,
 breadcrumbs, pricing's cost section (intro, tables, note) and questions, and changelog cards. Every page loads it
-(`Layout.astro`). Blocks the scroll timelines already raise are left to them. Nothing in the hero follows the pointer. The
+(`Layout.astro`). Blocks the scroll timelines already raise are left to them. Nothing in the hero drifts with the pointer (the ribbon only answers it where it is). The
 app window grows from `0.84` and `140px` below as it arrives.
 
 The hero card rises once on load (CSS) and its bars grow. Resting CSS is always
@@ -1086,7 +1117,7 @@ already running when the preference changes.
 - Don't lower a shadow's contrast to make it subtle; shrink its spread.
 - Don't use wide, low-contrast ambient shadows or blooming white halos.
 - Don't divide content with flat hairlines; use the groove or space.
-- Don't tilt, rotate or fly a lit object through perspective: its light is fixed at the top left. Objects rise from and sink into the surface, and selections slide. The hero ribbon is the one exception: its folds turn under a key light fixed at the top left.
+- Don't tilt, rotate or fly a lit object through perspective: its light is fixed at the top left. Objects rise from and sink into the surface, and selections slide. The hero ribbon and its thread are the one exception: their folds turn under a light fixed at the top left, and the ribbon's grains rise toward the visitor as it comes apart.
 - Don't repeat a two-tone headline pattern or add eyebrow labels above section headings.
 - Don't add copy that restates a heading, narrates the page, or labels the obvious. If a line doesn't change a decision, cut it.
 - Don't hand-roll a key or section; extend the component instead.
