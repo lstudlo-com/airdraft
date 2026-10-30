@@ -1,6 +1,8 @@
 // The hero in three dimensions: Home's waveform drawn as one folded metal
-// ribbon running into the caret (src/scripts/hero3d-scene.ts). This file only
-// decides whether to load it, and when.
+// ribbon that narrows to nothing where the caret stands, and comes apart
+// into a sound wave of fine grains as the hero scrolls away
+// (src/scripts/hero3d-scene.ts). This file only decides whether to load it,
+// and when.
 //
 // The HTML card stays the source of truth and the fallback. Without
 // JavaScript, without WebGL, or with Save-Data or a reduced-data preference
