@@ -1,7 +1,9 @@
 // Renders the three waveform-only app icons from one reproducible Swift source.
 // Usage from the repo root: swift scripts/render-app-icon.swift [output-root]
 // Carved Wave is the bundled Finder icon. Running Dock icons follow the user's
-// independently saved light/dark choices. Website PNGs use Carved Wave.
+// independently saved light/dark choices. Website PNGs use Carved Wave. The iOS
+// app icon is the same artwork full bleed and opaque (iOS draws its own corners):
+// Carved Wave for light, Night Wave for dark.
 import AppKit
 import SwiftUI
 
@@ -87,11 +89,47 @@ struct WaveIcon: View {
     }
 }
 
+/// The tile's face and waves filling the whole canvas, for iOS, which masks its
+/// own corners and rejects icons with transparency.
+struct FullBleedWaveIcon: View {
+    let study: IconDesign
+    var body: some View {
+        let night = study.material == "night"
+        let top = night ? 0.18 : 0.96
+        let bottom = night ? 0.08 : 0.85
+        let tile = Rectangle()
+        ZStack {
+            tile.fill(LinearGradient(colors: [gray(top), gray(bottom)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .overlay(tile.fill(RadialGradient(colors: [.white.opacity(night ? 0.07 : 0.48), .white.opacity(0)], center: UnitPoint(x: 0.2, y: 0.12), startRadius: 0, endRadius: 560)))
+            HStack(alignment: .center, spacing: WaveGeometry.gap) {
+                ForEach(Array(WaveGeometry.levels.enumerated()), id: \.offset) { _, level in
+                    WaveBar(study: study, level: level)
+                }
+            }
+            .offset(x: WaveGeometry.horizontalOffset)
+        }
+        .frame(width: 824, height: 824)
+        // The Mac tile is 824 points on a 1024 canvas; iOS shows the tile edge to edge.
+        .scaleEffect(1024.0 / 824.0)
+        .frame(width: 1024, height: 1024)
+        .clipped()
+    }
+}
+
 @MainActor func render<V: View>(_ view: V) -> CGImage {
     let renderer = ImageRenderer(content: view)
     renderer.scale = 1
     guard let image = renderer.cgImage else { fatalError("SwiftUI image rendering failed") }
     return image
+}
+
+/// An RGB PNG without an alpha channel, which App Store icons require.
+func opaquePNGData(_ image: CGImage) -> Data {
+    let context = CGContext(data: nil, width: image.width, height: image.height, bitsPerComponent: 8,
+                            bytesPerRow: 0, space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                            bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!
+    context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+    return NSBitmapImageRep(cgImage: context.makeImage()!).representation(using: .png, properties: [:])!
 }
 
 func pngData(_ image: CGImage, size: Int? = nil) -> Data {
@@ -140,6 +178,23 @@ func pngData(_ image: CGImage, size: Int? = nil) -> Data {
         }
         print("Rendered \(design.name)")
     }
+    // iOS: one 1024-point icon per appearance; tinted is derived by the system.
+    let iosIcon = root.appendingPathComponent("apps/ios/Airdraft/Resources/Assets.xcassets/AppIcon.appiconset")
+    try FileManager.default.createDirectory(at: iosIcon, withIntermediateDirectories: true)
+    for (design, file) in [(designs[1], "icon_light.png"), (designs[2], "icon_dark.png")] {
+        try opaquePNGData(render(FullBleedWaveIcon(study: design))).write(to: iosIcon.appendingPathComponent(file))
+    }
+    let iosContents: [String: Any] = [
+        "images": [
+            ["filename": "icon_light.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"],
+            ["appearances": [["appearance": "luminosity", "value": "dark"]],
+             "filename": "icon_dark.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"]
+        ],
+        "info": ["author": "xcode", "version": 1]
+    ]
+    try JSONSerialization.data(withJSONObject: iosContents, options: [.prettyPrinted, .sortedKeys])
+        .write(to: iosIcon.appendingPathComponent("Contents.json"))
+    print("Rendered the iOS app icon")
 }
 
 MainActor.assumeIsolated {

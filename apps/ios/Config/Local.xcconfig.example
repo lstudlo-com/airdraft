@@ -1,0 +1,2 @@
+// Copy to Local.xcconfig (git-ignored) to sign device and TestFlight builds.
+DEVELOPMENT_TEAM = YOURTEAMID

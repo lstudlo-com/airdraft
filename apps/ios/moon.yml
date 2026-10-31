@@ -1,0 +1,48 @@
+$schema: https://moonrepo.dev/schemas/project.json
+
+language: swift
+layer: application
+
+# Xcode manages its own incremental builds; share the Mac app's Xcode mutex so
+# the two projects never build at the same time.
+taskOptions:
+  cache: false
+  mutex: airdraft-xcode
+
+tasks:
+  generate:
+    description: Generate the iOS Xcode project from project.yml.
+    command: python3 scripts/generate-project.py
+    toolchains: system
+
+  build:
+    description: Build the iOS app for the simulator.
+    command: xcodebuild
+    args:
+      - -project
+      - AirdraftiOS.xcodeproj
+      - -scheme
+      - Airdraft
+      - -configuration
+      - Debug
+      - -destination
+      - generic/platform=iOS Simulator
+      - -skipPackagePluginValidation
+      - -skipMacroValidation
+      - -packageAuthorizationProvider
+      - netrc
+      - -onlyUsePackageVersionsFromResolvedFile
+      - build
+    toolchains: system
+    deps: [generate]
+
+  test:
+    description: Run the iOS unit tests on an iPhone simulator.
+    command: python3 scripts/test.py
+    toolchains: system
+    deps: [generate]
+
+  localization:
+    description: Require a translation of every iOS string in every shipped language.
+    command: python3 scripts/localization.py check
+    toolchains: system

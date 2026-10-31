@@ -31,6 +31,7 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
     private let lock = NSLock()
     private var recording = false
     private var standby = false
+    private var retains = true
 
     public var samplesHandler: (@Sendable ([Float]) -> Void)? {
         get { lock.withLock { sampleCallback } }
@@ -51,6 +52,13 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
 
     public init(notifications: NotificationCenter) {
         self.notifications = notifications
+    }
+
+    /// Off for long recordings that stream through `samplesHandler` to disk:
+    /// `stop()` then returns nothing and memory stays flat however long it runs.
+    public var retainsSamples: Bool {
+        get { lock.withLock { retains } }
+        set { lock.withLock { retains = newValue } }
     }
 
     public var isRecording: Bool { lock.withLock { recording } }
@@ -196,7 +204,7 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
     /// The sample-rate converter keeps a few milliseconds internally; drain it.
     private func flushConverter() {
         lock.withLock {
-            guard recording, let converter,
+            guard recording, retains, let converter,
                   let out = AVAudioPCMBuffer(pcmFormat: converter.outputFormat, frameCapacity: 4096) else { return }
             var error: NSError?
             let status = converter.convert(to: out, error: &error) { _, outStatus in
@@ -238,7 +246,7 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
         }
         let count = Int(out.frameLength)
         let chunk = Array(UnsafeBufferPointer(start: channel, count: count))
-        if recording { samples.append(contentsOf: chunk) }
+        if recording && retains { samples.append(contentsOf: chunk) }
         let preview = recording ? sampleCallback : nil
         let levelHandler = levelCallback
         lock.unlock()

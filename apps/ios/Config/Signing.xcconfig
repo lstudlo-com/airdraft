@@ -1,0 +1,7 @@
+// Code signing for iOS builds from source. Simulator builds sign to run
+// locally. Devices and TestFlight need an Apple Developer team: copy
+// Local.xcconfig.example to Local.xcconfig (git-ignored) and set yours.
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM =
+
+#include? "Local.xcconfig"

@@ -1,0 +1,190 @@
+name: AirdraftiOS
+options:
+  bundleIdPrefix: com.lstudlo.app
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+  xcodeVersion: "27.0"
+# Builds from source sign to run locally unless the git-ignored Config/Local.xcconfig
+# names a team (see Config/Local.xcconfig.example); devices and TestFlight need one.
+configFiles:
+  Debug: Config/Signing.xcconfig
+  Release: Config/Signing.xcconfig
+settings:
+  base:
+    # Swift 6 language mode, as in AirdraftCore and the Mac app.
+    SWIFT_VERSION: "6.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+packages:
+  AirdraftCore:
+    path: ../../Packages/AirdraftCore
+targets:
+  Airdraft:
+    type: application
+    platform: iOS
+    sources:
+      - path: Airdraft
+        excludes:
+          - "Info.plist"
+          - "*.entitlements"
+      - path: Shared
+      # The keyboard's view also renders inside the app's Debug screenshots.
+      - path: Keyboard/KeyboardView.swift
+      - path: Keyboard/KeyboardModel.swift
+      # The Mac app's neumorphic material, shared value for value (see DESIGN.md).
+      - path: ../../Sources/App/Views/SurfaceShadows.swift
+        group: Mac Design
+      - path: ../../Sources/App/Views/NeumorphicSurface.swift
+        group: Mac Design
+      - path: ../../Sources/App/Views/NavigationStyle.swift
+        group: Mac Design
+      # Third-party notices are generated for the shared package graph.
+      - path: ../../Sources/App/Resources/Acknowledgements.txt
+        group: Airdraft/Resources
+        buildPhase: resources
+    dependencies:
+      - package: AirdraftCore
+        embed: true
+      - target: AirdraftKeyboard
+      - target: AirdraftWidgets
+    entitlements:
+      path: Airdraft/Airdraft.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.lstudlo.app.airdraft]
+        # Core ML speech models and their first compile need more than the default limit.
+        com.apple.developer.kernel.increased-memory-limit: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft
+        PRODUCT_NAME: Airdraft
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    info:
+      path: Airdraft/Info.plist
+      properties:
+        CFBundleDisplayName: Airdraft
+        CFBundleLocalizations: [en, es, ja, zh-Hans, zh-Hant]
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        ITSAppUsesNonExemptEncryption: false
+        LSRequiresIPhoneOS: true
+        NSMicrophoneUsageDescription: "Airdraft records your voice to turn it into text."
+        NSSpeechRecognitionUsageDescription: "Airdraft can use Apple's on-device speech recognition to turn your voice into text."
+        NSSupportsLiveActivities: true
+        UIBackgroundModes: [audio]
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        CFBundleURLTypes:
+          - CFBundleURLName: com.lstudlo.app.airdraft
+            CFBundleURLSchemes: [airdraft]
+
+  AirdraftKeyboard:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Keyboard
+        excludes:
+          - "Info.plist"
+          - "*.entitlements"
+      - path: Shared/AppGroup.swift
+      - path: Shared/KeyboardBridge.swift
+      - path: Shared/Shared.xcstrings
+      - path: ../../Sources/App/Views/SurfaceShadows.swift
+        group: Mac Design
+    entitlements:
+      path: Keyboard/Keyboard.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.lstudlo.app.airdraft]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft.keyboard
+        PRODUCT_NAME: AirdraftKeyboard
+        APPLICATION_EXTENSION_API_ONLY: YES
+    info:
+      path: Keyboard/Info.plist
+      properties:
+        CFBundleDisplayName: Airdraft
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.keyboard-service
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).KeyboardViewController"
+          NSExtensionAttributes:
+            # Full Access lets the keyboard reach the shared App Group; it still
+            # types spaces, deletions and returns without it.
+            RequestsOpenAccess: true
+            PrimaryLanguage: mul
+            IsASCIICapable: false
+            PrefersRightToLeft: false
+
+  AirdraftWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widgets
+        excludes:
+          - "Info.plist"
+          - "*.entitlements"
+      - path: Shared/AppGroup.swift
+      - path: Shared/DictationActivity.swift
+      - path: Shared/DictationIntents.swift
+      - path: Shared/Shared.xcstrings
+    entitlements:
+      path: Widgets/Widgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.lstudlo.app.airdraft]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft.widgets
+        PRODUCT_NAME: AirdraftWidgets
+        APPLICATION_EXTENSION_API_ONLY: YES
+    info:
+      path: Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: Airdraft
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        NSSupportsLiveActivities: true
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+
+  AirdraftiOSTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: Airdraft
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lstudlo.app.airdraft.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Airdraft.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Airdraft"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  Airdraft:
+    build:
+      targets:
+        Airdraft: all
+        AirdraftiOSTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - name: AirdraftiOSTests
+          parallelizable: true
+    archive:
+      config: Release
