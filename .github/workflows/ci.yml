@@ -7,7 +7,14 @@ name: macOS CI
 on:
   push:
     branches: [main]
+    # The iPhone app has its own workflow (ios.yml); Core changes still run here.
+    paths-ignore:
+      - apps/ios/**
+      - .github/workflows/ios.yml
   pull_request:
+    paths-ignore:
+      - apps/ios/**
+      - .github/workflows/ios.yml
   workflow_dispatch:
 permissions:
   contents: read

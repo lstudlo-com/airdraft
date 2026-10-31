@@ -1,0 +1,111 @@
+name: iOS CI
+# Simulator build and unit tests for the iPhone app, and an iOS Simulator build of
+# the shared Core package. Signing, TestFlight and device checks stay local.
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/ios/**
+      - Packages/**
+      - Package.resolved
+      - Sources/App/Views/SurfaceShadows.swift
+      - Sources/App/Views/NeumorphicSurface.swift
+      - Sources/App/Views/NavigationStyle.swift
+      - .github/workflows/ios.yml
+  pull_request:
+    paths:
+      - apps/ios/**
+      - Packages/**
+      - Package.resolved
+      - Sources/App/Views/SurfaceShadows.swift
+      - Sources/App/Views/NeumorphicSurface.swift
+      - Sources/App/Views/NavigationStyle.swift
+      - .github/workflows/ios.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-and-test:
+    name: Simulator build and unit tests
+    runs-on: xcode-27
+    timeout-minutes: 90
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
+      NATIVE_ARCHIVES: ${{ github.workspace }}/dist/ci/native-archives
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: Install the Metal toolchain
+        run: |
+          if ! xcodebuild -showComponent MetalToolchain 2>/dev/null | grep -q 'Status: installed'; then
+            xcodebuild -downloadComponent MetalToolchain
+          fi
+
+      - name: Install pinned XcodeGen
+        run: |
+          tools="$RUNNER_TEMP/xcodegen-2.46.0"
+          mkdir -p "$tools"
+          curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --retry 3 \
+            --output "$tools/xcodegen.zip" https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip
+          expected=$(python3 -c 'import sys; sys.path.insert(0, "scripts"); import release; print(release.XCODEGEN_SHA256)')
+          echo "$expected  $tools/xcodegen.zip" | shasum -a 256 --check
+          ditto -xk "$tools/xcodegen.zip" "$tools"
+          python3 -c 'import sys; sys.path.insert(0, "scripts"); import release; sys.exit(0 if release.pinned_xcodegen(sys.argv[1]) else 1)' \
+            "$tools/xcodegen/bin/xcodegen"
+          echo "$tools/xcodegen/bin" >> "$GITHUB_PATH"
+
+      - name: Cache native library archives
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: dist/ci/native-archives
+          key: native-archives-${{ hashFiles('Packages/SherpaOnnxKit/native-inputs.json') }}
+
+      - name: Prepare Sherpa-ONNX libraries
+        # The Core package declares SherpaOnnxKit for macOS; SwiftPM still loads
+        # its binary targets when resolving the iOS graph.
+        run: |
+          mkdir -p "$NATIVE_ARCHIVES"
+          python3 - <<'PY'
+          import json, os, pathlib, subprocess, urllib.parse
+          archives = pathlib.Path(os.environ["NATIVE_ARCHIVES"])
+          inputs = json.loads(pathlib.Path("Packages/SherpaOnnxKit/native-inputs.json").read_text())
+          for item in inputs["libraries"]:
+              target = archives / pathlib.Path(urllib.parse.urlsplit(item["url"]).path).name
+              if not target.is_file():
+                  subprocess.run(["curl", "--fail", "--silent", "--show-error", "--location",
+                                  "--proto", "=https", "--proto-redir", "=https", "--retry", "3",
+                                  item["url"], "--output", str(target)], check=True)
+          PY
+          python3 scripts/native_inputs.py prepare --archives "$NATIVE_ARCHIVES"
+
+      - name: Generate the iOS project
+        run: python3 apps/ios/scripts/generate-project.py
+
+      - name: Build for the simulator
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-logs"
+          log="$RUNNER_TEMP/ci-logs/ios-build.log"
+          if ! xcodebuild -project apps/ios/AirdraftiOS.xcodeproj -scheme Airdraft -configuration Debug \
+              -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO \
+              -skipPackagePluginValidation -skipMacroValidation \
+              -packageAuthorizationProvider netrc -onlyUsePackageVersionsFromResolvedFile \
+              build > "$log" 2>&1; then
+            grep -E ' error: ' "$log" | head -50 || true
+            tail -100 "$log"
+            exit 1
+          fi
+          tail -3 "$log"
+
+      - name: Check iOS string catalogs
+        run: python3 apps/ios/scripts/localization.py check
+
+      - name: Run the iOS unit tests
+        run: python3 apps/ios/scripts/test.py CODE_SIGNING_ALLOWED=NO

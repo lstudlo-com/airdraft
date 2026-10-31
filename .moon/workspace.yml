@@ -2,6 +2,7 @@ $schema: https://moonrepo.dev/schemas/workspace.json
 
 projects:
   airdraft: .
+  ios: apps/ios
   marketing: apps/marketing
 
 defaultProject: airdraft

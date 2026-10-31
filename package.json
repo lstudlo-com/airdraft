@@ -6,6 +6,8 @@
   "scripts": {
     "build:app": "moon run airdraft:build",
     "test:local": "moon run airdraft:test-local",
+    "build:ios": "moon run ios:build",
+    "test:ios": "moon run ios:test",
     "dev:marketing": "moon run marketing:dev",
     "build:marketing": "moon run marketing:build",
     "check:marketing": "moon run marketing:check",
