@@ -59,14 +59,16 @@ class ReleaseTests(unittest.TestCase):
         self.assertIsNone(release.pushed_commit(f'refs/tags/v1 {sha} refs/tags/v1 {release.ZERO}\n'))
         self.assertEqual(release.pushed_commit(f'refs/heads/main {sha} refs/heads/main {release.ZERO}\n'), (sha, release.ZERO))
 
-    def test_only_website_and_markdown_guidance_are_outside_the_app(self):
+    def test_only_website_ios_and_markdown_guidance_are_outside_the_app(self):
         for path in ('apps/marketing/src/pages/index.astro', 'apps/marketing/package.json',
+                     'apps/ios/project.yml', 'apps/ios/Airdraft/AirdraftApp.swift',
                      'CLAUDE.md', 'AGENTS.md', 'README.md', 'docs/updates.md', 'docs/installer/DESIGN.md'):
             self.assertFalse(release.is_app_path(path), path)
         for path in ('Sources/App/Views/HomePage.swift', 'Packages/AirdraftCore/README.md',
                      'Sources/App/Resources/Acknowledgements.txt', 'project.yml', 'scripts/release.py',
                      'scripts/README.md', '.github/workflows/release.yml', 'Package.resolved',
-                     'apps/marketing-other/x.ts', 'docs/diagram.png', 'eval/results/summary.json'):
+                     'apps/marketing-other/x.ts', 'apps/iosx/x.swift', 'docs/diagram.png',
+                     'eval/results/summary.json', 'Packages/AirdraftCore/Sources/AirdraftCore/Audio/AudioRecorder+iOS.swift'):
             self.assertTrue(release.is_app_path(path), path)
 
     def test_app_changes_compare_against_the_released_commit(self):

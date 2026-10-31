@@ -129,13 +129,15 @@ def check_previous_release():
 def is_app_path(path):
     """Whether a changed path can reach the app bundle or its release gates.
 
-    The marketing website (deployed separately) and Markdown guidance outside
-    the source trees never ship in the app: the root guidance files
-    (CLAUDE.md, AGENTS.md, README.md…) and docs/. Everything else, including
-    scripts, tests, project files and resources, counts as an app change;
-    `app_changes` lets through a lockfile change that only the website made.
+    The marketing website (deployed separately), the iOS app (shipped through
+    App Store Connect, never a GitHub Release, which Sparkle's feed would read)
+    and Markdown guidance outside the source trees never ship in the Mac app:
+    the root guidance files (CLAUDE.md, AGENTS.md, README.md…) and docs/.
+    Everything else, including scripts, tests, project files, resources and the
+    shared packages iOS builds from, counts as an app change; `app_changes` lets
+    through a lockfile change that only the website made.
     """
-    if path.startswith("apps/marketing/"):
+    if path.startswith(("apps/marketing/", "apps/ios/")):
         return False
     if path.endswith(".md") and ("/" not in path or path.startswith("docs/")):
         return False
