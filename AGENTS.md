@@ -155,7 +155,16 @@ and Local releases below.
   extracted tree and version match the pin, otherwise the checksum-verified archive
   is downloaded into `dist/tools`, and a non-pinned `dist/tools/xcodegen` is
   refused. Normal generation still accepts any installed copy.
-- `Packages/AirdraftCore` holds all engine-agnostic logic and most tests.
+- `Packages/AirdraftCore` holds all engine-agnostic logic and most tests. It
+  builds for macOS and iOS (AD-141): Mac-only code (cursor insertion, app
+  context, shortcuts, Core Audio devices, subprocess CLIs and scripts, sherpa-onnx,
+  ScreenCaptureKit capture and the whole `DictationPipeline`) sits in
+  `#if os(macOS)`, and iOS gets its own `AudioRecorder` and the portable
+  `MobileDictation` flow. Types portable code names keep their names on iOS as
+  small namespaces (`SherpaTranscriber.Model`, `CLIRefiner.Tool`,
+  `HotkeyTriggerState.clampedDelay`). Never import AppKit, ApplicationServices,
+  Carbon or IOKit outside `#if os(macOS)`; check a Core change with an iOS
+  Simulator build (`moon run ios:build`) as well as the Mac tests.
   `Tests/AirdraftAppTests` holds logic tests for App-only code: the bundle compiles
   `Sources/App` itself instead of using the app as a test host, so tests never launch
   Airdraft. Build containers through `IsolatedContainer` (temporary settings file and
@@ -165,6 +174,11 @@ and Local releases below.
 - `Sources/App` is the SwiftUI shell: `App/` (entry point, `AppContainer`, `ModelLifecycle`),
   `Hotkeys/`, `HUD/`, `Views/` (one file per page, shared components in `Theme.swift`),
   `Debug/` (offscreen renders, self-tests).
+- `apps/ios` is the iPhone app (AD-141): its own XcodeGen project, moon project
+  `ios`, nested `CLAUDE.md`/`AGENTS.md`, `PRODUCT.md` and `DESIGN.md`. Its rules
+  live there; the root sections that apply to it are named at its top. It ships
+  through App Store Connect and never creates a GitHub Release (Sparkle's feed
+  reads `releases/latest`), and `release.py` treats `apps/ios/` like the website.
 - `apps/marketing` is the Astro marketing website, initialized from Cloudflare's
   official Astro Framework Starter and deployed with Workers static assets. Its
   Worker (`worker/index.ts`) runs only for requests that match no asset and serves
@@ -304,7 +318,8 @@ and Local releases below.
 
 - The app icon is code: edit `scripts/render-app-icon.swift` and run it from the
   repo root. It generates waveform-only Pure Wave, Carved Wave and Night Wave
-  images, the bundled Carved Wave `AppIcon.appiconset`, and the website PNG/favicon.
+  images, the bundled Carved Wave `AppIcon.appiconset`, the website PNG/favicon,
+  and the iOS app icon (full bleed and opaque: Carved Wave light, Night Wave dark).
   Do not hand-edit generated PNGs. Keep the outer rounded-square tile, five-bar
   rhythm and neutral grays; the app icons have no inner capsule or caret.
   Share Carved Wave's geometry across all three: 84-point bars, 30-point gaps,
@@ -1548,6 +1563,8 @@ everything, including the full-length tests (`AIRDRAFT_LONG_TESTS=1`).
 | Delivery or insertion | `TextDeliveryRegressionTests`, then `verify-insertion-regressions.py` on that xcresult |
 | A component with its own script (header blur, shadows, sidebar selection, download progress, app icons, data-cleanup quit, menu, native UI, settings search, models performance, History navigation) | That script or fixture, only when the component changes |
 | Website only | `pnpm check:marketing`, `pnpm build:marketing`, one desktop and one phone browser pass |
+| iPhone app only (`apps/ios`) | `moon run ios:build`, `moon run ios:test`, `moon run ios:localization`, simulator screenshots per `apps/ios/CLAUDE.md` |
+| Core change | The Mac tests above plus an iOS Simulator build (`moon run ios:build`) |
 | Docs or vault only | `check-vault.py` when the vault changed; nothing else |
 
 Tests use injected time instead of waiting: `EngineFactory`'s `now`,

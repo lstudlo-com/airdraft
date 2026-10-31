@@ -284,4 +284,6 @@ independently of the native app.
 
 ## Non-goals for now
 
-Windows / iOS, App Store distribution (Accessibility rules it out), team features.
+Windows, Mac App Store distribution (Accessibility rules it out), team features.
+The iPhone app (`apps/ios`, decided 2026-11-01, AD-141) is in scope; its goals
+are in `apps/ios/PRODUCT.md`.
