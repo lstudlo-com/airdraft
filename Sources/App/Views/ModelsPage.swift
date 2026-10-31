@@ -274,7 +274,7 @@ struct ModelsPage: View {
         @Bindable var settings = container.settings
         let items = localItems
         VStack(alignment: .leading, spacing: Theme.sectionTitleSpacing) {
-            ModelTable(cost: String(localized: "Storage"), rowCount: items.count,
+            ModelTable(cost: .storage, rowCount: items.count,
                        capped: showsFullLocalList || isSearching) {
                 if items.isEmpty {
                     EmptyNote("No local models match your search.")
@@ -330,7 +330,7 @@ struct ModelsPage: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 }
-                ModelTable(cost: String(localized: "Pricing"), rowCount: visible.count) {
+                ModelTable(cost: .pricing, rowCount: visible.count) {
                     if visible.isEmpty {
                         EmptyNote("No cloud models match your search.")
                             .padding(Theme.cardPadding)

@@ -43,6 +43,16 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
     public var sendRequest: String?
     /// AD-104: whether a requested Return was pressed; nil without a request.
     public var submitted: Bool?
+    /// AD-142: the speech model's readable name when the row was saved
+    /// (`ASRConfig.displayName`), grouped by `asrEngine`. Nil for older rows.
+    public var speechModel: String?
+    /// AD-142: whether that speech model ran on this Mac; nil for older rows.
+    public var speechOnDevice: Bool?
+    /// AD-142: the refinement model's readable name, set only when refinement
+    /// produced the text (`llmEngine` is set too). Nil otherwise and for older rows.
+    public var refinementModel: String?
+    /// AD-142: whether that refinement ran on this Mac.
+    public var refinementOnDevice: Bool?
 
     /// `outputDestination` for a profile that only copies (AD-104).
     public static let copyDestination = "copy"
@@ -76,7 +86,11 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         outputSucceeded: Bool? = nil,
         flags: String? = nil,
         sendRequest: String? = nil,
-        submitted: Bool? = nil
+        submitted: Bool? = nil,
+        speechModel: String? = nil,
+        speechOnDevice: Bool? = nil,
+        refinementModel: String? = nil,
+        refinementOnDevice: Bool? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -105,6 +119,10 @@ public struct DictationRecord: Codable, Sendable, Identifiable, Hashable, Fetcha
         self.flags = flags
         self.sendRequest = sendRequest
         self.submitted = submitted
+        self.speechModel = speechModel
+        self.speechOnDevice = speechOnDevice
+        self.refinementModel = refinementModel
+        self.refinementOnDevice = refinementOnDevice
     }
 
     /// The stored flags, decoded; empty for rows that have none.
@@ -268,6 +286,16 @@ public final class HistoryStore: Sendable {
                 t.add(column: "flags", .text)
                 t.add(column: "sendRequest", .text)
                 t.add(column: "submitted", .boolean)
+            }
+        }
+        migrator.registerMigration("v10-stage-models") { db in
+            // AD-142: which models produced each row, for per-model stage speeds.
+            // Names and locations only; timings already live in asrMs and llmMs.
+            try db.alter(table: DictationRecord.databaseTableName) { t in
+                t.add(column: "speechModel", .text)
+                t.add(column: "speechOnDevice", .boolean)
+                t.add(column: "refinementModel", .text)
+                t.add(column: "refinementOnDevice", .boolean)
             }
         }
         try migrator.migrate(dbQueue)
@@ -917,7 +945,7 @@ public final class HistoryStore: Sendable {
 
     /// The overview's period as one SQL condition: the last `days` days, or
     /// from `since` (the start of today) up to `now`.
-    private static func period(days: Int?, now: Date, since: Date?) -> (condition: String, arguments: StatementArguments) {
+    static func period(days: Int?, now: Date, since: Date?) -> (condition: String, arguments: StatementArguments) {
         if let since { return ("createdAt >= ? AND createdAt <= ?", [since, now]) }
         if let days { return ("createdAt >= ?", [now.addingTimeInterval(-Double(days) * 86_400)]) }
         return ("1", [])

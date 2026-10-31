@@ -854,8 +854,11 @@ struct SegmentMeter: View {
     @Environment(\.colorSchemeContrast) private var contrast
     /// nil means unmeasured, distinct from a measured zero.
     let fraction: Double?
+    /// Five 6 pt segments: two thirds of the former 9 pt meter, leaving model
+    /// names more of the row.
+    private let segment: CGFloat = 6
     var body: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 4.0 / 3) {
             ForEach(0..<5, id: \.self) { i in
                 RoundedRectangle(cornerRadius: 1.5)
                     // Increase Contrast keeps unfilled segments visible against the card.
@@ -864,10 +867,10 @@ struct SegmentMeter: View {
                         if let fraction {
                             RoundedRectangle(cornerRadius: 1.5)
                                 .fill(Color.primary.opacity(0.7))
-                                .frame(width: 9 * min(1, max(0, fraction * 5 - Double(i))))
+                                .frame(width: segment * min(1, max(0, fraction * 5 - Double(i))))
                         }
                     }
-                    .frame(width: 9, height: 4)
+                    .frame(width: segment, height: 4)
             }
         }
         .accessibilityHidden(true)

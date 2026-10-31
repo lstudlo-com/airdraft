@@ -38,6 +38,17 @@ enum PreviewData {
         "Can you send me the latest numbers before the call? I want to compare them with last week.",
     ]
 
+    private typealias StageModel = (id: String, name: String, onDevice: Bool, baseMs: Int, perWordMs: Int)
+    private static let speechModels: [StageModel] = [
+        ("preview.parakeet", "Parakeet TDT v2 · Core ML", true, 180, 6),
+        ("preview.qwen3", "Qwen3-ASR 1.7B · MLX", true, 420, 14),
+        ("preview.deepgram", "Nova-3 · Deepgram", false, 520, 4),
+    ]
+    private static let refinementModels: [StageModel] = [
+        ("preview.lmstudio", "LM Studio · Gemma 4 26B A4B", true, 650, 32),
+        ("preview.claude", "Anthropic · Claude Haiku 4.5", false, 900, 18),
+    ]
+
     private static func seed(_ store: HistoryStore) {
         let now = Date()
         for index in 0..<42 {
@@ -47,14 +58,20 @@ enum PreviewData {
             let repeats = 1 + (index * 5) % 4 + (index % 9 == 0 ? 5 : 0)
             let text = Array(repeating: phrases[index % phrases.count], count: repeats).joined(separator: " ")
             let words = text.split(separator: " ").count
+            // AD-142: a few speech and refinement models with their own speeds.
+            let speech = speechModels[index % speechModels.count]
+            let refinement = index % 4 == 3 ? nil : refinementModels[index % refinementModels.count]
             _ = try? store.save(DictationRecord(
                 createdAt: now.addingTimeInterval(-daysAgo * 86_400 - Double(index) * 600),
                 appBundleId: app.id, appName: app.name, mode: "Clean", family: "document",
-                rawTranscript: text, refinedText: text, finalText: text, asrEngine: "preview",
+                rawTranscript: text, refinedText: text, finalText: text, asrEngine: speech.id,
+                llmEngine: refinement?.id,
                 audioSeconds: Double(words) / Double(110 + (index * 13) % 70) * 60,
-                asrMs: 400 + index * 11, llmMs: 900 + index * 23,
+                asrMs: speech.baseMs + words * speech.perWordMs, llmMs: refinement.map { $0.baseMs + words * $0.perWordMs } ?? 0,
                 // One paste into an editor that exposes no text to confirm it.
-                inserted: index != 1, outputDestination: TextOutputDestination.cursor.rawValue, outputSucceeded: true
+                inserted: index != 1, outputDestination: TextOutputDestination.cursor.rawValue, outputSucceeded: true,
+                speechModel: speech.name, speechOnDevice: speech.onDevice,
+                refinementModel: refinement?.name, refinementOnDevice: refinement?.onDevice
             ))
         }
     }

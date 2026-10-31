@@ -510,6 +510,12 @@ and Local releases below.
   icons in 24-point white tiles clipped to 6-point continuous rounded corners,
   keeping transparent artwork on white in both appearances. Keep compact
   13-point model names and 11-point secondary text, with equal 16-point row insets.
+  The selection mark, brand tile and name are 16 points apart
+  (`ModelRowLayout`); rating meters are five 6-point segments; the local table's
+  Storage column fits local sizes while the cloud table sizes Pricing to prices.
+  The model dictation uses sits in a recessed well 4 points inside the card
+  (`modelRowWell`), and a loaded model reads In use. Rows show the Experimental
+  tag but no Verified tag.
   User-facing summaries (Home readiness, the Profiles speech row) name models
   through `ASRConfig.displayName` / `LLMConfig.displayName`: catalogue titles with
   local runtime/quantization or cloud host, and the refinement provider with a
@@ -696,6 +702,16 @@ and Local releases below.
   its ` · ` and ` → ` separators at the end of the line they follow. Home's
   overview totals, longest dictation and per-app shares are aggregated in SQL from
   stored word counts; only the latest waveform bars and uncounted rows read text.
+  Home's Dictation timing card (AD-142, `HomeStages.swift`) sits between Summary
+  and Recent for the selected period: one inset bar of raised segments splits an
+  average dictation into speaking, transcription and refinement, told apart by
+  gray and texture (solid, hatched, dotted), never a hue; each stage shows its
+  share, average and seconds per 100 delivered words. Show Advanced Statistics
+  lists every speech and refinement model used, on this Mac or cloud. History
+  rows store `speechModel`/`refinementModel` names and where they ran
+  (`runsOnThisMac`, a custom server only at a loopback address; subscription CLIs
+  count as cloud); `HistoryStore.stageStatistics` aggregates `asrMs`/`llmMs` in
+  SQL, grouped by engine ID, counting refinement only where it produced the text.
   Reuse the shared components in `Theme.swift` (`StatusDot`, `RefreshButton`,
   `EmptyNote`, `OverlayPanel`, `.settingsDisclosure()`) and the `APIKeyField` row
   for every provider key instead of page-specific variants. English buttons and menu
@@ -1484,6 +1500,7 @@ Live text that becomes the transcript when it matches the model, and cloud live
 text through providers' real-time APIs, are 0.19.0.
 The in-app interface language, Disco intensity and the 600-second default
 recording limit are 0.20.0.
+Home's dictation timing with per-model speeds and the tidier model rows are 0.21.0.
 
 When API-key or credential testing is explicitly excluded, prepare with
 `--test-scope credential-free` and push with

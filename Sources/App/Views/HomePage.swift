@@ -11,6 +11,7 @@ struct HomePage: View {
     @State private var overview: HistoryStore.Overview = .empty
     @State private var hasLoadedOverview = false
     @State private var recent: [DictationRecord] = []
+    @State private var stages: StageStatistics = .empty
     @State private var showsStatus = false
     @State private var historyReadError: String?
     /// False when History failed to read or could not be opened.
@@ -65,6 +66,10 @@ struct HomePage: View {
             if !overview.topApps.isEmpty {
                 PageSection(LocalizedStringResource("HomeSummaryHeading", defaultValue: "Summary",
                                                 comment: "Home section of dictation statistics, not a text summary")) { summaryCard }
+            }
+
+            if !stages.isEmpty {
+                PageSection("Dictation timing") { HomeStageCard(stats: stages) }
             }
 
             PageSection("Recent") {
@@ -339,6 +344,7 @@ struct HomePage: View {
             }
             let empty = RenderMode.value("EMPTY_HISTORY") != nil
             overview = empty ? .empty : (try? container.history?.overview(days: period.days, calendarDay: period == .today)) ?? .empty
+            stages = empty ? .empty : (try? container.history?.stageStatistics(days: period.days, calendarDay: period == .today)) ?? .empty
             recent = empty ? [] : (try? container.history?.recent(limit: 3)) ?? []
             hasLoadedOverview = true
             return
@@ -352,14 +358,16 @@ struct HomePage: View {
         let calendarDay = period == .today
         // Off the main actor: the overview reads every row.
         let result = await Task.detached {
-            Result { (try history.overview(days: days, calendarDay: calendarDay), try history.recent(limit: 3)) }
+            Result { (try history.overview(days: days, calendarDay: calendarDay), try history.recent(limit: 3),
+                      try history.stageStatistics(days: days, calendarDay: calendarDay)) }
         }.value
         guard !Task.isCancelled else { return }
         let next: HistoryStore.Overview
         let latest: [DictationRecord]
+        let nextStages: StageStatistics
         switch result {
         case .success(let values):
-            (next, latest) = values
+            (next, latest, nextStages) = values
             historyReadError = nil
             historyAvailable = true
         case .failure(let error):
@@ -370,6 +378,7 @@ struct HomePage: View {
         }
         if hasLoadedOverview {
             recent = latest
+            stages = nextStages
             // Reduce Motion: new bars and values appear in place.
             withAnimation(reduceMotion ? nil : .snappy(duration: 0.6)) { overview = next }
         } else {
@@ -379,6 +388,7 @@ struct HomePage: View {
             transaction.disablesAnimations = true
             withTransaction(transaction) {
                 recent = latest
+                stages = nextStages
                 overview = next
                 hasLoadedOverview = true
             }

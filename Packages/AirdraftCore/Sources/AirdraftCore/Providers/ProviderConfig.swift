@@ -908,3 +908,27 @@ public struct EndpointPreset: Identifiable, Sendable, Equatable {
 
     public static let elevenLabsKeyRef = "asr.elevenlabs"
 }
+
+/// AD-142: where a stage ran, for the per-model statistics on Home. A custom
+/// server counts as this Mac only at a loopback address.
+enum ProviderLocation {
+    static func isLoopback(_ baseURL: String) -> Bool {
+        let host = (URL(string: baseURL)?.host ?? "").lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
+        return ["localhost", "127.0.0.1", "::1"].contains(host)
+    }
+}
+
+extension ASRConfig {
+    /// Speech recognized on this Mac rather than by an online service.
+    public var runsOnThisMac: Bool {
+        kind.isLocal || (kind == .openAICompatible && ProviderLocation.isLoopback(baseURL))
+    }
+}
+
+extension LLMConfig {
+    /// Refinement computed on this Mac. Subscription CLIs run here but send the
+    /// text to their service, so they count as online.
+    public var runsOnThisMac: Bool {
+        kind == .appleIntelligence || (kind == .openAICompatible && ProviderLocation.isLoopback(baseURL))
+    }
+}

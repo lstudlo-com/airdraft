@@ -223,7 +223,11 @@ extension DictationPipeline {
             outputSucceeded: insertionEnabled ? report.outputSucceeded : nil,
             flags: report.flags.map(DictationRecord.encodeFlags),
             sendRequest: report.sendRequest?.rawValue,
-            submitted: report.submitted
+            submitted: report.submitted,
+            speechModel: snapshot.asr.displayName,
+            speechOnDevice: snapshot.asr.runsOnThisMac,
+            refinementModel: refinement.llmEngine == nil ? nil : snapshot.llm.displayName,
+            refinementOnDevice: refinement.llmEngine == nil ? nil : snapshot.llm.runsOnThisMac
         )
         // Delivered text always reaches history, whatever happens next.
         let savesHistory = history != nil || historyDirectory != nil

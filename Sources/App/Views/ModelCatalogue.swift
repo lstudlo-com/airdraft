@@ -358,6 +358,38 @@ extension ModelCatalogue {
     }
 }
 
+/// Row geometry shared by the local and cloud tables.
+enum ModelRowLayout {
+    /// Between the selection mark, the brand tile and the model's text.
+    static let identitySpacing: CGFloat = 16
+    static let markWidth: CGFloat = 14
+    static let brandSize: CGFloat = 24
+    /// Where the model's text starts, so progress and errors line up below it.
+    static let textStart = markWidth + brandSize + identitySpacing * 2
+    static let accessoryWidth: CGFloat = 16
+    /// The selected row's recessed well sits this far inside the card edge,
+    /// with corners concentric to the card's.
+    static let wellInset: CGFloat = 4
+}
+
+extension View {
+    /// The model dictation uses sits in a recessed well, like the sidebar's
+    /// selected page; hovering another row only tints it.
+    func modelRowWell(selected: Bool, hovering: Bool) -> some View {
+        background {
+            let shape = RoundedRectangle(cornerRadius: Theme.cardRadius - ModelRowLayout.wellInset, style: .continuous)
+            Group {
+                if selected {
+                    NeumorphicSurface(shape: shape, inset: true, depth: 2.5)
+                } else if hovering {
+                    shape.fill(Color.primary.opacity(0.03))
+                }
+            }
+            .padding(ModelRowLayout.wellInset)
+        }
+    }
+}
+
 /// Shared column geometry keeps both tables aligned, including at the minimum window width.
 struct ModelComparisonColumns<Identity: View, Speed: View, Accuracy: View, Cost: View, Accessory: View>: View {
     @ViewBuilder var identity: Identity
@@ -366,6 +398,7 @@ struct ModelComparisonColumns<Identity: View, Speed: View, Accuracy: View, Cost:
     @ViewBuilder var cost: Cost
     @ViewBuilder var accessory: Accessory
     @Environment(\.textScale) private var textScale
+    @Environment(\.modelCostColumn) private var costColumn
 
     var body: some View {
         let widths = ModelColumnWidths.widths(textScale: textScale)
@@ -373,8 +406,8 @@ struct ModelComparisonColumns<Identity: View, Speed: View, Accuracy: View, Cost:
             identity.frame(maxWidth: .infinity, alignment: .leading)
             speed.frame(width: widths.speed, alignment: .leading)
             accuracy.frame(width: widths.accuracy, alignment: .leading)
-            cost.frame(width: widths.cost, alignment: .leading)
-            accessory.frame(width: 20)
+            cost.frame(width: costColumn == .storage ? widths.storage : widths.pricing, alignment: .leading)
+            accessory.frame(width: ModelRowLayout.accessoryWidth)
         }
     }
 }
@@ -404,7 +437,9 @@ enum ModelColumnWidths {
     struct Widths: Equatable {
         var speed: CGFloat
         var accuracy: CGFloat
-        var cost: CGFloat
+        /// Local sizes are short; only the cloud table needs room for prices.
+        var storage: CGFloat
+        var pricing: CGFloat
     }
 
     private static var cache: [CGFloat: Widths] = [:]
@@ -423,12 +458,13 @@ enum ModelColumnWidths {
         let notRated = String(localized: "Not rated")
         let prices = ASRProviderKind.allCases.flatMap { SpeechModelInfo.models(for: $0).map(\.price) }
         let widths = Widths(
-            speed: max(56 * floor, widest([String(localized: "Speed")], heading),
+            speed: max(40 * floor, widest([String(localized: "Speed")], heading),
                        widest([ModelRating.label(5), "888×", notRated], rating)),
-            accuracy: max(64 * floor, widest([String(localized: "Accuracy")], heading),
+            accuracy: max(44 * floor, widest([String(localized: "Accuracy")], heading),
                           widest([ModelRating.label(5), notRated, String(localized: "\(88.8.formatted())% WER")], rating)),
-            cost: max(76 * floor, widest([String(localized: "Storage"), String(localized: "Pricing")], heading),
-                      widest([String(localized: "Built in"), "8.88 GB"] + prices, font(.detail))))
+            storage: max(52 * floor, widest([String(localized: "Storage")], heading),
+                         widest([String(localized: "Built in"), "888.8 MB"], font(.detail))),
+            pricing: max(76 * floor, widest([String(localized: "Pricing")], heading), widest(prices, font(.detail))))
         cache[textScale] = widths
         return widths
     }
@@ -437,8 +473,24 @@ enum ModelColumnWidths {
 /// Keep headings visible while the measured row content scrolls within one cap.
 /// Short and empty results use only the space they need. The compact
 /// recommended set (`capped` false) shows its few rows without an inner scroll.
+/// Which cost a model table lists: local download sizes or cloud prices.
+enum ModelCostColumn {
+    case storage, pricing
+
+    var title: String {
+        switch self {
+        case .storage: String(localized: "Storage")
+        case .pricing: String(localized: "Pricing")
+        }
+    }
+}
+
+extension EnvironmentValues {
+    @Entry var modelCostColumn: ModelCostColumn = .storage
+}
+
 struct ModelTable<Rows: View>: View {
-    let cost: String
+    let cost: ModelCostColumn
     let rowCount: Int
     var capped = true
     @ViewBuilder var rows: Rows
@@ -448,6 +500,7 @@ struct ModelTable<Rows: View>: View {
     var body: some View {
         Card(padding: 0) {
             ModelTableHeader(cost: cost)
+                .environment(\.modelCostColumn, cost)
             RowDivider()
             Group {
                 if rowCount > 6 {
@@ -474,6 +527,7 @@ struct ModelTable<Rows: View>: View {
             }
             .frame(height: rowCount > 6 ? Theme.modelTableMaxHeight : min(contentHeight, maxHeight))
             .scrollBounceBehavior(.basedOnSize)
+            .environment(\.modelCostColumn, cost)
             #if DEBUG
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
                 ModelsPerformanceVerification.noteViewport($0)
@@ -484,7 +538,7 @@ struct ModelTable<Rows: View>: View {
 }
 
 struct ModelTableHeader: View {
-    let cost: String
+    let cost: ModelCostColumn
     var body: some View {
         ModelComparisonColumns {
             Text("Model")
@@ -493,7 +547,7 @@ struct ModelTableHeader: View {
         } accuracy: {
             Text("Accuracy")
         } cost: {
-            Text(cost)
+            Text(cost.title)
         } accessory: {
             Color.clear.frame(height: 1)
         }
@@ -555,7 +609,7 @@ struct CloudModelRow: View {
         let languages = languageInfo
         ModelComparisonColumns {
             HStack(spacing: 4) {
-                HStack(spacing: 8) {
+                HStack(spacing: ModelRowLayout.identitySpacing) {
                     Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 14))
                         .foregroundStyle(selected ? Color.accentColor : .secondary)
@@ -599,7 +653,7 @@ struct CloudModelRow: View {
             Color.clear.frame(height: 1)
         }
         .padding(Theme.cardPadding)
-        .background(selected ? Color.primary.opacity(0.06) : (hovering ? Color.primary.opacity(0.03) : .clear))
+        .modelRowWell(selected: selected, hovering: hovering)
         // AD-122: anywhere in the row chooses the model; the language tag and
         // the pin (AD-124) keep their own clicks.
         .contentShape(Rectangle())
@@ -797,7 +851,7 @@ struct ModelRow: View {
         VStack(alignment: .leading, spacing: 6) {
             ModelComparisonColumns {
                 HStack(spacing: 4) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: ModelRowLayout.identitySpacing) {
                         Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                             .font(.system(size: 14))
                             .foregroundStyle(selected ? Color.accentColor
@@ -845,14 +899,14 @@ struct ModelRow: View {
                 actions
             }
             if let progress {
-                ModelDownloadProgress(progress: progress).padding(.leading, 56)
+                ModelDownloadProgress(progress: progress).padding(.leading, ModelRowLayout.textStart)
             }
             if let error = error ?? downloadError {
-                Text(error).appFont(.annotation).foregroundStyle(.orange).padding(.leading, 56)
+                Text(error).appFont(.annotation).foregroundStyle(.orange).padding(.leading, ModelRowLayout.textStart)
             }
         }
         .padding(Theme.cardPadding)
-        .background(selected ? Color.primary.opacity(0.06) : (hovering ? Color.primary.opacity(0.03) : .clear))
+        .modelRowWell(selected: selected, hovering: hovering)
         // AD-122: anywhere in the row chooses the model; the language tag, the
         // pin (AD-124) and the download, cancel and delete buttons keep their own clicks.
         .contentShape(Rectangle())
@@ -886,7 +940,7 @@ struct ModelRow: View {
     private var tierAndTags: some View {
         let details = entry.tags.joined(separator: " · ")
         let tierText = Group {
-            if let tier = entry.tier {
+            if let tier = entry.tier, tier == .experimental {
                 Text(details.isEmpty ? "\(Image(systemName: tier.symbol)) \(tier.title)"
                      : "\(Image(systemName: tier.symbol)) \(tier.title) · \(details)")
             } else if !details.isEmpty {
@@ -894,7 +948,7 @@ struct ModelRow: View {
             }
         }
         .supportingText()
-        .help(entry.tier?.detail ?? "")
+        .help(entry.tier == .experimental ? ModelTier.experimental.detail : "")
         let tag = ModelLanguageTag(info: entry.languageInfo)
         // One line when both fit beside each other; otherwise the tag goes below.
         return ViewThatFits(in: .horizontal) {
@@ -906,7 +960,7 @@ struct ModelRow: View {
     private var accessibilityLabel: String {
         var parts = [String(localized: "Use \(entry.title)"), entry.provider]
         if let label = strengthLabel { parts.append(label.text) }
-        if let tier = entry.tier { parts.append(tier.title) }
+        if entry.tier == .experimental { parts.append(ModelTier.experimental.title) }
         parts.append(entry.languageInfo.label)
         parts += entry.tags
         if showsLiveText { parts.append(String(localized: "Live text")) }
@@ -920,7 +974,7 @@ struct ModelRow: View {
             case .ready:
                 HStack(spacing: 5) {
                     Circle().fill(Color.green).frame(width: 6, height: 6)
-                    Text("In memory").appFont(.annotation).foregroundStyle(.secondary)
+                    Text("In use").appFont(.annotation).foregroundStyle(.secondary)
                 }
                 .help(container.settings.idleUnloadMinutes == 0
                     ? "Loaded in RAM. Stays loaded until you unload it, switch models, or quit the app."
@@ -969,7 +1023,7 @@ struct ModelRow: View {
             .help("Download")
             .accessibilityLabel("Download \(entry.title)")
         } else if installed, LocalModels.folder(for: entryConfig) != nil {
-            Button { confirmDelete = true } label: { Image(systemName: "trash").font(.system(size: 13)) }
+            Button { confirmDelete = true } label: { Image(systemName: "trash").font(.system(size: 12)) }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
             .help(deleteHelp)
@@ -981,7 +1035,7 @@ struct ModelRow: View {
                 Text(storageMessage)
             }
         } else {
-            Color.clear.frame(width: 16, height: 16)
+            Color.clear.frame(width: 14, height: 14)
         }
     }
 

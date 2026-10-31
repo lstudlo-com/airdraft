@@ -217,7 +217,7 @@ enum ModelsPerformanceVerification {
         for count in [0, 1, 3, 92] {
             measuringViewport = true
             viewportHeight = 0
-            let host = NSHostingView(rootView: ModelTable(cost: "Storage", rowCount: count) {
+            let host = NSHostingView(rootView: ModelTable(cost: .storage, rowCount: count) {
                 if count == 0 { Text("No models").padding(Theme.cardPadding) }
                 ForEach(0..<count, id: \.self) { index in Text("Model \(index)").frame(height: 64) }
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top))
@@ -235,7 +235,7 @@ enum ModelsPerformanceVerification {
         // AD-071: the compact recommended set shows all of its rows without an inner scroll.
         measuringViewport = true
         viewportHeight = 0
-        let host = NSHostingView(rootView: ModelTable(cost: "Storage", rowCount: 5, capped: false) {
+        let host = NSHostingView(rootView: ModelTable(cost: .storage, rowCount: 5, capped: false) {
             ForEach(0..<5, id: \.self) { index in Text("Model \(index)").frame(height: 100) }
         }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top))
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 536, height: 900),

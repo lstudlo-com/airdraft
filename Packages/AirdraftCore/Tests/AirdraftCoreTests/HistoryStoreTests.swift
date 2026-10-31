@@ -26,6 +26,54 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(HistoryStore.streak([], now: now, calendar: calendar), 0)
     }
 
+    /// AD-142: stage averages, weighted rates per 100 words, per-model rows
+    /// named by their latest saved name, older unnamed rows, and the period.
+    func testStageStatisticsAggregateStagesAndModels() throws {
+        let store = try HistoryStore(inMemory: true)
+        let now = ISO8601DateFormatter().date(from: "2026-11-01T12:00:00Z")!
+        func save(_ words: String, ago: Double = 0, asr: String, asrMs: Int, seconds: Double, llm: String? = nil,
+                  llmMs: Int = 0, speechName: String? = nil, refinementName: String? = nil) throws {
+            try store.save(DictationRecord(
+                createdAt: now.addingTimeInterval(-ago * 86_400), mode: "clean", family: "other",
+                rawTranscript: words, refinedText: words, finalText: words, asrEngine: asr, llmEngine: llm,
+                audioSeconds: seconds, asrMs: asrMs, llmMs: llmMs, inserted: true,
+                speechModel: speechName, speechOnDevice: speechName.map { _ in true },
+                refinementModel: refinementName, refinementOnDevice: refinementName.map { _ in false }))
+        }
+        let ten = Array(repeating: "word", count: 10).joined(separator: " ")
+        let thirty = Array(repeating: "word", count: 30).joined(separator: " ")
+        try save(ten, ago: 1, asr: "local-a", asrMs: 1_000, seconds: 4, llm: "cloud-x", llmMs: 2_000,
+                 speechName: "Model A", refinementName: "Cloud X")
+        try save(thirty, asr: "local-a", asrMs: 3_000, seconds: 12, speechName: "Model A renamed")
+        // Saved before AD-142: no names, so the identifier stands in.
+        try save(ten, asr: "legacy-b", asrMs: 500, seconds: 2)
+        // Outside the last 7 days.
+        try save(ten, ago: 30, asr: "old-c", asrMs: 9_000, seconds: 9, speechName: "Old")
+        // A failed refinement attempt has time but no engine: not refinement.
+        try save(ten, asr: "local-a", asrMs: 1_000, seconds: 4, llmMs: 5_000, speechName: "Model A renamed")
+
+        let week = try store.stageStatistics(days: 7, now: now)
+        XCTAssertEqual(week.speaking.dictations, 4)
+        XCTAssertEqual(week.speaking.averageSeconds, 22.0 / 4, accuracy: 0.001)
+        XCTAssertEqual(week.transcription.averageSeconds, 5.5 / 4, accuracy: 0.001)
+        // Weighted: 5.5 s over 60 words.
+        XCTAssertEqual(week.transcription.secondsPer100Words ?? 0, 5.5 / 60 * 100, accuracy: 0.001)
+        XCTAssertEqual(week.refinement.dictations, 1)
+        XCTAssertEqual(week.refinement.averageSeconds, 2, accuracy: 0.001)
+        XCTAssertEqual(week.refinement.secondsPer100Words ?? 0, 20, accuracy: 0.001)
+
+        XCTAssertEqual(week.speechModels.map(\.id), ["local-a", "legacy-b"])
+        XCTAssertEqual(week.speechModels.map(\.name), ["Model A renamed", "legacy-b"])
+        XCTAssertEqual(week.speechModels.map(\.onDevice), [true, nil])
+        XCTAssertEqual(week.speechModels[0].stage.dictations, 3)
+        XCTAssertEqual(week.speechModels[0].stage.secondsPer100Words ?? 0, 5.0 / 50 * 100, accuracy: 0.001)
+        XCTAssertEqual(week.refinementModels.map(\.name), ["Cloud X"])
+        XCTAssertEqual(week.refinementModels.first?.onDevice, false)
+
+        XCTAssertEqual(try store.stageStatistics(now: now).speechModels.count, 3)
+        XCTAssertTrue(try HistoryStore(inMemory: true).stageStatistics(now: now).isEmpty)
+    }
+
     /// Merged: save, search and delete, waveform record identity and complete
     /// delivered text, and the WAV header used for saved audio.
     func testSaveSearchDeleteWaveformIdentityAndWavHeader() throws {
