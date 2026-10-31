@@ -583,6 +583,14 @@ def run_suite(directory: Path, name: str, sources: dict[str, str], fixture: str,
 MODULE_BUNDLE = "import Foundation\nextension Bundle { static let module = Bundle.main }\n"
 
 
+def disco_intensity() -> str:
+    """AppSettings' Disco intensity default and clamp, as the HUD files use them."""
+    settings = source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/AppSettings.swift")
+    start = settings.index("    public nonisolated static let defaultDiscoIntensity")
+    end = settings.index("    public var hudTimer:", start)
+    return "import Foundation\nenum AppSettings {\n" + settings[start:end] + "}\n"
+
+
 def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
     run_suite(directory, "hotkey-suspension", {
         "HotkeyService.swift": source("Sources/App/Hotkeys/HotkeyService.swift"),
@@ -591,6 +599,7 @@ def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
         "Hotkey.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/Hotkey.swift"),
         "HotkeyPressState.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HotkeyPressState.swift"),
         "HotkeyTriggerState.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HotkeyTriggerState.swift"),
+        "HotkeyTriggerDelay.swift": source("Packages/AirdraftCore/Sources/AirdraftCore/Settings/HotkeyTriggerDelay.swift"),
         "ModuleBundle.swift": MODULE_BUNDLE,
     }, HOTKEY_FIXTURE)
     run_suite(directory, "microphone-selection", {
@@ -614,6 +623,8 @@ def verify(directory: Path, skip_hud: bool, show_hud: bool = False) -> None:
             "LiveTextRevealTimeline.swift": source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Settings/LiveTextRevealTimeline.swift"),
             "ModuleBundle.swift": MODULE_BUNDLE,
+            # The HUD reads only AppSettings' Disco intensity bounds; take them verbatim.
+            "DiscoIntensity.swift": disco_intensity(),
             "PipelineState.swift": "import Foundation\npublic enum PipelineState" + source(
                 "Packages/AirdraftCore/Sources/AirdraftCore/Pipeline/DictationPipeline.swift"
             ).split("public enum PipelineState", 1)[1].split("public struct DictationOutcome", 1)[0],
