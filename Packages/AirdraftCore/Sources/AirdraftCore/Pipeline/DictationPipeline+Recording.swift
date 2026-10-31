@@ -1,3 +1,6 @@
+#if os(macOS)
+// The macOS dictation pipeline (cursor insertion, shortcuts, HUD); iOS uses MobileDictation.
+
 import Foundation
 import Synchronization
 
@@ -614,3 +617,5 @@ final class FirstBufferClock: Sendable {
         }
     }
 }
+
+#endif

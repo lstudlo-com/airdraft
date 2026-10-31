@@ -1,3 +1,6 @@
+#if os(macOS)
+// Subscription CLIs run as subprocesses; macOS only.
+
 import Foundation
 
 extension CLIRefiner {
@@ -61,3 +64,5 @@ extension CLIRefiner {
         return String(decoding: try! encoder.encode(value), as: UTF8.self)
     }
 }
+
+#endif

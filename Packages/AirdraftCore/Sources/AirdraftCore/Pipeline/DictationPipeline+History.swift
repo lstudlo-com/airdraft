@@ -1,3 +1,6 @@
+#if os(macOS)
+// The macOS dictation pipeline (cursor insertion, shortcuts, HUD); iOS uses MobileDictation.
+
 import Foundation
 
 /// History persistence, saved-audio cleanup and data maintenance fences.
@@ -123,3 +126,5 @@ extension DictationPipeline {
         historyStore = nil
     }
 }
+
+#endif

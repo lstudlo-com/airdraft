@@ -1,3 +1,6 @@
+#if os(macOS)
+// Subprocesses exist only on macOS.
+
 import Darwin
 import Foundation
 import os
@@ -270,3 +273,5 @@ struct PipeLineReader {
         }
     }
 }
+
+#endif

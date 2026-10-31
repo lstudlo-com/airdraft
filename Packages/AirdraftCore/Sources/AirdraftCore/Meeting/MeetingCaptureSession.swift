@@ -1,3 +1,6 @@
+#if os(macOS)
+// ScreenCaptureKit app-audio capture; macOS only.
+
 import AVFoundation
 import AppKit
 import CoreMedia
@@ -261,3 +264,5 @@ public final class MeetingCaptureSession: NSObject, SCStreamOutput, SCStreamDele
         return Array(UnsafeBufferPointer(start: output.floatChannelData![0], count: Int(output.frameLength)))
     }
 }
+
+#endif

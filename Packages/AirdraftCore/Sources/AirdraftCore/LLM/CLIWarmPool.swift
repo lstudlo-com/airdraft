@@ -1,3 +1,6 @@
+#if os(macOS)
+// Subscription CLIs run as subprocesses; macOS only.
+
 import Foundation
 import os
 
@@ -141,3 +144,5 @@ public actor CLIWarmPool {
         }
     }
 }
+
+#endif

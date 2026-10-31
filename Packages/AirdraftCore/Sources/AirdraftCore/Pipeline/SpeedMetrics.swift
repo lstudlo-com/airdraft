@@ -1,3 +1,6 @@
+#if os(macOS)
+// Part of the macOS dictation pipeline; iOS uses MobileDictation.
+
 import CoreAudio
 import Foundation
 
@@ -168,3 +171,5 @@ public actor SpeedMetricsStore {
         return transportName(device?.transportType)
     }
 }
+
+#endif

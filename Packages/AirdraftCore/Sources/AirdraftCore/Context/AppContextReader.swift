@@ -1,3 +1,6 @@
+#if os(macOS)
+// Reads other apps through Accessibility; macOS only.
+
 import AppKit
 import ApplicationServices
 import Foundation
@@ -150,3 +153,5 @@ public final class AppContextReader {
         return nil
     }
 }
+
+#endif

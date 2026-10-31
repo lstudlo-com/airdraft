@@ -85,10 +85,13 @@ struct CredentialStore {
     static func withInteraction<T>(_ allowed: Bool, operation: () throws -> T) throws -> T {
         lock.lock()
         defer { lock.unlock() }
+        #if os(macOS)
         var previous: DarwinBoolean = false
         try check(SecKeychainGetUserInteractionAllowed(&previous))
         try check(SecKeychainSetUserInteractionAllowed(allowed))
         defer { SecKeychainSetUserInteractionAllowed(previous.boolValue) }
+        #endif
+        // iOS has only the data protection keychain, which never shows a dialog.
         return try operation()
     }
 

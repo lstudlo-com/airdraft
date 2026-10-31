@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "AirdraftCore",
     defaultLocalization: "en",
-    platforms: [.macOS("15.0")],
+    platforms: [.macOS("15.0"), .iOS("26.0")],
     products: [
         // Keep engine dependencies out of the app preview's JIT linking work.
         .library(name: "AirdraftCore", type: .dynamic, targets: ["AirdraftCore"]),
@@ -28,7 +28,8 @@ let package = Package(
                 .product(name: "GRDB", package: "GRDB.swift"),
                 .product(name: "Qwen3ASR", package: "speech-swift"),
                 .product(name: "CohereTranscribeASR", package: "speech-swift"),
-                .product(name: "SherpaOnnx", package: "SherpaOnnxKit"),
+                // Vendor/ holds macOS slices only; iOS reaches SenseVoice through GGUF.
+                .product(name: "SherpaOnnx", package: "SherpaOnnxKit", condition: .when(platforms: [.macOS])),
                 .product(name: "TranscribeCppKit", package: "TranscribeCppKit"),
                 .product(name: "FluidAudio", package: "FluidAudio"),
             ],

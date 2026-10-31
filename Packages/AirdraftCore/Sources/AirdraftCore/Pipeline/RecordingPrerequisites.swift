@@ -1,4 +1,6 @@
+#if os(macOS)
 import ApplicationServices
+#endif
 import AVFoundation
 import Foundation
 
@@ -39,12 +41,23 @@ public enum RecordingPrerequisites {
             self.readCredential = readCredential
             self.installed = installed
         }
+        #if os(macOS)
         public static var live: Environment {
             .init(microphoneAuthorized: AVCaptureDevice.authorizationStatus(for: .audio) == .authorized,
                   accessibilityAuthorized: AXIsProcessTrusted(), devices: MicrophoneDevices.available(),
                   defaultDeviceID: MicrophoneDevices.systemDefaultID,
                   readCredential: { try Keychain.read($0) }, installed: LocalModels.isInstalled)
         }
+        #else
+        /// iOS records from the session's current route and never inserts through
+        /// Accessibility, so the one input is the system default.
+        public static var live: Environment {
+            .init(microphoneAuthorized: AVAudioApplication.shared.recordPermission == .granted,
+                  accessibilityAuthorized: true, devices: [Microphone.iOSRoute],
+                  defaultDeviceID: Microphone.iOSRoute.id,
+                  readCredential: { try Keychain.read($0) }, installed: LocalModels.isInstalled)
+        }
+        #endif
     }
 
     public static func check(asr: ASRConfig, llm: LLMConfig, refinementEnabled: Bool,
@@ -93,7 +106,7 @@ public enum RecordingPrerequisites {
     }
 
     /// An HTTP(S) URL with a host; readiness uses the same test.
-    static func isValidEndpoint(_ value: String) -> Bool {
+    public static func isValidEndpoint(_ value: String) -> Bool {
         guard let url = URL(string: value), ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
               let host = url.host, !host.isEmpty else { return false }
         return true

@@ -228,10 +228,15 @@ public actor ModelDownloader {
 
     /// bsdtar refuses absolute and `..` member paths by default.
     static func unpack(_ archive: URL, into root: URL) async throws -> Int32 {
+        #if os(macOS)
         let tar = Process()
         tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
         tar.arguments = ["-xjf", archive.path, "-C", root.path]
         return try await CLIProcess.run(tar, input: "", timeout: 300).status
+        #else
+        // Sherpa archives are tar.bz2 and iOS has no tar; sherpa models are macOS only.
+        throw CocoaError(.featureUnsupported)
+        #endif
     }
 
     /// Explicit user-triggered installation. SpeakerKit inference always uses download: false.

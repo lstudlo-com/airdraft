@@ -1,3 +1,6 @@
+#if os(macOS)
+// Reads IOKit modifier state for global shortcuts; macOS only.
+
 import IOKit.hidsystem
 
 /// Tracks one shortcut independently of the event tap's lifetime.
@@ -108,3 +111,5 @@ public struct HotkeyPressState: Sendable {
         return flags & UInt64(own) != 0
     }
 }
+
+#endif

@@ -1,11 +1,11 @@
 // swift-tools-version:5.10
 import PackageDescription
 
-// Official transcribe.cpp v0.2.4 macOS distribution. Metal is embedded in the
+// Official transcribe.cpp v0.2.4 distribution (macOS and iOS slices). Metal is embedded in the
 // arm64 slice; Intel uses CPU. No model downloads or unpinned source builds.
 let package = Package(
     name: "TranscribeCppKit",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v13), .iOS(.v16)],
     products: [.library(name: "TranscribeCppKit", targets: ["TranscribeCppKit"])],
     targets: [
         .binaryTarget(name: "CTranscribe",

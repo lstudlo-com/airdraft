@@ -1,5 +1,12 @@
-import CoreAudio
 import Foundation
+#if os(macOS)
+import CoreAudio
+#else
+/// iOS routes input through AVAudioSession and has no Core Audio device IDs;
+/// the saved preference keeps the same shape on both platforms.
+public typealias AudioDeviceID = UInt32
+public let kAudioDeviceTransportTypeUnknown: UInt32 = 0
+#endif
 
 public struct Microphone: Identifiable, Equatable, Sendable {
     public let id: AudioDeviceID
@@ -17,9 +24,18 @@ public struct Microphone: Identifiable, Equatable, Sendable {
         self.transportType = transportType
     }
 
+    #if !os(macOS)
+    /// The input AVAudioSession currently routes; iOS chooses it, not the app.
+    public static let iOSRoute = Microphone(id: 0, uid: "ios.route", name: "System default")
+    #endif
+
     public var isContinuity: Bool {
+        #if os(macOS)
         transportType == kAudioDeviceTransportTypeContinuityCaptureWired ||
         transportType == kAudioDeviceTransportTypeContinuityCaptureWireless
+        #else
+        false
+        #endif
     }
 }
 
@@ -56,6 +72,7 @@ public struct MicrophonePreference: Codable, Equatable, Sendable {
     }
 }
 
+#if os(macOS)
 public enum MicrophoneDevices {
     /// AVAudioEngine can wrap the selected input in a private aggregate device.
     public static func route(_ route: AudioDeviceID, contains device: AudioDeviceID) -> Bool {
@@ -138,3 +155,4 @@ public enum MicrophoneDevices {
             .reduce(0) { $0 + Int($1.mNumberChannels) }
     }
 }
+#endif

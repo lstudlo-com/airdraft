@@ -1,3 +1,6 @@
+#if os(macOS)
+// Global shortcut timing; iOS has no global shortcuts.
+
 import Foundation
 
 /// A hold threshold around the physical shortcut state. Time is monotonic and
@@ -9,11 +12,6 @@ public struct HotkeyTriggerState: Sendable {
         public var disposition: Disposition = .pass
         public var replayBuffered = false
         public var discardBuffered = false
-    }
-
-    public static let delayRange = 0...1000
-    public static func clampedDelay(_ milliseconds: Int) -> Int {
-        min(delayRange.upperBound, max(delayRange.lowerBound, milliseconds))
     }
 
     private enum Phase: Sendable { case idle, pending, active, bypassed }
@@ -121,3 +119,5 @@ public struct HotkeyTriggerState: Sendable {
         return result
     }
 }
+
+#endif

@@ -1,3 +1,6 @@
+#if os(macOS)
+// Runs user scripts through Process; macOS only.
+
 import Foundation
 
 /// Sends final text once to a user-selected executable, as literal UTF-8 stdin.
@@ -51,3 +54,5 @@ public enum ScriptDelivery {
         }
     }
 }
+
+#endif

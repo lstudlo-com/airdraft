@@ -84,15 +84,21 @@ public actor EngineFactory {
         let engine: any Transcriber
         switch config.kind {
         case .fluidAudio: engine = FluidAudioTranscriber(modelID: config.model)
-        case .orukeet: engine = SherpaTranscriber(model: .orukeet)
         case .transcribeCpp: engine = GGUFTranscriber(modelID: config.model)
         case .whisperKit: engine = WhisperKitTranscriber(variant: config.whisperModel)
         case .qwen3: engine = Qwen3ASRTranscriber(modelId: config.qwen3Model)
         case .cohere: engine = CohereTranscriber(modelId: config.cohereModel)
+        #if os(macOS)
+        case .orukeet: engine = SherpaTranscriber(model: .orukeet)
         case .fireRed: engine = SherpaTranscriber(model: .fireRed)
         case .senseVoice: engine = SherpaTranscriber(model: .senseVoice)
         case .senseVoiceMultilingual: engine = SherpaTranscriber(model: .senseVoiceMultilingual)
         case .parakeet: engine = SherpaTranscriber(model: .parakeet)
+        #else
+        case .orukeet, .fireRed, .senseVoice, .senseVoiceMultilingual, .parakeet:
+            // sherpa-onnx has no iOS slice in Vendor/; GGUF and Core ML serve iPhone.
+            return CredentialFailureEngine(id: id, error: PlatformUnavailableError())
+        #endif
         case .apple: engine = AppleSpeechTranscriber(locale: config.effectiveAppleLocale)
         case .openAI:
             return OpenAITranscriber(model: config.speechModelID, apiKey: key)
@@ -175,12 +181,17 @@ public actor EngineFactory {
         if let refinerBuilder { return refinerBuilder(config) }
         if config.kind == .appleIntelligence { return AppleIntelligenceRefiner(timeout: config.timeoutSeconds) }
         if let tool = config.kind.cliTool {
+            #if os(macOS)
             guard let executable = config.cliExecutable else { return nil }
             let models = try? await CLIModelCatalog.shared.models(tool: tool, executable: executable, timeout: 3)
             let info = CLIModelInfo.selected(config.model, in: models ?? [])
             let model = tool == .codex && config.model.isEmpty ? info?.id ?? config.kind.defaultModel : config.model
             return CLIRefiner(tool: tool, executable: executable, model: model, effort: config.thinkingEffort,
                               timeout: max(config.timeoutSeconds, 60), supportedEfforts: info?.dictationEfforts)
+            #else
+            _ = tool
+            return nil
+            #endif
         }
         guard let url = config.endpoint else { return nil }
         let key: String?
@@ -264,7 +275,9 @@ public actor EngineFactory {
               let engine = local[config.engineID] else { return nil }
         return try await serialize(preview: true) { () async throws -> String? in
             guard await engine.isReady() else { return nil }
+            #if os(macOS)
             if let sherpa = engine as? SherpaTranscriber, !(await sherpa.isWarm(for: hints)) { return nil }
+            #endif
             try Task.checkCancellation()
             let result = try await engine.transcribe(samples: samples, hints: hints)
             try Task.checkCancellation()
@@ -304,7 +317,9 @@ public actor EngineFactory {
               let engine = local[config.engineID] else { return nil }
         return try await serialize(preview: true) { () async throws -> Transcript? in
             guard await engine.isReady() else { return nil }
+            #if os(macOS)
             if let sherpa = engine as? SherpaTranscriber, !(await sherpa.isWarm(for: effectiveHints)) { return nil }
+            #endif
             try Task.checkCancellation()
             let result = try await LocalASROutputGuard.transcribe(engine: engine, samples: samples,
                                                                   hints: effectiveHints, config: config)
@@ -503,6 +518,14 @@ extension EngineFactory {
 
 /// Preserves the engine contracts and the pipeline's raw-text fallback while
 /// reporting denied Keychain access without unauthenticated provider requests.
+/// A speech engine this platform cannot run, such as sherpa-onnx on iOS.
+public struct PlatformUnavailableError: LocalizedError, Sendable {
+    public init() {}
+    public var errorDescription: String? {
+        String(localized: "This speech model is not available on this device. Choose another model in Models.", bundle: .module)
+    }
+}
+
 struct CredentialFailureEngine: Transcriber, Refiner {
     let id: String
     let error: Error

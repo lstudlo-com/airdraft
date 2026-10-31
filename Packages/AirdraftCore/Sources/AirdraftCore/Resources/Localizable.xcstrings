@@ -5439,6 +5439,34 @@
         }
       }
     },
+    "History could not save this dictation: %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El historial no pudo guardar este dictado: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "履歴にこの音声入力を保存できませんでした：%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "历史记录无法保存此次听写：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記錄無法儲存這次聽寫：%@"
+          }
+        }
+      }
+    },
     "History is unavailable. Dictations stay in memory until saved. Retry saving or check the data folder." : {
       "localizations" : {
         "es" : {
@@ -11436,6 +11464,34 @@
         }
       }
     },
+    "The microphone could not start (audio error %lld). Try again." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo iniciar el micrófono (error de audio %lld). Inténtalo de nuevo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マイクを開始できませんでした（オーディオエラー %lld）。もう一度お試しください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法启动麦克风（音频错误 %lld）。请重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法啟動麥克風（音訊錯誤 %lld）。請再試一次。"
+          }
+        }
+      }
+    },
     "The microphone input changed. Record again." : {
       "localizations" : {
         "es" : {
@@ -12636,6 +12692,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此語音模型"
+          }
+        }
+      }
+    },
+    "This speech model is not available on this device. Choose another model in Models." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este modelo de voz no está disponible en este dispositivo. Elige otro modelo en Modelos."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この音声モデルはこのデバイスでは使用できません。「モデル」で別のモデルを選択してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此语音模型在这台设备上不可用。请在“模型”中选择其他模型。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這個語音模型無法在這部裝置上使用。請在「模型」中選擇其他模型。"
           }
         }
       }

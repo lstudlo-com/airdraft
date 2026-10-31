@@ -1,3 +1,6 @@
+#if os(macOS)
+// The macOS dictation pipeline (cursor insertion, shortcuts, HUD); iOS uses MobileDictation.
+
 import Foundation
 
 /// What a shortcut asks a recording to do (AD-104).
@@ -215,3 +218,5 @@ extension DictationPipeline {
         }
     }
 }
+
+#endif

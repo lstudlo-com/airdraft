@@ -1,3 +1,6 @@
+#if os(macOS)
+// Resets TCC through tccutil; macOS only.
+
 import Foundation
 import Security
 
@@ -79,3 +82,5 @@ struct ProviderCredentialRemoval {
         }
     }
 }
+
+#endif

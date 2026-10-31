@@ -1,3 +1,6 @@
+#if os(macOS)
+// The macOS dictation pipeline (cursor insertion, shortcuts, HUD); iOS uses MobileDictation.
+
 import Foundation
 
 /// Kept recordings: failed audio waits in memory for an explicit retry or
@@ -176,3 +179,5 @@ extension DictationPipeline {
         recoveries.removeAll { $0.info.id == retrying.id }
     }
 }
+
+#endif

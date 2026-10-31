@@ -1,3 +1,6 @@
+#if os(macOS)
+// Subscription CLIs run as subprocesses; macOS only.
+
 import Darwin
 import Foundation
 import os
@@ -224,3 +227,5 @@ private final class CatalogSession {
         try? FileManager.default.removeItem(at: directory)
     }
 }
+
+#endif

@@ -1,3 +1,6 @@
+#if os(macOS)
+// Global shortcut timing; iOS has no global shortcuts.
+
 /// Follows a shortcut while someone practices it, without recording anything.
 /// Each key cap lights while its key is held; a full press uses the same
 /// recognizer as dictation, so what counts here also starts a real dictation.
@@ -54,3 +57,5 @@ public struct HotkeyRehearsal: Sendable {
         litCaps = []
     }
 }
+
+#endif

@@ -1,3 +1,6 @@
+#if os(macOS)
+// The macOS dictation pipeline (cursor insertion, shortcuts, HUD); iOS uses MobileDictation.
+
 import Foundation
 
 /// Transcription, best-effort refinement and post-processing for one session.
@@ -413,3 +416,5 @@ extension DictationPipeline {
         }
     }
 }
+
+#endif

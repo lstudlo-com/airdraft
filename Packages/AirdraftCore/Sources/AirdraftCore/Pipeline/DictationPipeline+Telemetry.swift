@@ -1,3 +1,6 @@
+#if os(macOS)
+// The macOS dictation pipeline (cursor insertion, shortcuts, HUD); iOS uses MobileDictation.
+
 import Foundation
 
 /// Anonymous outcome counts. Each call only hands an enumerated event to the
@@ -46,3 +49,5 @@ extension DictationPipeline {
         if report.deliveryError != nil, !report.outputSucceeded { telemetry.record(.dictationFailed(.deliveryFailed)) }
     }
 }
+
+#endif

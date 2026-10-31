@@ -1,3 +1,6 @@
+#if os(macOS)
+// Accessibility and workspace permissions; macOS only.
+
 import AppKit
 import ApplicationServices
 import AVFoundation
@@ -89,3 +92,5 @@ public final class SystemPermissions {
         wakeObserver = nil
     }
 }
+
+#endif

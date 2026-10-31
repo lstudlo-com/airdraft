@@ -10,6 +10,8 @@ public enum AudioRecorderError: Error, LocalizedError {
     case deviceSetupFailed(String, Int)
     case inputChanged
     case inputChannelUnavailable(Int)
+    /// iOS could not activate the audio session or start the input.
+    case sessionUnavailable(Int)
 
     public var errorDescription: String? {
         switch self {
@@ -20,6 +22,8 @@ public enum AudioRecorderError: Error, LocalizedError {
         case .inputChannelUnavailable(let channel):
             return String(localized: "Input \(channel) is unavailable on this microphone. Choose an input channel in Settings.", bundle: .module)
         case .microphoneUnavailable(let name): return String(localized: "\(name) is unavailable. Reconnect it or choose another microphone.", bundle: .module)
+        case .sessionUnavailable(let code):
+            return String(localized: "The microphone could not start (audio error \(code)). Try again.", bundle: .module)
         case .deviceSetupFailed(let name, let code):
             return String(localized: "macOS could not open \(name) (audio error \(code)). Try System default or reconnect the microphone.", bundle: .module)
         }
@@ -42,6 +46,7 @@ public extension AudioRecording {
     var samplesHandler: (@Sendable ([Float]) -> Void)? { get { nil } set {} }
 }
 
+#if os(macOS)
 /// Unchecked: the AVAudioEngine route, observers and interruption handler are
 /// configured on the main thread by the owner, while the realtime tap touches
 /// only `samples`, `converter`, `recording` and the sample/level callbacks under `lock`.
@@ -336,3 +341,4 @@ public final class AudioRecorder: AudioRecording, @unchecked Sendable {
         }
     }
 }
+#endif

@@ -14,7 +14,12 @@ public enum ModelCatalog {
         if config.kind == .appleIntelligence { return [] }
         if let tool = config.kind.cliTool {
             guard let executable = config.cliExecutable else { throw RefinerError.invalidResponse }
+            #if os(macOS)
             return try await CLIModelCatalog.shared.models(tool: tool, executable: executable, refresh: true, timeout: timeout).map(\.id)
+            #else
+            _ = (tool, executable)
+            return []
+            #endif
         }
         guard let base = config.endpoint else { return [] }
         let key = try Keychain.read(config.keyRef)
