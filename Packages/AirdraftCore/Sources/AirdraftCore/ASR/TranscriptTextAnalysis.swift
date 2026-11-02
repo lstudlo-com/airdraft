@@ -248,20 +248,34 @@ enum TranscriptRepetition {
     }
 }
 
-/// Coarse speech-energy check, used only to decide whether an empty result on
-/// this audio deserves one more decode. It never rejects or alters audio.
+/// Coarse speech-energy checks. `isAudible` only decides whether an empty
+/// result on this audio deserves one more decode; `isSilent` keeps recordings
+/// with no speech energy at all away from recognizers.
 enum AudioActivity {
     /// At least 0.25 s of 20 ms frames above about -40 dBFS RMS.
     static func isAudible(_ samples: [Float], sampleRate: Int = 16_000) -> Bool {
+        loudFrames(samples, sampleRate: sampleRate, meanSquare: 0.0001, needed: 12)
+    }
+
+    /// AD-143: less than 0.16 s in total of 20 ms frames above about -50 dBFS
+    /// RMS (`SpeechVocabulary.silenceRMS`). Measured quiet speech stays above
+    /// -45 dBFS, while a quiet room's noise floor stays below this, so only a
+    /// recording nobody spoke into is skipped. Whisper and Qwen3-ASR otherwise
+    /// write subtitle lines and prompt continuations onto the noise floor.
+    static func isSilent(_ samples: [Float], sampleRate: Int = 16_000) -> Bool {
+        let rms = SpeechVocabulary.silenceRMS
+        return !loudFrames(samples, sampleRate: sampleRate, meanSquare: rms * rms, needed: 8)
+    }
+
+    private static func loudFrames(_ samples: [Float], sampleRate: Int, meanSquare: Float, needed: Int) -> Bool {
         let frame = sampleRate / 50
         guard frame > 0, samples.count >= frame else { return false }
-        let needed = 12
         var loud = 0
         var start = 0
         while start + frame <= samples.count {
             var energy: Float = 0
             for value in samples[start..<(start + frame)] { energy += value * value }
-            if energy / Float(frame) > 0.0001 {
+            if energy / Float(frame) > meanSquare {
                 loud += 1
                 if loud >= needed { return true }
             }

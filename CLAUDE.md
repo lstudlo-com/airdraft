@@ -1972,6 +1972,14 @@ history/statistics. Only the user's Copy action changes the clipboard.
 
 ## Recording and recovery invariants
 
+Dictation skips recognition for a silent recording (`AudioActivity.isSilent`:
+under 0.16 s of 20 ms frames above about -50 dBFS, below measured quiet speech),
+so recognizers never write subtitle lines onto a quiet room (AD-143); media
+windows keep skipping only exact digital silence. Groq Whisper requests
+`verbose_json` and drops segments Whisper rates as non-speech (no-speech
+probability above 0.8, or above 0.6 with average log probability below -1) and an
+opening segment that continues the script prompt; custom endpoints keep `json`.
+
 Microphone dictation has a hard 600-second maximum. Keep Settings and persisted
 settings within `SpeechInputLimits.recordingSecondsRange` (10–600 seconds), with the
 600-second default (`SpeechInputLimits.defaultRecordingSeconds`; 300 before 0.20.0)

@@ -303,9 +303,9 @@ public final class MobileDictation {
     public static func process(samples: [Float], snapshot: MobileDictationSnapshot, factory: EngineFactory,
                                owner: UUID = UUID(),
                                stage: @MainActor (Phase) -> Void = { _ in }) async throws -> MobileDictationResult? {
-        // Muted or digital-silence recordings contain no speech; some recognizers
-        // hallucinate on them, so nothing reaches delivery or history.
-        guard samples.contains(where: { $0 != 0 }) else { return nil }
+        // Silent recordings contain no speech; recognizers hallucinate on them
+        // (AD-143), so nothing reaches delivery or history.
+        guard !AudioActivity.isSilent(samples) else { return nil }
         let seconds = Double(samples.count) / AudioRecorder.sampleRate
         let asr = snapshot.asr
         let language = try SpeechLanguagePolicy.resolve(asr)

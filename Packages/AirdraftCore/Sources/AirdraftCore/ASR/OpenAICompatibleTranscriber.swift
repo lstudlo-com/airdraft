@@ -29,7 +29,8 @@ public struct OpenAICompatibleTranscriber: Transcriber {
         if requiresKey { _ = try TranscriptionHTTP.requireKey(apiKey, provider: "Groq") }
         if baseURL.host == "api.groq.com" { try SpeechInputLimits.validate(sampleCount: samples.count, for: .groq) }
 
-        var fields: [(String, String)] = [("model", model), ("response_format", "json")]
+        let format = filtersNonSpeech ? "verbose_json" : "json"
+        var fields: [(String, String)] = [("model", model), ("response_format", format)]
         if let lang = hints.isoLanguage { fields.append(("language", lang)) }
         if let prompt = hints.promptText { fields.append(("prompt", prompt)) }
         let form = MultipartForm()
@@ -46,16 +47,80 @@ public struct OpenAICompatibleTranscriber: Transcriber {
         return request
     }
 
+    /// AD-143: Groq's Whisper reports each segment's no-speech probability in
+    /// `verbose_json`; plain `json` drops it, so silence came back as invented
+    /// subtitle lines. Custom servers keep the plain shape they already accept.
+    var filtersNonSpeech: Bool {
+        baseURL.host == "api.groq.com" && model.lowercased().contains("whisper")
+    }
+
     public func transcribe(samples: [Float], hints: TranscriptionHints) async throws -> Transcript {
         let started = Date()
-        struct Reply: Decodable { let text: String; let language: String? }
+        struct Reply: Decodable {
+            let text: String
+            let language: String?
+            let segments: [WhisperSegment]?
+        }
         let reply = try await http.decode(Reply.self, from: makeRequest(samples: samples, hints: hints))
         let ms = Int(Date().timeIntervalSince(started) * 1000)
+        let text = reply.segments.map { WhisperSegment.speech($0, prompt: hints.promptText) } ?? reply.text
+        // verbose_json names the language ("chinese"); only a code is a usable hint.
+        let language = reply.language.flatMap { $0.count <= 3 ? $0 : nil }
         return Transcript(
-            text: reply.text.trimmingCharacters(in: .whitespacesAndNewlines),
-            language: reply.language ?? hints.language,
+            text: text.trimmingCharacters(in: .whitespacesAndNewlines),
+            language: language ?? hints.language,
             engine: id,
             latencyMs: ms
         )
+    }
+}
+
+/// One segment of a Whisper `verbose_json` reply.
+struct WhisperSegment: Decodable, Equatable {
+    let text: String
+    let noSpeechProb: Double?
+    let avgLogprob: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case text
+        case noSpeechProb = "no_speech_prob"
+        case avgLogprob = "avg_logprob"
+    }
+
+    /// Whisper's own skip rule (no-speech probability above 0.6 with an average
+    /// log probability below -1), plus a no-speech probability above 0.8 alone:
+    /// with our script prompt, silence decodes confidently into text that
+    /// continues the prompt.
+    var isNonSpeech: Bool {
+        guard let noSpeechProb else { return false }
+        if noSpeechProb > 0.8 { return true }
+        return noSpeechProb > 0.6 && (avgLogprob ?? 0) < -1
+    }
+
+    /// The kept segments' text, joined as Whisper joined them. A first segment
+    /// that only restates the script prompt is dropped too.
+    static func speech(_ segments: [WhisperSegment], prompt: String?) -> String {
+        segments.enumerated()
+            .filter { !$1.isNonSpeech && !($0 == 0 && echoesPrompt($1.text, prompt: prompt)) }
+            .map(\.element.text).joined()
+    }
+
+    /// "以下是繁體中文的內容。" came back as "現在是中文的內容。" on silence. An
+    /// opening segment shaped like the prompt (a short "…是" lead-in, an optional
+    /// script name, then the prompt's last five characters) continues the prompt,
+    /// not the speech.
+    static func echoesPrompt(_ text: String, prompt: String?) -> Bool {
+        guard let prompt else { return false }
+        func core(_ value: String) -> String {
+            String(value.unicodeScalars.filter { !CharacterSet.punctuationCharacters.union(.whitespacesAndNewlines).contains($0) })
+        }
+        let tail = String(core(prompt).suffix(5))
+        var segment = core(text)
+        guard !tail.isEmpty, segment.hasSuffix(tail) else { return false }
+        segment.removeLast(tail.count)
+        for script in ["繁體", "繁体", "简体", "簡體"] where segment.hasSuffix(script) {
+            segment.removeLast(script.count)
+        }
+        return segment.count <= 3 && segment.hasSuffix("是")
     }
 }

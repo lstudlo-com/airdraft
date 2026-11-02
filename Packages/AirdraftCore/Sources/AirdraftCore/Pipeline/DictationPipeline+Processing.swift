@@ -153,10 +153,10 @@ extension DictationPipeline {
             if keptBudgetStop?.token == token { keptBudgetStop = nil }
             Self.log.notice("processing timing totalMs=\(Self.elapsed(since: processingStarted)) preparationWaitMs=\(timings.preparationWaitMs) refinementRequestMs=\(timings.refinementRequestMs) postProcessingMs=\(timings.postProcessingMs) deliveryMs=\(timings.deliveryMs) historyMs=\(timings.historyMs) stopToDeliveryMs=\(timings.stopToDeliveryMs ?? -1) pressToCaptureMs=\(timings.pressToCaptureMs ?? -1)")
         }
-        // Muted/digital-silence recordings contain no speech. Some recognizers
-        // hallucinate on them; never let that text reach delivery or history.
-        // Use exact silence, not a volume threshold that could reject quiet speech.
-        guard samples.contains(where: { $0 != 0 }) else {
+        // Silent recordings contain no speech. Recognizers hallucinate on them
+        // (AD-143: Whisper wrote subtitle lines onto a quiet room); never let
+        // that text reach delivery or history. The threshold sits below quiet speech.
+        guard !AudioActivity.isSilent(samples) else {
             resolveRecovery(for: token)
             lastIssue = nil
             set(.idle)

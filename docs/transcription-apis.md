@@ -149,6 +149,10 @@ visual fixtures only during `--render-window`; no credentials or network calls.
 - OpenAI defaults to GPT-Transcribe and also offers both GPT-4o transcription
   variants. GPT-Transcribe uses `languages[]` and `keywords[]`; GPT-4o uses `language`
   and `prompt`. The separate compatible adapter serves Groq and custom endpoints.
+  Groq Whisper asks for `verbose_json` and keeps only segments Whisper does not
+  rate as non-speech (AD-143), dropping an opening segment that restates the
+  script prompt; on silence Whisper otherwise returned subtitle lines. Custom
+  endpoints keep `response_format=json`.
 - Scribe v1 is removed from built-in choices, and saved Scribe v1 configurations
   use Scribe v2. Groq Turbo and Scribe v2 remain because they still serve their roles.
 - Soniox v5 and Deepgram Nova-3 are new native integrations.

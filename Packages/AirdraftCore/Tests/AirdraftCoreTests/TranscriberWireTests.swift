@@ -328,7 +328,11 @@ final class TranscriberWireTests: XCTestCase {
             XCTAssertTrue(body(request).contains("name=\"language\"\r\n\r\nzh"))
             XCTAssertTrue(body(request).contains("whisper-large-v3-turbo"))
             XCTAssertTrue(body(request).contains("name=\"prompt\""))
+            XCTAssertTrue(body(request).contains("name=\"response_format\"\r\n\r\nverbose_json"))
             XCTAssertFalse(body(request).contains("languages[]"))
+            // Custom servers keep the plain shape.
+            let custom = OpenAICompatibleTranscriber(baseURL: URL(string: "http://127.0.0.1:8080/v1")!, model: "whisper-1", apiKey: nil)
+            XCTAssertTrue(body(try custom.makeRequest(samples: samples, hints: hints)).contains("name=\"response_format\"\r\n\r\njson\r\n"))
         }
 
         do {
@@ -350,6 +354,39 @@ final class TranscriberWireTests: XCTestCase {
             let scribe = ElevenLabsTranscriber(modelId: "scribe_v2_medical", apiKey: "key")
             XCTAssertTrue(body(try scribe.makeRequest(samples: samples, hints: hints)).contains("name=\"model_id\"\r\n\r\nscribe_v2_medical"))
         }
+    }
+
+    /// AD-143: Groq Whisper drops segments it judges to be non-speech and an opening
+    /// segment that continues the script prompt, so silence inserts nothing.
+    func testGroqWhisperDropsNonSpeechSegmentsAndPromptContinuation() async throws {
+        let silence = #"""
+        {"text":"現在是中文的內容。這張是《大人》的主題曲。請看下方的內容。","language":"chinese","segments":[
+          {"text":"現在是中文的內容。","no_speech_prob":0.31,"avg_logprob":-0.42},
+          {"text":"這張是《大人》的主題曲。","no_speech_prob":0.86,"avg_logprob":-0.35},
+          {"text":"請看下方的內容。","no_speech_prob":0.65,"avg_logprob":-1.4}]}
+        """#
+        let speech = #"""
+        {"text":"翻譯這段中文的內容 詳見下方內容","language":"chinese","segments":[
+          {"text":"翻譯這段中文的內容","no_speech_prob":0.02,"avg_logprob":-0.2},
+          {"text":" 詳見下方內容","no_speech_prob":0.9,"avg_logprob":-0.3}]}
+        """#
+        for (reply, expected) in [(silence, ""), (speech, "翻譯這段中文的內容")] {
+            let s = session { _ in (200, reply) }
+            defer { s.invalidateAndCancel() }
+            let engine = OpenAICompatibleTranscriber(baseURL: URL(string: "https://api.groq.com/openai/v1")!,
+                                                     model: "whisper-large-v3", apiKey: "key", requiresKey: true, session: s)
+            let result = try await engine.transcribe(samples: samples, hints: hints)
+            XCTAssertEqual(result.text, expected)
+            XCTAssertEqual(result.language, "zh-TW", "verbose_json's language name is not a code")
+        }
+
+        XCTAssertTrue(WhisperSegment.echoesPrompt("以下是繁體中文的內容。", prompt: "以下是繁體中文的內容。"))
+        XCTAssertTrue(WhisperSegment.echoesPrompt("這是中文的內容", prompt: "以下是繁體中文的內容。"))
+        XCTAssertFalse(WhisperSegment.echoesPrompt("翻譯這段中文的內容", prompt: "以下是繁體中文的內容。"))
+        XCTAssertFalse(WhisperSegment.echoesPrompt("我們今天討論英文和中文的內容安排", prompt: "以下是繁體中文的內容。"))
+        XCTAssertFalse(WhisperSegment.echoesPrompt("現在是中文的內容", prompt: nil))
+        XCTAssertFalse(WhisperSegment(text: "x", noSpeechProb: 0.7, avgLogprob: -0.5).isNonSpeech)
+        XCTAssertFalse(WhisperSegment(text: "x", noSpeechProb: nil, avgLogprob: -3).isNonSpeech)
     }
 
     /// Deepgram: Nova uses raw WAV and dominant language detection; Nova-3 Multilingual and
