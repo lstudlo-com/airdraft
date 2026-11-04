@@ -164,9 +164,10 @@ strength label (the recommendation reason or the alternative's role, such as
 "Smaller and faster", "Uses less memory" or "More accurate, uses more memory";
 Qwen3-ASR 1.7B elsewhere shows "Best for mixed Chinese and English"), then the tier as a symbol and word, runtime tags and a language tag such as
 "30 languages" or "English only". The tag's tooltip lists every supported
-language (the user's language and English first); clicking it opens a sheet with
-the user's languages first and then every language A to Z. Clicking anywhere else
-in the row chooses an installed model. `ModelCatalogue.verificationEvidence` lists the Verified
+language (the user's language and English first). The row's info button shows the
+model's details on hover and, on click, opens a sheet with those details, the
+user's languages first and then every language A to Z. Clicking anywhere else in
+the row chooses an installed model. `ModelCatalogue.verificationEvidence` lists the Verified
 IDs with their sources: the 18 choices that were actually downloaded, loaded and
 used for transcription in the 2026-10-12 local coverage verification, plus
 SenseVoice Cantonese, FireRedASR2, Qwen3-ASR 1.7B/0.6B and Whisper Large v3 Turbo from

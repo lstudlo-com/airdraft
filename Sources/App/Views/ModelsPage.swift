@@ -17,7 +17,7 @@ struct ModelsPage: View {
     @State private var openRouterCatalogError: String?
     @State private var openRouterRefreshID = UUID()
     /// AD-122: the language sheet a row's tag opened.
-    @State private var languageSheet: ModelLanguageInfo?
+    @State private var infoSheet: ModelInfo?
 
     enum Category: String, CaseIterable, Identifiable {
         case local, cloud
@@ -247,8 +247,8 @@ struct ModelsPage: View {
         } accessory: {
             SearchField(text: $query, placeholder: "Search models")
         }
-        .environment(\.showModelLanguages, ShowModelLanguagesAction { languageSheet = $0 })
-        .sheet(item: $languageSheet) { ModelLanguagesSheet(info: $0) }
+        .environment(\.showModelInfo, ShowModelInfoAction { infoSheet = $0 })
+        .sheet(item: $infoSheet) { ModelInfoSheet(info: $0) }
         .onAppear {
             if !initialized {
                 if RenderMode.isActive, !RenderMode.excludesCredentials,

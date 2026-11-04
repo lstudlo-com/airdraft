@@ -482,12 +482,15 @@ and Local releases below.
   unverified", never an invented list; a long tag wraps rather than widening the
   row past the window. Local and cloud rows read the tag from
   `SpeechLanguagePolicy.capabilities` through `ModelLanguageInfo`. Its tooltip names
-  every language (the user's language first); clicking a tag with more than one
-  language opens `ModelLanguagesSheet` from the page (Your languages, then all A to Z,
-  with search past 12), and VoiceOver reaches it through the row's Show Languages
-  action. Clicking anywhere else in a row chooses its model (an installed one for
-  local rows); the tag, the pin and the download, cancel and delete buttons keep
-  their own clicks. Every local and cloud row has a pin button (`ModelPinButton`,
+  every language (the user's language first); the tag is a label, never a control.
+  Every local and cloud row has an info button (`ModelInfoButton`, AD-145) before its
+  pin: hovering shows the model's details (`ModelInfo`: developer or provider,
+  runtime, size or price, testing tier, ratings, languages) as a tooltip, and
+  clicking opens `ModelInfoSheet` from the page (Details, then Languages: Your
+  languages and all A to Z with search past 12, or the tag's explanation when there
+  is no list). Clicking anywhere else in a row chooses its model (an installed one
+  for local rows); the info button, the pin and the download, cancel and delete
+  buttons keep their own clicks. Every local and cloud row has a pin button (`ModelPinButton`,
   AD-124) with a name, Pinned/Not pinned value and tooltip. Pins are
   `AppSettings.pinnedSpeechModels`, keyed by `ModelEntry.id` or
   "<preset id>/<model id>", a view preference outside the `settings.` keys that

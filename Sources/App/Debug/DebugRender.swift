@@ -307,10 +307,10 @@ enum DebugRender {
                     } else if pageName == "media-editor" {
                         MediaDocumentEditor(initial: MediaPreview.document).ignoresSafeArea()
                     } else if pageName == "model-languages" {
-                        // AD-122: the language sheet; `MODEL_LANGUAGES=<catalogue ID>` picks the model.
+                        // AD-145: the model info sheet; `MODEL_LANGUAGES=<catalogue ID>` picks the model.
                         let entry = ModelCatalogue.entries.first { $0.id == (RenderMode.value("MODEL_LANGUAGES") ?? "qwen3:1.7b") }
                             ?? ModelCatalogue.entries[0]
-                        ModelLanguagesSheet(info: entry.languageInfo).ignoresSafeArea()
+                        ModelInfoSheet(info: ModelInfo(entry: entry)).ignoresSafeArea()
                             .environment(\.controlActiveState, .key)
                             .background(Color(nsColor: .windowBackgroundColor))
                     } else if pageName == "cleanup" {

@@ -8060,6 +8060,34 @@
         }
       }
     },
+    "Click for details." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz clic para ver los detalles."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリックすると詳細を表示します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按查看详细信息。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下查看詳細資訊。"
+          }
+        }
+      }
+    },
     "Click here first." : {
       "localizations" : {
         "es" : {
@@ -10720,6 +10748,34 @@
         }
       }
     },
+    "Details for %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detalles de %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ の詳細"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的详细信息"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的詳細資訊"
+          }
+        }
+      }
+    },
     "Detect Automatically" : {
       "localizations" : {
         "es" : {
@@ -10772,6 +10828,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自動辨識語言"
+          }
+        }
+      }
+    },
+    "Developer" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desarrollador"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開発元"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开发者"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開發者"
           }
         }
       }
@@ -11556,6 +11640,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下載已暫停。重試即可完成。"
+          }
+        }
+      }
+    },
+    "Download size" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamaño de descarga"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ダウンロードサイズ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载大小"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載大小"
           }
         }
       }
@@ -14828,6 +14940,34 @@
         }
       }
     },
+    "Hosted by %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alojado en %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ がホスト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由 %@ 托管"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由 %@ 託管"
+          }
+        }
+      }
+    },
     "How it works" : {
       "localizations" : {
         "es" : {
@@ -16295,6 +16435,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "語言尚未安裝"
+          }
+        }
+      }
+    },
+    "Languages" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idiomas"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語言"
           }
         }
       }
@@ -18580,6 +18748,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "模型 ID 或別名"
+          }
+        }
+      }
+    },
+    "Model Page" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Página del modelo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルのページ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型頁面"
           }
         }
       }
@@ -24120,6 +24316,34 @@
         }
       }
     },
+    "Price" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Precio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "料金"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "价格"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "價格"
+          }
+        }
+      }
+    },
     "Pricing" : {
       "localizations" : {
         "es" : {
@@ -25166,6 +25390,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已達供應商的速率限制；請稍後再試。"
+          }
+        }
+      }
+    },
+    "Ratings are Airdraft's relative guidance for local models. Actual speed depends on your Mac." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las valoraciones son la orientación relativa de Airdraft para los modelos locales. La rapidez real depende de tu Mac."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "評価はローカルモデルに対する Airdraft の相対的な目安です。実際の速度はお使いの Mac によって異なります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "评分是 Airdraft 对本地模型的相对参考，实际速度取决于你的 Mac。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "評分是 Airdraft 對本機模型的相對參考，實際速度取決於你的 Mac。"
           }
         }
       }
@@ -28683,6 +28935,34 @@
         }
       }
     },
+    "Runs on this Mac" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se ejecuta en este Mac"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この Mac で実行"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在这台 Mac 上运行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在這台 Mac 上執行"
+          }
+        }
+      }
+    },
     "Runs on this Mac. Language follows Speech options." : {
       "localizations" : {
         "es" : {
@@ -28707,6 +28987,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在這台 Mac 上執行。語言依照「語音選項」。"
+          }
+        }
+      }
+    },
+    "Runtime" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entorno de ejecución"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランタイム"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行环境"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行環境"
           }
         }
       }
@@ -31021,34 +31329,6 @@
         }
       }
     },
-    "Show Languages" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar idiomas"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "言語を表示"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示语言"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示語言"
-          }
-        }
-      }
-    },
     "Show Less" : {
       "localizations" : {
         "es" : {
@@ -31437,6 +31717,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "即時預覽使用「所選語音模型」時，說話時顯示文字"
+          }
+        }
+      }
+    },
+    "Shows the model's details and every language it recognizes." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra los detalles del modelo y todos los idiomas que reconoce."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルの詳細と、認識できるすべての言語を表示します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示模型的详细信息及其能识别的所有语言。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示模型的詳細資訊及其能辨識的所有語言。"
           }
         }
       }
@@ -32909,6 +33217,34 @@
         }
       }
     },
+    "Strength" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punto fuerte"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "得意分野"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "强项"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "強項"
+          }
+        }
+      }
+    },
     "Summarize" : {
       "localizations" : {
         "es" : {
@@ -33359,6 +33695,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "僅限測試購買，不會實際付款。"
+          }
+        }
+      }
+    },
+    "Testing" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pruebas"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テスト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "测试"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "測試"
           }
         }
       }

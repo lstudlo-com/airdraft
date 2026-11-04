@@ -80,7 +80,7 @@ struct ModelEntry: Identifiable, Sendable {
         return list
     }
 
-    /// The row's language tag, tooltip and sheet (AD-122).
+    /// The row's language tag and tooltip (AD-122) and its info sheet's list (AD-145).
     @MainActor var languageInfo: ModelLanguageInfo {
         ModelLanguageInfo.make(id: id, title: title, config: config(from: ASRConfig()))
     }
@@ -577,7 +577,6 @@ struct ModelMetric: View {
 
 struct CloudModelRow: View {
     @Environment(AppContainer.self) private var container
-    @Environment(\.showModelLanguages) private var showLanguages
     let preset: EndpointPreset.Speech
     let model: SpeechModelInfo
     @State private var hovering = false
@@ -622,19 +621,17 @@ struct CloudModelRow: View {
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }
-                // The language tag and pin are controls of their own; VoiceOver
-                // reaches the language list through the Show Languages action.
+                // The info button and pin are controls of their own (AD-145).
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(String(localized: "\(model.title), hosted by \(preset.name), \(languages.label), \(model.quality), speed: \(model.speed), \(model.price)")
                                     + (live == nil ? "" : ", " + String(localized: "Live text")))
                 .accessibilityValue(selected ? "Selected" : "Not selected")
                 .accessibilityAddTraits(.isButton)
                 .accessibilityAction { choose() }
-                .accessibilityAction(named: Text("Show Languages")) {
-                    if languages.opensList { showLanguages(languages) }
-                }
                 .help(model.qualityDetail + " " + model.speedDetail)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                ModelInfoButton(info: { ModelInfo(preset: preset, model: model, languages: languages) },
+                                title: model.title, rowHovered: hovering)
                 ModelPinButton(id: pinID, title: model.title, rowHovered: hovering)
             }
         } speed: {
@@ -654,8 +651,8 @@ struct CloudModelRow: View {
         }
         .padding(Theme.cardPadding)
         .modelRowWell(selected: selected, hovering: hovering)
-        // AD-122: anywhere in the row chooses the model; the language tag and
-        // the pin (AD-124) keep their own clicks.
+        // AD-122: anywhere in the row chooses the model; the info button
+        // (AD-145) and the pin (AD-124) keep their own clicks.
         .contentShape(Rectangle())
         .onTapGesture { choose() }
         .onHover { hovering = $0 }
@@ -814,7 +811,6 @@ struct LiveTextBadge: View {
 struct ModelRow: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.colorSchemeContrast) private var contrast
-    @Environment(\.showModelLanguages) private var showLanguages
     let entry: ModelEntry
     /// Why the entry is in the compact recommended set, if it is.
     var role: LocalModelShortlist.Role?
@@ -872,18 +868,15 @@ struct ModelRow: View {
                         }
                         .fixedSize(horizontal: false, vertical: true)
                     }
-                    // The language tag is a control of its own; VoiceOver reaches its
-                    // list through the row's Show Languages action instead.
+                    // The info button and pin are controls of their own (AD-145).
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(accessibilityLabel)
                     .accessibilityValue(selected ? "Selected" : "Not selected")
                     .accessibilityAddTraits(.isButton)
                     .accessibilityAction { choose() }
-                    .accessibilityAction(named: Text("Show Languages")) {
-                        if entry.languageInfo.opensList { showLanguages(entry.languageInfo) }
-                    }
                     .help("\(entry.vendor). \(entry.note) \(installed ? String(localized: "Use this model") : String(localized: "Download first"))")
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    ModelInfoButton(info: { ModelInfo(entry: entry) }, title: entry.title, rowHovered: hovering)
                     ModelPinButton(id: entry.id, title: entry.title, rowHovered: hovering)
                 }
             } speed: {
@@ -907,8 +900,8 @@ struct ModelRow: View {
         }
         .padding(Theme.cardPadding)
         .modelRowWell(selected: selected, hovering: hovering)
-        // AD-122: anywhere in the row chooses the model; the language tag, the
-        // pin (AD-124) and the download, cancel and delete buttons keep their own clicks.
+        // AD-122: anywhere in the row chooses the model; the info button
+        // (AD-145), the pin (AD-124) and the download, cancel and delete buttons keep their own clicks.
         .contentShape(Rectangle())
         .onTapGesture { choose() }
         .onHover { hovering = $0 }
