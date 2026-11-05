@@ -5,27 +5,27 @@
  "datasets": {
   "correction_cases.json": {
    "candidate": "p17-20261105-correction.json",
-   "candidate_sha256": "d93cc3f7938719b65b54c36fa8d5244793008159e12cc517109c42522f3c9ce4",
+   "candidate_sha256": "6d3fe353c7866fc2500d0ada8f2d50751832b41529c69da4d8a544eb13fec63d",
    "baseline": "p5-qwen38-correction.json",
    "baseline_sha256": "a9dfbd38a2c1dd8a2b314b27599a19b068b46c5c137e638ada8d3bf54a7e9e04"
   },
   "holdout_cases.json": {
    "candidate": "p17-20261105-holdout.json",
-   "candidate_sha256": "162ce008f2c032c0f843b5c2a6a8cd030488b6b4c67a4301fce35f9229c8ca3f",
+   "candidate_sha256": "f2e193b70f87463faf392c954bb92c8f5823328df25fa978d7a3b7ad107807c6",
    "baseline": "p5-qwen38-holdout.json",
    "baseline_sha256": "6251b65c6f7c3b01cc5e9b7a58cbd427cd36a315f13a33b3c16c0a8a44e0d781"
   },
   "context_correction_cases.json": {
    "candidate": "p17-20261105-context.json",
-   "candidate_sha256": "aebed172cea6b0a9093c8751a8fb0ab4e813ffdfa2389d4b0a4e750db6f5930a",
+   "candidate_sha256": "6e3132022235eaaca538c448b2b2c4f03ac92609e925e8f1f78f5f289eb99660",
    "baseline": "p11-20260928-context.json",
    "baseline_sha256": "ccb8f946f6d461cd45af56d841850f78b792701daf86c7dc3a1b1e1ce8685803"
   },
   "multilingual_cases.json": {
    "candidate": "p17-20261105-multilingual.json",
-   "candidate_sha256": "69b13ed4ae0a46e8674df23d2f31605220ae85054079c6e95b4eac0871651a6c",
+   "candidate_sha256": "e656992a352632da392e3ed78af18c56190696c413ffd818e9d778da213981b5",
    "baseline": "p16-20261105-multilingual.json",
-   "baseline_sha256": "641f2f2e373f774b25184bc87eb3439fe3ebd680003be8115fc836dc0af08bb5"
+   "baseline_sha256": "8f2ea18b34e0ca4d3ee74916570a761164a0587435e13d28a1db263c907e928d"
   }
  }
 }

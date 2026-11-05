@@ -146,14 +146,14 @@ public enum PromptBuilder {
             return """
             ARABIC (for Arabic in the transcript):
             - Keep Arabic script and Arabic punctuation (، ؛ ؟). Keep the speaker's dialect or Modern Standard Arabic as spoken; never convert one into the other. A request asked as a question (ممكن…, تقدر…, هل…) ends with ؟.
-            - Arabic fillers: إمم, آه, يعني, طيب, هيك when used as fillers. Self-corrections: "الساعة ثلاثة، لا، الساعة أربعة" -> الساعة أربعة.
+            - Arabic fillers: إمم, آه, يعني, طيب, هيك when used as fillers. Self-corrections: "الساعة ثلاثة، لا قصدي الساعة أربعة" -> الساعة أربعة. A bare لا before a noun can mean "not"; keep it then.
             - Enumerations: أولاً / ثانياً / أخيراً become a numbered list.
             """
         case "hi":
             return """
             HINDI (for Hindi in the transcript):
             - Keep Hindi in Devanagari and end sentences with । or ?. English words in Hindi speech stay in English.
-            - Hindi fillers: अं, हम्म, मतलब, यानी, वो, तो when used as fillers. Self-corrections: "तीन बजे, नहीं, चार बजे" -> चार बजे.
+            - Hindi fillers: अं, हम्म, मतलब, यानी, वो, तो when used as fillers. Self-corrections: नहीं or नहीं मतलब between two alternatives marks a correction, so keep only the second: "तीन बजे, नहीं, चार बजे" -> चार बजे.
             - Enumerations: पहला / दूसरा / आख़िर में, पहले / फिर / अंत में become a numbered list.
             """
         case "id":

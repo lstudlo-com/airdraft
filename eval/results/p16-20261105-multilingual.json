@@ -8,12 +8,12 @@
     "Context/AppFamily.swift": "368362c7ae788a7d41d18c320fe4b6fc7c77a6bbfa9f8b3f960201d8f08fc121",
     "Dictionary/DictionaryPostProcessor.swift": "20e9c848bbb978f8b13be33617e5a4ce0a558c76c10a94eea80dac1514d3d244"
   },
-  "cases_sha256": "0ac145d05b4baded8b0dd5274a2aa16cd382a58a665db2be285283e5c3a093be",
+  "cases_sha256": "922e98585c680ee4af5f425705c19673d834e71f4db725435677ea074367a759",
   "cli_sha256": "1c179cffbac9c6431fd83d718771732d39a68e7179f40e1ef8d7a7a99c0eb643",
   "cases": "multilingual_cases.json",
   "model": "qwen/qwen3.8-27b",
   "runs": 3,
-  "total": 80,
+  "total": 83,
   "max": 108,
   "results": [
     {
@@ -24,21 +24,21 @@
           "returncode": 0,
           "ok": true,
           "text": "¿Puedes revisar el pull request antes de las cinco?",
-          "seconds": 4.64,
+          "seconds": 23.18,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "¿Puedes revisar el pull request antes de las cinco?",
-          "seconds": 1.82,
+          "seconds": 6.06,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "¿Puedes revisar el pull request antes de las cinco?",
-          "seconds": 1.79,
+          "seconds": 17.65,
           "stderr": ""
         }
       ]
@@ -51,21 +51,21 @@
           "returncode": 0,
           "ok": true,
           "text": "Voy a usar Claude Code para revisar el repositorio.",
-          "seconds": 5.21,
+          "seconds": 21.67,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Voy a usar Claude Code para revisar el repositorio.",
-          "seconds": 2.24,
+          "seconds": 7.55,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Voy a usar Claude Code para revisar el repositorio.",
-          "seconds": 2.43,
+          "seconds": 13.44,
           "stderr": ""
         }
       ]
@@ -77,22 +77,22 @@
         {
           "returncode": 0,
           "ok": true,
+          "text": "La reunión es el miércoles a las 10.",
+          "seconds": 7.18,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
           "text": "La reunión es el miércoles a las 10",
-          "seconds": 1.7,
+          "seconds": 9.47,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
-          "text": "La reunión es el miércoles a las 10.",
-          "seconds": 2.85,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": true,
-          "text": "La reunión es el miércoles a las 10.",
-          "seconds": 2.98,
+          "text": "La reunión es el miércoles a las 10",
+          "seconds": 10.57,
           "stderr": ""
         }
       ]
@@ -105,21 +105,21 @@
           "returncode": 0,
           "ok": true,
           "text": "Mañana tengo un meeting con el team para revisar el deployment",
-          "seconds": 3.33,
+          "seconds": 9.47,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Mañana tengo un meeting con el team para revisar el deployment",
-          "seconds": 14.07,
+          "seconds": 25.48,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Mañana tengo un meeting con el team para revisar el deployment",
-          "seconds": 3.59,
+          "seconds": 21.13,
           "stderr": ""
         }
       ]
@@ -131,22 +131,22 @@
         {
           "returncode": 0,
           "ok": true,
-          "text": "Necesito tres cosas:\n\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
-          "seconds": 8.1,
+          "text": "Necesito tres cosas:\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
+          "seconds": 28.17,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Necesito tres cosas:\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
+          "seconds": 14.34,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Necesito tres cosas:\n\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
-          "seconds": 5.14,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": true,
-          "text": "Necesito tres cosas:\n\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
-          "seconds": 4.74,
+          "seconds": 31.74,
           "stderr": ""
         }
       ]
@@ -159,21 +159,21 @@
           "returncode": 0,
           "ok": true,
           "text": "¿Cómo se dice \"gracias\" en inglés?",
-          "seconds": 5.36,
+          "seconds": 26.34,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "¿Cómo se dice \"gracias\" en inglés?",
-          "seconds": 12.26,
+          "seconds": 20.52,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "¿Cómo se dice \"gracias\" en inglés?",
-          "seconds": 2.19,
+          "seconds": 9.02,
           "stderr": ""
         }
       ]
@@ -186,21 +186,21 @@
           "returncode": 0,
           "ok": true,
           "text": "明日の会議は10時からです",
-          "seconds": 4.87,
+          "seconds": 17.52,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "明日の会議は10時からです",
-          "seconds": 2.69,
+          "seconds": 15.65,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "明日の会議は10時からです",
-          "seconds": 2.46,
+          "seconds": 8.53,
           "stderr": ""
         }
       ]
@@ -212,22 +212,22 @@
         {
           "returncode": 0,
           "ok": true,
-          "text": "あの Claude Code でこのバグを直してください",
-          "seconds": 3.54,
+          "text": "Claude Code でこのバグを直してください",
+          "seconds": 7.59,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "あの Claude Code でこのバグを直してください",
-          "seconds": 3.26,
+          "seconds": 18.76,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
-          "text": "Claude Codeでこのバグを直してください",
-          "seconds": 13.16,
+          "text": "あの Claude Code でこのバグを直してください",
+          "seconds": 7.04,
           "stderr": ""
         }
       ]
@@ -239,22 +239,22 @@
         {
           "returncode": 0,
           "ok": true,
-          "text": "1. 資料を作る\n2. 部長に送る\n3. 会議室を予約する",
-          "seconds": 3.73,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": true,
           "text": "1. まず資料を作って\n2. 次に部長に送って\n3. 最後に会議室を予約します",
-          "seconds": 5.16,
+          "seconds": 10.6,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "1. まず資料を作る\n2. 次に部長に送る\n3. 最後に会議室を予約する",
-          "seconds": 5.38,
+          "seconds": 11.66,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. 資料を作る\n2. 部長に送る\n3. 会議室を予約する",
+          "seconds": 10.43,
           "stderr": ""
         }
       ]
@@ -267,21 +267,21 @@
           "returncode": 0,
           "ok": true,
           "text": "来週の広告の効果を確認しましょう。",
-          "seconds": 3.52,
+          "seconds": 6.88,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "来週の広告の効果を確認しましょう。",
-          "seconds": 3.56,
+          "seconds": 14.54,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "来週の広告の効果を確認しましょう。",
-          "seconds": 2.35,
+          "seconds": 8.12,
           "stderr": ""
         }
       ]
@@ -293,22 +293,22 @@
         {
           "returncode": 0,
           "ok": true,
-          "text": "So can you send the draft to Maya tomorrow?",
-          "seconds": 4.95,
+          "text": "Can you send the draft to Maya tomorrow?",
+          "seconds": 15.76,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "So can you send the draft to Maya tomorrow?",
-          "seconds": 4.47,
+          "seconds": 20.8,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "So can you send the draft to Maya tomorrow?",
-          "seconds": 4.58,
+          "seconds": 9.71,
           "stderr": ""
         }
       ]
@@ -321,21 +321,21 @@
           "returncode": 0,
           "ok": true,
           "text": "Open Claude Code and run the tests.",
-          "seconds": 4.18,
+          "seconds": 8.29,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Open Claude Code and run the tests.",
-          "seconds": 2.42,
+          "seconds": 16.83,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Open Claude Code and run the tests.",
-          "seconds": 1.34,
+          "seconds": 7.87,
           "stderr": ""
         }
       ]
@@ -348,21 +348,21 @@
           "returncode": 0,
           "ok": true,
           "text": "Let's meet on Wednesday at 10",
-          "seconds": 4.02,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": true,
-          "text": "Let's meet on Wednesday at 10.",
-          "seconds": 4.01,
+          "seconds": 6.66,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Let's meet on Wednesday at 10",
-          "seconds": 3.66,
+          "seconds": 36.47,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Let's meet on Wednesday at 10",
+          "seconds": 6.41,
           "stderr": ""
         }
       ]
@@ -374,22 +374,22 @@
         {
           "returncode": 0,
           "ok": true,
-          "text": "1. Update the README.\n2. Fix the login bug.\n3. Tag the release.",
-          "seconds": 13.51,
+          "text": "1. First, update the README.\n2. Then, fix the login bug.\n3. Finally, tag the release.",
+          "seconds": 23.73,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "1. Update the README.\n2. Fix the login bug.\n3. Tag the release.",
-          "seconds": 6.86,
+          "seconds": 7.03,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "1. Update the README.\n2. Fix the login bug.\n3. Tag the release.",
-          "seconds": 7.66,
+          "seconds": 9.68,
           "stderr": ""
         }
       ]
@@ -402,21 +402,21 @@
           "returncode": 0,
           "ok": true,
           "text": "The build is failing on CI. We should check it.",
-          "seconds": 4.72,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": true,
-          "text": "The build is failing on CI. We should check it",
-          "seconds": 4.54,
+          "seconds": 7.17,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "The build is failing on CI. We should check it.",
-          "seconds": 4.69,
+          "seconds": 16.91,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "The build is failing on CI. We should check it",
+          "seconds": 4.89,
           "stderr": ""
         }
       ]
@@ -429,21 +429,21 @@
           "returncode": 0,
           "ok": true,
           "text": "내일 회의는 10시에 시작해요",
-          "seconds": 4.3,
+          "seconds": 4.54,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "내일 회의는 10시에 시작해요",
-          "seconds": 4.11,
+          "seconds": 4.68,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "내일 회의는 10시에 시작해요",
-          "seconds": 4.65,
+          "seconds": 4.81,
           "stderr": ""
         }
       ]
@@ -456,21 +456,21 @@
           "returncode": 0,
           "ok": true,
           "text": "회의는 수요일 오후 3시예요",
-          "seconds": 4.32,
+          "seconds": 5.01,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "회의는 수요일 오후 3시예요",
-          "seconds": 3.65,
+          "seconds": 16.47,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "회의는 수요일 오후 3시예요",
-          "seconds": 4.06,
+          "seconds": 5.08,
           "stderr": ""
         }
       ]
@@ -483,21 +483,21 @@
           "returncode": 0,
           "ok": true,
           "text": "Claude Code로 이 버그 좀 고쳐 줘",
-          "seconds": 4.65,
+          "seconds": 5.7,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Claude Code로 이 버그 좀 고쳐 줘",
-          "seconds": 2.1,
+          "seconds": 13.43,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Claude Code로 이 버그 좀 고쳐 줘",
-          "seconds": 2.84,
+          "seconds": 2.68,
           "stderr": ""
         }
       ]
@@ -510,21 +510,21 @@
           "returncode": 0,
           "ok": false,
           "text": "Du coup, tu peux envoyer le rapport à Julie demain",
-          "seconds": 4.48,
+          "seconds": 4.66,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "Du coup, tu peux envoyer le rapport à Julie demain",
-          "seconds": 4.6,
+          "seconds": 4.65,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "Du coup, tu peux envoyer le rapport à Julie demain",
-          "seconds": 4.4,
+          "seconds": 4.67,
           "stderr": ""
         }
       ]
@@ -537,21 +537,21 @@
           "returncode": 0,
           "ok": true,
           "text": "La réunion est mercredi à 10 h",
-          "seconds": 3.97,
+          "seconds": 4.79,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La réunion est mercredi à 10 h.",
+          "seconds": 15.69,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "La réunion est mercredi à 10 h",
-          "seconds": 3.96,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": true,
-          "text": "La réunion est mercredi à 10 h",
-          "seconds": 4.6,
+          "seconds": 4.51,
           "stderr": ""
         }
       ]
@@ -564,21 +564,21 @@
           "returncode": 0,
           "ok": false,
           "text": "Premièrement, acheter du pain.\nEnsuite, appeler Marc.\nEnfin, envoyer le devis.",
-          "seconds": 5.63,
+          "seconds": 6.26,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "Premièrement, acheter du pain.\nEnsuite, appeler Marc.\nEnfin, envoyer le devis.",
-          "seconds": 6.6,
+          "seconds": 6.44,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "Premièrement, acheter du pain.\nEnsuite, appeler Marc.\nEnfin, envoyer le devis.",
-          "seconds": 6.27,
+          "seconds": 19.33,
           "stderr": ""
         }
       ]
@@ -591,21 +591,21 @@
           "returncode": 0,
           "ok": true,
           "text": "Kannst du den Pull Request bis morgen prüfen?",
-          "seconds": 4.54,
+          "seconds": 4.72,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Kannst du den Pull Request bis morgen prüfen?",
-          "seconds": 4.38,
+          "seconds": 4.69,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Kannst du den Pull Request bis morgen prüfen?",
-          "seconds": 4.57,
+          "seconds": 4.64,
           "stderr": ""
         }
       ]
@@ -617,22 +617,22 @@
         {
           "returncode": 0,
           "ok": true,
-          "text": "Das Meeting ist am Mittwoch um 10 Uhr.",
-          "seconds": 4.3,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": true,
           "text": "Das Meeting ist am Mittwoch um 10:00.",
-          "seconds": 4.27,
+          "seconds": 4.82,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Das Meeting ist am Mittwoch um 10 Uhr",
-          "seconds": 4.26,
+          "seconds": 17.7,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Das Meeting ist am Mittwoch um 10.",
+          "seconds": 4.86,
           "stderr": ""
         }
       ]
@@ -645,21 +645,21 @@
           "returncode": 0,
           "ok": true,
           "text": "Hallo,\n\nich habe die Rechnung und den Vertrag gestern geschickt.\n\nViele Grüße",
-          "seconds": 4.65,
+          "seconds": 5.17,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Hallo,\n\nich habe die Rechnung und den Vertrag gestern geschickt.\n\nViele Grüße",
-          "seconds": 5.36,
+          "seconds": 16.49,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Ich habe die Rechnung und den Vertrag gestern geschickt.",
-          "seconds": 4.34,
+          "seconds": 4.22,
           "stderr": ""
         }
       ]
@@ -672,21 +672,21 @@
           "returncode": 0,
           "ok": false,
           "text": "Puoi mandare il file a Luca entro stasera",
-          "seconds": 4.34,
+          "seconds": 5.1,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "Puoi mandare il file a Luca entro stasera",
-          "seconds": 4.36,
+          "seconds": 5.93,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "Puoi mandare il file a Luca entro stasera",
-          "seconds": 4.36,
+          "seconds": 5.13,
           "stderr": ""
         }
       ]
@@ -699,48 +699,48 @@
           "returncode": 0,
           "ok": true,
           "text": "Ci vediamo mercoledì alle 10",
-          "seconds": 3.94,
+          "seconds": 15.22,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Ci vediamo mercoledì alle 10",
-          "seconds": 3.7,
+          "seconds": 3.98,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Ci vediamo mercoledì alle 10",
-          "seconds": 3.37,
+          "seconds": 3.98,
           "stderr": ""
         }
       ]
     },
     {
       "id": "pt-filler-question",
-      "passed": 3,
+      "passed": 2,
       "runs": [
         {
           "returncode": 0,
           "ok": true,
           "text": "Então, tipo, você pode revisar o código hoje?",
-          "seconds": 4.21,
+          "seconds": 4.39,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Então, tipo, você pode revisar o código hoje?",
-          "seconds": 4.28,
+          "seconds": 4.41,
           "stderr": ""
         },
         {
           "returncode": 0,
-          "ok": true,
-          "text": "Então, tipo, você pode revisar o código hoje?",
-          "seconds": 4.17,
+          "ok": false,
+          "text": "Então, tipo, você pode revisar o código hoje",
+          "seconds": 4.4,
           "stderr": ""
         }
       ]
@@ -753,21 +753,21 @@
           "returncode": 0,
           "ok": true,
           "text": "A reunião é na quarta às 10h",
-          "seconds": 4.02,
+          "seconds": 14.32,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "A reunião é na quarta às 10h",
-          "seconds": 4.57,
+          "seconds": 4.58,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "A reunião é na quarta às 10h",
-          "seconds": 4.18,
+          "seconds": 4.53,
           "stderr": ""
         }
       ]
@@ -779,22 +779,22 @@
         {
           "returncode": 0,
           "ok": false,
+          "text": "Ну, можешь проверить код до завтра",
+          "seconds": 4.38,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Ну, вот, можешь проверить код до завтра",
+          "seconds": 4.93,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
           "text": "Ну, вот можешь проверить код до завтра",
-          "seconds": 4.12,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": false,
-          "text": "Ну, вот, можешь проверить код до завтра",
-          "seconds": 4.17,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": false,
-          "text": "Ну, вот, можешь проверить код до завтра",
-          "seconds": 3.99,
+          "seconds": 3.84,
           "stderr": ""
         }
       ]
@@ -807,21 +807,21 @@
           "returncode": 0,
           "ok": true,
           "text": "Встреча в среду в 10:00",
-          "seconds": 4.02,
-          "stderr": ""
-        },
-        {
-          "returncode": 0,
-          "ok": false,
-          "text": "Встреча во вторник, нет, в среду в 10:00",
-          "seconds": 5.06,
+          "seconds": 4.91,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Встреча в среду в 10:00",
-          "seconds": 4.5,
+          "seconds": 16.17,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Встреча во вторник? Нет, в среду в 10:00.",
+          "seconds": 6.4,
           "stderr": ""
         }
       ]
@@ -834,48 +834,48 @@
           "returncode": 0,
           "ok": false,
           "text": "يعني ممكن ترسل الملف لأحمد بكرة",
-          "seconds": 4.58,
+          "seconds": 5.02,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "يعني ممكن ترسل الملف لأحمد بكرة",
-          "seconds": 4.5,
+          "seconds": 5.36,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "يعني ممكن ترسل الملف لأحمد بكرة",
-          "seconds": 4.63,
+          "seconds": 5.32,
           "stderr": ""
         }
       ]
     },
     {
       "id": "ar-self-correction",
-      "passed": 0,
+      "passed": 3,
       "runs": [
         {
           "returncode": 0,
-          "ok": false,
-          "text": "الاجتماع يوم الثلاثاء لا يوم الأربعاء الساعة 10",
-          "seconds": 5.07,
+          "ok": true,
+          "text": "الاجتماع يوم الأربعاء الساعة 10",
+          "seconds": 16.81,
           "stderr": ""
         },
         {
           "returncode": 0,
-          "ok": false,
-          "text": "الاجتماع يوم الثلاثاء لا يوم الأربعاء الساعة 10",
-          "seconds": 4.81,
+          "ok": true,
+          "text": "الاجتماع يوم الأربعاء الساعة 10",
+          "seconds": 5.51,
           "stderr": ""
         },
         {
           "returncode": 0,
-          "ok": false,
-          "text": "الاجتماع يوم الثلاثاء لا يوم الأربعاء الساعة 10",
-          "seconds": 4.79,
+          "ok": true,
+          "text": "الاجتماع يوم الأربعاء الساعة 10",
+          "seconds": 4.29,
           "stderr": ""
         }
       ]
@@ -888,48 +888,48 @@
           "returncode": 0,
           "ok": false,
           "text": "मतलब तुम कल तक रिपोर्ट भेज सकते हो क्या",
-          "seconds": 5.44,
+          "seconds": 5.74,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "मतलब तुम कल तक रिपोर्ट भेज सकते हो क्या",
-          "seconds": 5.16,
+          "seconds": 7.15,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "मतलब तुम कल तक रिपोर्ट भेज सकते हो क्या",
-          "seconds": 5.19,
+          "seconds": 6.14,
           "stderr": ""
         }
       ]
     },
     {
       "id": "hi-self-correction",
-      "passed": 0,
+      "passed": 1,
       "runs": [
         {
           "returncode": 0,
-          "ok": false,
-          "text": "मीटिंग मंगलवार को है नहीं मतलब बुधवार को",
-          "seconds": 5.2,
+          "ok": true,
+          "text": "मीटिंग बुधवार को है",
+          "seconds": 16.15,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
-          "text": "मीटिंग मंगलवार को नहीं, बुधवार को है।",
-          "seconds": 15.33,
+          "text": "मीटिंग मंगलवार को है, नहीं मतलब बुधवार को",
+          "seconds": 5.72,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
-          "text": "मीटिंग मंगलवार को है नहीं मतलब बुधवार को",
-          "seconds": 5.54,
+          "text": "मीटिंग मंगलवार को है, नहीं मतलब बुधवार को",
+          "seconds": 6.6,
           "stderr": ""
         }
       ]
@@ -942,21 +942,21 @@
           "returncode": 0,
           "ok": false,
           "text": "Jadi kamu bisa kirim laporannya ke Budi besok",
-          "seconds": 5.17,
+          "seconds": 5.13,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "Jadi kamu bisa kirim laporannya ke Budi besok",
-          "seconds": 4.6,
+          "seconds": 4.97,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": false,
           "text": "Jadi kamu bisa kirim laporannya ke Budi besok",
-          "seconds": 4.67,
+          "seconds": 4.13,
           "stderr": ""
         }
       ]
@@ -968,22 +968,22 @@
         {
           "returncode": 0,
           "ok": true,
-          "text": "Rapatnya hari Rabu jam sepuluh",
-          "seconds": 4.69,
+          "text": "Rapatnya hari Rabu jam 10.",
+          "seconds": 3.69,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "Rapatnya hari Rabu jam 10",
-          "seconds": 4.0,
+          "seconds": 3.55,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
-          "text": "Rapatnya hari Rabu jam 10.",
-          "seconds": 14.79,
+          "text": "Rapatnya hari Rabu jam 10",
+          "seconds": 3.56,
           "stderr": ""
         }
       ]

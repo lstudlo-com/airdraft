@@ -3,13 +3,13 @@
   "prompt_version": "p17",
   "default_rules_sha256": "88b87075b85b25ae4055367505766abdebc24e6dc95ecd7078fa123cb1f839fa",
   "assembly_sources": {
-    "LLM/PromptBuilder.swift": "51d4bf9b877f9a608bfe9c3ccc4e257039062b3d0345b0748f6f038466c888a0",
+    "LLM/PromptBuilder.swift": "ec1953b5d94416cd2cab732ae9750a1b5dfd135776302f5bd2050086b72db0e9",
     "LLM/RefinementProfile.swift": "dfaebdedf540487bd2a89e1f11f1997b7070688ed0b000c6af0d97d8cfa43d7d",
     "Context/AppFamily.swift": "368362c7ae788a7d41d18c320fe4b6fc7c77a6bbfa9f8b3f960201d8f08fc121",
     "Dictionary/DictionaryPostProcessor.swift": "20e9c848bbb978f8b13be33617e5a4ce0a558c76c10a94eea80dac1514d3d244"
   },
   "cases_sha256": "b7522ba6d30b22feea95e4a6e513b7f3e60223e2c797b71d5eecd65dacc8c97d",
-  "cli_sha256": "7e6535d5cc12ec8c56435342a7aecb231536ca787fae909dd82bc442f0869a4e",
+  "cli_sha256": "46511f17878462464e837afedf469a59a0a40400a902394e802859e91b9bf3cd",
   "cases": "context_correction_cases.json",
   "model": "qwen/qwen3.8-27b",
   "runs": 3,
@@ -24,21 +24,21 @@
           "returncode": 0,
           "ok": true,
           "text": "我的部屬明天會提交報告，請提醒他確認日期。",
-          "seconds": 43.45,
+          "seconds": 9.18,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "我的部屬明天會提交報告，請提醒他確認日期。",
-          "seconds": 6.8,
+          "seconds": 18.59,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "我的部屬明天會提交報告，請提醒他確認日期。",
-          "seconds": 7.42,
+          "seconds": 18.9,
           "stderr": ""
         }
       ]
@@ -51,21 +51,21 @@
           "returncode": 0,
           "ok": true,
           "text": "這個瀏覽器畫面用 WebKit，設定視窗繼續用 AppKit。",
-          "seconds": 18.02,
+          "seconds": 18.74,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "這個瀏覽器畫面用 WebKit，設定視窗繼續用 AppKit。",
-          "seconds": 7.9,
+          "seconds": 14.36,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "這個瀏覽器畫面用 WebKit，設定視窗繼續用 AppKit。",
-          "seconds": 6.85,
+          "seconds": 16.48,
           "stderr": ""
         }
       ]
@@ -78,21 +78,21 @@
           "returncode": 0,
           "ok": true,
           "text": "資料庫連線逾時之後，先保留使用者還沒儲存的內容。",
-          "seconds": 9.58,
+          "seconds": 10.38,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "資料庫連線逾時之後，先保留使用者還沒儲存的內容。",
-          "seconds": 9.56,
+          "seconds": 14.43,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "資料庫連線逾時之後，先保留使用者還沒儲存的內容。",
-          "seconds": 22.4,
+          "seconds": 28.32,
           "stderr": ""
         }
       ]
@@ -105,21 +105,21 @@
           "returncode": 0,
           "ok": true,
           "text": "把變數 swift_ui 設成 true，legacy_mode 先不要動。",
-          "seconds": 8.63,
+          "seconds": 26.46,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "把變數 swift_ui 設成 true，legacy_mode 先不要動。",
-          "seconds": 21.59,
+          "seconds": 17.94,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "把變數 swift_ui 設成 true，legacy_mode 先不要動。",
-          "seconds": 10.64,
+          "seconds": 12.96,
           "stderr": ""
         }
       ]
@@ -132,21 +132,21 @@
           "returncode": 0,
           "ok": true,
           "text": "git switch -c fix/login",
-          "seconds": 6.17,
+          "seconds": 8.13,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "git switch -c fix/login",
-          "seconds": 5.95,
+          "seconds": 8.98,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "git switch -c fix/login",
-          "seconds": 6.18,
+          "seconds": 19.61,
           "stderr": ""
         }
       ]
@@ -159,21 +159,21 @@
           "returncode": 0,
           "ok": true,
           "text": "請保留 swift UI.txt 這個檔名，不要更名。",
-          "seconds": 6.93,
+          "seconds": 11.42,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "請保留 swift UI.txt 這個檔名，不要更名。",
-          "seconds": 20.25,
+          "seconds": 21.69,
           "stderr": ""
         },
         {
           "returncode": 0,
           "ok": true,
           "text": "請保留 swift UI.txt 這個檔名，不要更名。",
-          "seconds": 9.31,
+          "seconds": 18.47,
           "stderr": ""
         }
       ]
