@@ -4,7 +4,7 @@ import Foundation
 /// Assembles the system + user messages. Static sections come first so a
 /// local server can reuse its KV-cache prefix across calls.
 public enum PromptBuilder {
-    public static let version = "p16"
+    public static let version = "p17"
 
     public static let defaultBaseRules = """
     You are a dictation post-processor. The input is what a speech recogniser heard; the output must be what the speaker meant to type.
@@ -29,9 +29,9 @@ public enum PromptBuilder {
 
     CLEANUP:
     - Add punctuation and casing following the conventions of each language in the transcript.
-    - Remove fillers (um, uh, like, you know, and the fillers of the speaker's language), false starts and accidental repetition. Keep intentional repetition and meaningful discourse markers.
-    - Resolve explicit self-corrections: keep only the replacement when the speaker clearly corrected themselves ("Tuesday, no, Wednesday" -> Wednesday).
-    - When the speaker enumerates items (first / then / finally), format a numbered list, one item per line.
+    - Remove fillers in every language of the transcript, false starts and accidental repetition. Keep intentional repetition and meaningful discourse markers. The language notes below list each language's common fillers.
+    - Resolve explicit self-corrections: keep only the replacement when the speaker clearly corrected themselves.
+    - When the speaker enumerates items with ordinal or sequence words, format a numbered list, one item per line.
     - Split into paragraphs only when the speech moves to a clearly different topic.
 
     OUTPUT:
@@ -41,13 +41,14 @@ public enum PromptBuilder {
     """
 
     /// SHA-256 of the default base rules earlier versions shipped (p5, p9, p13,
-    /// p15). profiles.json stores the rules text itself, so an unedited copy of an
+    /// p15, p16). profiles.json stores the rules text itself, so an unedited copy of an
     /// old default loads as the current default; edited rules stay as written.
     static let retiredDefaultBaseRulesDigests: Set<String> = [
         "ad42fef09864b2eb555a63847ee9b95f4bf719563b662464bfa072bc5887249b",
         "07c3f85828bb81e30f1099fb33270cffd07c40de70ece8c7d93dc0ec0b3d90ba",
         "d247bdebdb99e53658f49366566debaf98b84040e63c19e13c9375d67a089c11",
         "53d3d743f2f2cb049c6a34437dc4eef71994d708ab0674bb1a8c30b7ad84a6ae",
+        "a13d64aa7a17355bbc468806e0d3ba6dd63809decf5dc5bc64d16e33e95ad1a4",
     ]
 
     public static func isRetiredDefault(_ rules: String) -> Bool {
@@ -57,7 +58,10 @@ public enum PromptBuilder {
 
     /// Writing rules for one language, added after the base rules when the
     /// recording's speech language (or, under Auto, one of the user's languages)
-    /// is that language. Assembled in code like OUTPUT LANGUAGE, so edited base
+    /// is that language: its fillers, self-corrections, enumerations and
+    /// punctuation in its own words (AD-147). The base rules name no language's
+    /// fillers or examples. Each note has cases in eval/multilingual_cases.json.
+    /// Assembled in code like OUTPUT LANGUAGE, so edited base
     /// rules keep them; a user's copy of older default rules may repeat them.
     static func languageNotes(for language: String) -> String? {
         switch language {
@@ -88,6 +92,76 @@ public enum PromptBuilder {
             - Use Spanish accents (más, qué, está) and opening and closing marks for questions and exclamations (¿…?, ¡…!).
             - Spanish fillers: eh, este, o sea, pues, bueno, vale when used as fillers. Self-corrections: "el martes, no, el miércoles" -> el miércoles.
             - Enumerations: primero / segundo / por último become a numbered list.
+            """
+        case "en":
+            return """
+            ENGLISH (for English in the transcript):
+            - English fillers: um, uh, er, like, you know, I mean, sort of, kind of when used as fillers. Self-corrections: "at three, no, at four" -> at four; "send it to Anna, sorry, Maya" -> send it to Maya.
+            - Enumerations: first / second / then / finally become a numbered list.
+            - Capitalise sentence starts, the pronoun I and proper names.
+            """
+        case "ko":
+            return """
+            KOREAN (for Korean in the transcript):
+            - Keep Korean in Hangul with standard word spacing (띄어쓰기). Never rewrite Korean as Chinese characters or as English.
+            - Korean fillers: 음, 어, 그, 저, 뭐, 이제, 약간, 그러니까 when used as fillers. Self-corrections: "세 시, 아니 네 시" -> 네 시.
+            - Enumerations: 첫째 / 둘째 / 마지막으로, 먼저 / 그다음에 / 마지막으로 become a numbered list.
+            """
+        case "fr":
+            return """
+            FRENCH (for French in the transcript):
+            - Use French accents (é, è, à, ç, ê) and French spacing: a space before ? ! : ;. A request asked as a question (tu peux…, vous pourriez…, est-ce que…) ends with ?.
+            - French fillers: euh, ben, bah, bon, du coup, en fait, genre, tu vois when used as fillers. Self-corrections: "à trois heures, non, à quatre heures" -> à quatre heures.
+            - Enumerations: premièrement / deuxièmement / enfin, d'abord / ensuite / enfin become a numbered list.
+            """
+        case "de":
+            return """
+            GERMAN (for German in the transcript):
+            - Capitalise every noun and use ä, ö, ü and ß.
+            - German fillers: äh, ähm, also, halt, eben, sozusagen, quasi when used as fillers. Self-corrections: "um drei, nein, um vier" -> um vier.
+            - Enumerations: erstens / zweitens / zuletzt, zuerst / dann / schließlich become a numbered list.
+            """
+        case "it":
+            return """
+            ITALIAN (for Italian in the transcript):
+            - Use Italian accents (è, perché, più, già). A request asked as a question (puoi…, potresti…) ends with ?.
+            - Italian fillers: ehm, cioè, tipo, allora, insomma, diciamo, praticamente when used as fillers. Self-corrections: "alle tre, no, alle quattro" -> alle quattro.
+            - Enumerations: primo / secondo / infine, prima / poi / alla fine become a numbered list.
+            """
+        case "pt":
+            return """
+            PORTUGUESE (for Portuguese in the transcript):
+            - Use Portuguese accents (é, ã, ç, você) and keep the speaker's variety, Brazilian or European.
+            - Portuguese fillers: hum, hã, tipo, então, né, aí, quer dizer, pronto when used as fillers. Self-corrections: "às três, não, às quatro" -> às quatro.
+            - Enumerations: primeiro / segundo / por fim, primeiro / depois / por último become a numbered list.
+            """
+        case "ru":
+            return """
+            RUSSIAN (for Russian in the transcript):
+            - Keep Russian in Cyrillic, with commas before subordinate clauses (что, чтобы, который). A request asked as a question (можешь…, сможешь…) ends with ?.
+            - Russian fillers: э, ну, вот, как бы, типа, это самое, значит when used as fillers. Self-corrections: "в три, нет, в четыре" -> в четыре.
+            - Enumerations: во-первых / во-вторых / и наконец, сначала / потом / в конце become a numbered list.
+            """
+        case "ar":
+            return """
+            ARABIC (for Arabic in the transcript):
+            - Keep Arabic script and Arabic punctuation (، ؛ ؟). Keep the speaker's dialect or Modern Standard Arabic as spoken; never convert one into the other. A request asked as a question (ممكن…, تقدر…, هل…) ends with ؟.
+            - Arabic fillers: إمم, آه, يعني, طيب, هيك when used as fillers. Self-corrections: "الساعة ثلاثة، لا، الساعة أربعة" -> الساعة أربعة.
+            - Enumerations: أولاً / ثانياً / أخيراً become a numbered list.
+            """
+        case "hi":
+            return """
+            HINDI (for Hindi in the transcript):
+            - Keep Hindi in Devanagari and end sentences with । or ?. English words in Hindi speech stay in English.
+            - Hindi fillers: अं, हम्म, मतलब, यानी, वो, तो when used as fillers. Self-corrections: "तीन बजे, नहीं, चार बजे" -> चार बजे.
+            - Enumerations: पहला / दूसरा / आख़िर में, पहले / फिर / अंत में become a numbered list.
+            """
+        case "id":
+            return """
+            INDONESIAN (for Indonesian in the transcript):
+            - Use standard Indonesian spelling and capitalisation (nama orang, hari Senin). A request asked as a question (bisa…, boleh…, apakah…) ends with ?.
+            - Indonesian fillers: eh, em, anu, gitu, kayak, jadi, terus, nah when used as fillers. Self-corrections: "jam tiga, eh bukan, jam empat" -> jam empat.
+            - Enumerations: pertama / kedua / terakhir, pertama / lalu / terakhir become a numbered list.
             """
         default:
             return nil

@@ -1135,8 +1135,13 @@ and Local releases below.
   sentences: small models returned them instead of the new speech, and each copy
   fed the next prompt. Recent dictations include delivered ones the delivery tail
   has not saved yet; read saved rows off the main actor. The OUTPUT LANGUAGE rule is assembled in `PromptBuilder`
-  code so edited base rules keep it. Base rules are language-neutral; per-language
-  writing notes (Chinese, Japanese, Spanish) are assembled in code from
+  code so edited base rules keep it. Base rules are English instructions with no
+  language's fillers or examples (AD-147); each language's fillers,
+  self-corrections, enumerations and punctuation live in its writing note
+  (`PromptBuilder.languageNotes`: English, Chinese, Japanese, Korean, Spanish,
+  French, German, Italian, Portuguese, Russian, Arabic, Hindi, Indonesian), written
+  with that language's own words and covered by `multilingual_cases.json`; a new
+  note needs its cases. Notes are assembled in code from
   `ASRConfig.refinementLanguages` (the selected speech language, or the first three
   preferred languages under Auto), computed the same way for the warm-up prefix and
   the final request. An unedited copy of an older default loads as the current
@@ -1180,7 +1185,7 @@ and Local releases below.
   `@preconcurrency`. Test fixtures share mutable state through `Locked`.
 - Prompt changes bump `PromptBuilder.version` so history records stay comparable, and must be
   scored with `eval/run_correction_eval.py` on `correction_cases.json`, the held-out
-  `holdout_cases.json` and the Spanish, Japanese and English `multilingual_cases.json`
+  `holdout_cases.json` and `multilingual_cases.json` (every language with a writing note)
   (LM Studio running). Do not ship a prompt that loses a held-out or multilingual case.
   Clean profiles and coding destinations must still correct recognition errors,
   including technical-name spelling and word boundaries. Preserve valid words and

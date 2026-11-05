@@ -200,5 +200,374 @@
   "forbid": [
    "Tuesday"
   ]
+ },
+ {
+  "id": "en-list",
+  "language": "en",
+  "script": "auto",
+  "family": "document",
+  "app": "Notes",
+  "raw": "first update the readme then fix the login bug and finally tag the release",
+  "expect": [
+   "1.",
+   "2.",
+   "3.",
+   "login"
+  ],
+  "forbid": [
+   "First update"
+  ]
+ },
+ {
+  "id": "en-like-filler",
+  "language": "en",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "so like the build is uh failing on ci we should check it",
+  "expect": [
+   "CI"
+  ],
+  "forbid": [
+   " uh ",
+   "like the build"
+  ]
+ },
+ {
+  "id": "ko-filler",
+  "language": "ko",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "음 내일 회의는 어 열 시에 시작해요",
+  "expect": [
+   "내일 회의",
+   "시"
+  ],
+  "forbid": [
+   "음 내일",
+   "어 열",
+   "Tomorrow",
+   "明日"
+  ]
+ },
+ {
+  "id": "ko-self-correction",
+  "language": "ko",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "회의는 화요일 아니 수요일 오후 세 시예요",
+  "expect": [
+   "수요일"
+  ],
+  "forbid": [
+   "화요일",
+   "Wednesday"
+  ]
+ },
+ {
+  "id": "ko-product-name",
+  "language": "ko",
+  "script": "auto",
+  "family": "code",
+  "app": "Terminal",
+  "raw": "cloud code로 이 버그 좀 고쳐 줘",
+  "expect": [
+   "Claude Code",
+   "버그"
+  ],
+  "forbid": [
+   "Cloud Code",
+   "Fix"
+  ]
+ },
+ {
+  "id": "fr-filler-question",
+  "language": "fr",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "euh du coup tu peux envoyer le rapport à julie demain",
+  "expect": [
+   "Julie",
+   "?",
+   "rapport"
+  ],
+  "forbid": [
+   "Euh",
+   "euh",
+   "Can you"
+  ]
+ },
+ {
+  "id": "fr-self-correction",
+  "language": "fr",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "la réunion est mardi non pardon mercredi à dix heures",
+  "expect": [
+   "mercredi"
+  ],
+  "forbid": [
+   "mardi",
+   "Wednesday"
+  ]
+ },
+ {
+  "id": "fr-list",
+  "language": "fr",
+  "script": "auto",
+  "family": "document",
+  "app": "Notes",
+  "raw": "premièrement acheter du pain ensuite appeler marc et enfin envoyer le devis",
+  "expect": [
+   "1.",
+   "Marc",
+   "devis"
+  ],
+  "forbid": [
+   "bread",
+   "Call"
+  ]
+ },
+ {
+  "id": "de-filler-question",
+  "language": "de",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "ähm also kannst du den pull request bis morgen prüfen",
+  "expect": [
+   "?",
+   "morgen"
+  ],
+  "forbid": [
+   "ähm",
+   "Ähm",
+   "Can you"
+  ]
+ },
+ {
+  "id": "de-self-correction",
+  "language": "de",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "das meeting ist am dienstag nein am mittwoch um zehn",
+  "expect": [
+   "Mittwoch"
+  ],
+  "forbid": [
+   "Dienstag",
+   "Wednesday"
+  ]
+ },
+ {
+  "id": "de-nouns",
+  "language": "de",
+  "script": "auto",
+  "family": "email",
+  "app": "Mail",
+  "raw": "ich habe die rechnung und den vertrag gestern geschickt",
+  "expect": [
+   "Rechnung",
+   "Vertrag"
+  ],
+  "forbid": [
+   "invoice",
+   "rechnung"
+  ]
+ },
+ {
+  "id": "it-filler-question",
+  "language": "it",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "allora ehm puoi mandare il file a luca entro stasera",
+  "expect": [
+   "Luca",
+   "?"
+  ],
+  "forbid": [
+   "ehm",
+   "Ehm",
+   "Can you"
+  ]
+ },
+ {
+  "id": "it-self-correction",
+  "language": "it",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "ci vediamo martedì no mercoledì alle dieci",
+  "expect": [
+   "mercoledì"
+  ],
+  "forbid": [
+   "martedì",
+   "Wednesday"
+  ]
+ },
+ {
+  "id": "pt-filler-question",
+  "language": "pt",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "então tipo você pode revisar o código hoje",
+  "expect": [
+   "código",
+   "?"
+  ],
+  "forbid": [
+   "tipo você",
+   "Can you"
+  ]
+ },
+ {
+  "id": "pt-self-correction",
+  "language": "pt",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "a reunião é na terça não perdão na quarta às dez",
+  "expect": [
+   "quarta"
+  ],
+  "forbid": [
+   "terça",
+   "Wednesday"
+  ]
+ },
+ {
+  "id": "ru-filler-question",
+  "language": "ru",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "ну вот можешь проверить код до завтра",
+  "expect": [
+   "код",
+   "?"
+  ],
+  "forbid": [
+   "Ну вот",
+   "ну вот",
+   "Can you"
+  ]
+ },
+ {
+  "id": "ru-self-correction",
+  "language": "ru",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "встреча во вторник нет в среду в десять",
+  "expect": [
+   "сред"
+  ],
+  "forbid": [
+   "вторник",
+   "Wednesday"
+  ]
+ },
+ {
+  "id": "ar-filler-question",
+  "language": "ar",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "يعني ممكن ترسل الملف لأحمد بكرة",
+  "expect": [
+   "أحمد",
+   "؟"
+  ],
+  "forbid": [
+   "يعني",
+   "Can you"
+  ]
+ },
+ {
+  "id": "ar-self-correction",
+  "language": "ar",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "الاجتماع يوم الثلاثاء لا يوم الأربعاء الساعة عشرة",
+  "expect": [
+   "الأربعاء"
+  ],
+  "forbid": [
+   "الثلاثاء",
+   "Wednesday"
+  ]
+ },
+ {
+  "id": "hi-filler-question",
+  "language": "hi",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "मतलब तुम कल तक रिपोर्ट भेज सकते हो क्या",
+  "expect": [
+   "रिपोर्ट",
+   "?"
+  ],
+  "forbid": [
+   "मतलब",
+   "Can you"
+  ]
+ },
+ {
+  "id": "hi-self-correction",
+  "language": "hi",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "मीटिंग मंगलवार को है नहीं मतलब बुधवार को",
+  "expect": [
+   "बुधवार"
+  ],
+  "forbid": [
+   "मंगलवार",
+   "Wednesday"
+  ]
+ },
+ {
+  "id": "id-filler-question",
+  "language": "id",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "eh jadi kamu bisa kirim laporannya ke budi besok",
+  "expect": [
+   "Budi",
+   "?"
+  ],
+  "forbid": [
+   "Eh,",
+   "eh jadi",
+   "Can you"
+  ]
+ },
+ {
+  "id": "id-self-correction",
+  "language": "id",
+  "script": "auto",
+  "family": "workChat",
+  "app": "Slack",
+  "raw": "rapatnya hari selasa eh bukan hari rabu jam sepuluh",
+  "expect": [
+   "Rabu"
+  ],
+  "forbid": [
+   "Selasa",
+   "selasa",
+   "Wednesday"
+  ]
  }
 ]

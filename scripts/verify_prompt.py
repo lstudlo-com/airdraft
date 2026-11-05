@@ -7,7 +7,8 @@ import textwrap
 
 
 # Chinese correction and held-out sets, literal-context checks and the Spanish,
-# Japanese and English set (AD-098); every one must show no case regression.
+# Japanese, English and every other language with a writing note (AD-098,
+# AD-147); every one must show no case regression.
 DATASETS = ["correction_cases.json", "holdout_cases.json", "context_correction_cases.json", "multilingual_cases.json"]
 
 

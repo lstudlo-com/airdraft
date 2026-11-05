@@ -1,31 +1,31 @@
 {
- "prompt_version": "p16",
+ "prompt_version": "p17",
  "model": "qwen/qwen3.8-27b",
- "model_instance": "airdraft-eval-p16-ad104",
+ "model_instance": "qwen/qwen3.8-27b",
  "datasets": {
   "correction_cases.json": {
-   "candidate": "p16-20261026-correction.json",
-   "candidate_sha256": "c299f9fe0a48b1ba64dd3c8354295d864c170ab6516aa029b4929b72ac734f41",
+   "candidate": "p17-20261105-correction.json",
+   "candidate_sha256": "d93cc3f7938719b65b54c36fa8d5244793008159e12cc517109c42522f3c9ce4",
    "baseline": "p5-qwen38-correction.json",
    "baseline_sha256": "a9dfbd38a2c1dd8a2b314b27599a19b068b46c5c137e638ada8d3bf54a7e9e04"
   },
   "holdout_cases.json": {
-   "candidate": "p16-20261026-holdout.json",
-   "candidate_sha256": "4ac676512b5060d255f4512352fc8fba85e94a88c8aaa051c47eaeb28d812111",
+   "candidate": "p17-20261105-holdout.json",
+   "candidate_sha256": "162ce008f2c032c0f843b5c2a6a8cd030488b6b4c67a4301fce35f9229c8ca3f",
    "baseline": "p5-qwen38-holdout.json",
    "baseline_sha256": "6251b65c6f7c3b01cc5e9b7a58cbd427cd36a315f13a33b3c16c0a8a44e0d781"
   },
   "context_correction_cases.json": {
-   "candidate": "p16-20261026-context.json",
-   "candidate_sha256": "ea46d84bb2d194fa13509e99e63c99537fdbde98bccdaf03b4f746e8f1675b2f",
+   "candidate": "p17-20261105-context.json",
+   "candidate_sha256": "aebed172cea6b0a9093c8751a8fb0ab4e813ffdfa2389d4b0a4e750db6f5930a",
    "baseline": "p11-20260928-context.json",
    "baseline_sha256": "ccb8f946f6d461cd45af56d841850f78b792701daf86c7dc3a1b1e1ce8685803"
   },
   "multilingual_cases.json": {
-   "candidate": "p16-20261026-multilingual.json",
-   "candidate_sha256": "c1e8f4728df981c76f75922fc0dc109e1c409653e038837d09d4b9573764832e",
-   "baseline": "p15-20261025-multilingual.json",
-   "baseline_sha256": "d1aa860924d2a0c87aac68cbb58958365ab02d252cc9a3dd3a618db36ee0a557"
+   "candidate": "p17-20261105-multilingual.json",
+   "candidate_sha256": "69b13ed4ae0a46e8674df23d2f31605220ae85054079c6e95b4eac0871651a6c",
+   "baseline": "p16-20261105-multilingual.json",
+   "baseline_sha256": "641f2f2e373f774b25184bc87eb3439fe3ebd680003be8115fc836dc0af08bb5"
   }
  }
 }

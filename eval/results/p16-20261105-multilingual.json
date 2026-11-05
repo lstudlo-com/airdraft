@@ -1,0 +1,992 @@
+{
+  "label": "p16-20261105-multilingual",
+  "prompt_version": "p16",
+  "default_rules_sha256": "a13d64aa7a17355bbc468806e0d3ba6dd63809decf5dc5bc64d16e33e95ad1a4",
+  "assembly_sources": {
+    "LLM/PromptBuilder.swift": "ece2a862e3d619d5646cd3b1b714ab16ab27f5515bde1adb5070d241ceefe5ca",
+    "LLM/RefinementProfile.swift": "dfaebdedf540487bd2a89e1f11f1997b7070688ed0b000c6af0d97d8cfa43d7d",
+    "Context/AppFamily.swift": "368362c7ae788a7d41d18c320fe4b6fc7c77a6bbfa9f8b3f960201d8f08fc121",
+    "Dictionary/DictionaryPostProcessor.swift": "20e9c848bbb978f8b13be33617e5a4ce0a558c76c10a94eea80dac1514d3d244"
+  },
+  "cases_sha256": "0ac145d05b4baded8b0dd5274a2aa16cd382a58a665db2be285283e5c3a093be",
+  "cli_sha256": "1c179cffbac9c6431fd83d718771732d39a68e7179f40e1ef8d7a7a99c0eb643",
+  "cases": "multilingual_cases.json",
+  "model": "qwen/qwen3.8-27b",
+  "runs": 3,
+  "total": 80,
+  "max": 108,
+  "results": [
+    {
+      "id": "es-filler-question",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Puedes revisar el pull request antes de las cinco?",
+          "seconds": 4.64,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Puedes revisar el pull request antes de las cinco?",
+          "seconds": 1.82,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Puedes revisar el pull request antes de las cinco?",
+          "seconds": 1.79,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-product-name",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Voy a usar Claude Code para revisar el repositorio.",
+          "seconds": 5.21,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Voy a usar Claude Code para revisar el repositorio.",
+          "seconds": 2.24,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Voy a usar Claude Code para revisar el repositorio.",
+          "seconds": 2.43,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La reunión es el miércoles a las 10",
+          "seconds": 1.7,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La reunión es el miércoles a las 10.",
+          "seconds": 2.85,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La reunión es el miércoles a las 10.",
+          "seconds": 2.98,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-mixed-english",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Mañana tengo un meeting con el team para revisar el deployment",
+          "seconds": 3.33,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Mañana tengo un meeting con el team para revisar el deployment",
+          "seconds": 14.07,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Mañana tengo un meeting con el team para revisar el deployment",
+          "seconds": 3.59,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-list",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Necesito tres cosas:\n\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
+          "seconds": 8.1,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Necesito tres cosas:\n\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
+          "seconds": 5.14,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Necesito tres cosas:\n\n1. Comprar leche.\n2. Llamar a Pedro.\n3. Enviar el informe.",
+          "seconds": 4.74,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "es-asks-translation",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Cómo se dice \"gracias\" en inglés?",
+          "seconds": 5.36,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Cómo se dice \"gracias\" en inglés?",
+          "seconds": 12.26,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "¿Cómo se dice \"gracias\" en inglés?",
+          "seconds": 2.19,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ja-filler",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "明日の会議は10時からです",
+          "seconds": 4.87,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "明日の会議は10時からです",
+          "seconds": 2.69,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "明日の会議は10時からです",
+          "seconds": 2.46,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ja-product-name",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "あの Claude Code でこのバグを直してください",
+          "seconds": 3.54,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "あの Claude Code でこのバグを直してください",
+          "seconds": 3.26,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Claude Codeでこのバグを直してください",
+          "seconds": 13.16,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ja-list",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. 資料を作る\n2. 部長に送る\n3. 会議室を予約する",
+          "seconds": 3.73,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. まず資料を作って\n2. 次に部長に送って\n3. 最後に会議室を予約します",
+          "seconds": 5.16,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. まず資料を作る\n2. 次に部長に送る\n3. 最後に会議室を予約する",
+          "seconds": 5.38,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ja-kanji-stays",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "来週の広告の効果を確認しましょう。",
+          "seconds": 3.52,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "来週の広告の効果を確認しましょう。",
+          "seconds": 3.56,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "来週の広告の効果を確認しましょう。",
+          "seconds": 2.35,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "en-filler-question",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "So can you send the draft to Maya tomorrow?",
+          "seconds": 4.95,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "So can you send the draft to Maya tomorrow?",
+          "seconds": 4.47,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "So can you send the draft to Maya tomorrow?",
+          "seconds": 4.58,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "en-product-name",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Open Claude Code and run the tests.",
+          "seconds": 4.18,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Open Claude Code and run the tests.",
+          "seconds": 2.42,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Open Claude Code and run the tests.",
+          "seconds": 1.34,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "en-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Let's meet on Wednesday at 10",
+          "seconds": 4.02,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Let's meet on Wednesday at 10.",
+          "seconds": 4.01,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Let's meet on Wednesday at 10",
+          "seconds": 3.66,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "en-list",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. Update the README.\n2. Fix the login bug.\n3. Tag the release.",
+          "seconds": 13.51,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. Update the README.\n2. Fix the login bug.\n3. Tag the release.",
+          "seconds": 6.86,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "1. Update the README.\n2. Fix the login bug.\n3. Tag the release.",
+          "seconds": 7.66,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "en-like-filler",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "The build is failing on CI. We should check it.",
+          "seconds": 4.72,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "The build is failing on CI. We should check it",
+          "seconds": 4.54,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "The build is failing on CI. We should check it.",
+          "seconds": 4.69,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ko-filler",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "내일 회의는 10시에 시작해요",
+          "seconds": 4.3,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "내일 회의는 10시에 시작해요",
+          "seconds": 4.11,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "내일 회의는 10시에 시작해요",
+          "seconds": 4.65,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ko-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "회의는 수요일 오후 3시예요",
+          "seconds": 4.32,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "회의는 수요일 오후 3시예요",
+          "seconds": 3.65,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "회의는 수요일 오후 3시예요",
+          "seconds": 4.06,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ko-product-name",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Claude Code로 이 버그 좀 고쳐 줘",
+          "seconds": 4.65,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Claude Code로 이 버그 좀 고쳐 줘",
+          "seconds": 2.1,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Claude Code로 이 버그 좀 고쳐 줘",
+          "seconds": 2.84,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "fr-filler-question",
+      "passed": 0,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Du coup, tu peux envoyer le rapport à Julie demain",
+          "seconds": 4.48,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Du coup, tu peux envoyer le rapport à Julie demain",
+          "seconds": 4.6,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Du coup, tu peux envoyer le rapport à Julie demain",
+          "seconds": 4.4,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "fr-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La réunion est mercredi à 10 h",
+          "seconds": 3.97,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La réunion est mercredi à 10 h",
+          "seconds": 3.96,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "La réunion est mercredi à 10 h",
+          "seconds": 4.6,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "fr-list",
+      "passed": 0,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Premièrement, acheter du pain.\nEnsuite, appeler Marc.\nEnfin, envoyer le devis.",
+          "seconds": 5.63,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Premièrement, acheter du pain.\nEnsuite, appeler Marc.\nEnfin, envoyer le devis.",
+          "seconds": 6.6,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Premièrement, acheter du pain.\nEnsuite, appeler Marc.\nEnfin, envoyer le devis.",
+          "seconds": 6.27,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "de-filler-question",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Kannst du den Pull Request bis morgen prüfen?",
+          "seconds": 4.54,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Kannst du den Pull Request bis morgen prüfen?",
+          "seconds": 4.38,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Kannst du den Pull Request bis morgen prüfen?",
+          "seconds": 4.57,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "de-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Das Meeting ist am Mittwoch um 10 Uhr.",
+          "seconds": 4.3,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Das Meeting ist am Mittwoch um 10:00.",
+          "seconds": 4.27,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Das Meeting ist am Mittwoch um 10 Uhr",
+          "seconds": 4.26,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "de-nouns",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Hallo,\n\nich habe die Rechnung und den Vertrag gestern geschickt.\n\nViele Grüße",
+          "seconds": 4.65,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Hallo,\n\nich habe die Rechnung und den Vertrag gestern geschickt.\n\nViele Grüße",
+          "seconds": 5.36,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Ich habe die Rechnung und den Vertrag gestern geschickt.",
+          "seconds": 4.34,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "it-filler-question",
+      "passed": 0,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Puoi mandare il file a Luca entro stasera",
+          "seconds": 4.34,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Puoi mandare il file a Luca entro stasera",
+          "seconds": 4.36,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Puoi mandare il file a Luca entro stasera",
+          "seconds": 4.36,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "it-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Ci vediamo mercoledì alle 10",
+          "seconds": 3.94,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Ci vediamo mercoledì alle 10",
+          "seconds": 3.7,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Ci vediamo mercoledì alle 10",
+          "seconds": 3.37,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "pt-filler-question",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Então, tipo, você pode revisar o código hoje?",
+          "seconds": 4.21,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Então, tipo, você pode revisar o código hoje?",
+          "seconds": 4.28,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Então, tipo, você pode revisar o código hoje?",
+          "seconds": 4.17,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "pt-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "A reunião é na quarta às 10h",
+          "seconds": 4.02,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "A reunião é na quarta às 10h",
+          "seconds": 4.57,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "A reunião é na quarta às 10h",
+          "seconds": 4.18,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ru-filler-question",
+      "passed": 0,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Ну, вот можешь проверить код до завтра",
+          "seconds": 4.12,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Ну, вот, можешь проверить код до завтра",
+          "seconds": 4.17,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Ну, вот, можешь проверить код до завтра",
+          "seconds": 3.99,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ru-self-correction",
+      "passed": 2,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Встреча в среду в 10:00",
+          "seconds": 4.02,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Встреча во вторник, нет, в среду в 10:00",
+          "seconds": 5.06,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Встреча в среду в 10:00",
+          "seconds": 4.5,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ar-filler-question",
+      "passed": 0,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "يعني ممكن ترسل الملف لأحمد بكرة",
+          "seconds": 4.58,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "يعني ممكن ترسل الملف لأحمد بكرة",
+          "seconds": 4.5,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "يعني ممكن ترسل الملف لأحمد بكرة",
+          "seconds": 4.63,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "ar-self-correction",
+      "passed": 0,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "الاجتماع يوم الثلاثاء لا يوم الأربعاء الساعة 10",
+          "seconds": 5.07,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "الاجتماع يوم الثلاثاء لا يوم الأربعاء الساعة 10",
+          "seconds": 4.81,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "الاجتماع يوم الثلاثاء لا يوم الأربعاء الساعة 10",
+          "seconds": 4.79,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "hi-filler-question",
+      "passed": 0,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "मतलब तुम कल तक रिपोर्ट भेज सकते हो क्या",
+          "seconds": 5.44,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "मतलब तुम कल तक रिपोर्ट भेज सकते हो क्या",
+          "seconds": 5.16,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "मतलब तुम कल तक रिपोर्ट भेज सकते हो क्या",
+          "seconds": 5.19,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "hi-self-correction",
+      "passed": 0,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "मीटिंग मंगलवार को है नहीं मतलब बुधवार को",
+          "seconds": 5.2,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "मीटिंग मंगलवार को नहीं, बुधवार को है।",
+          "seconds": 15.33,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "मीटिंग मंगलवार को है नहीं मतलब बुधवार को",
+          "seconds": 5.54,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "id-filler-question",
+      "passed": 0,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Jadi kamu bisa kirim laporannya ke Budi besok",
+          "seconds": 5.17,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Jadi kamu bisa kirim laporannya ke Budi besok",
+          "seconds": 4.6,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": false,
+          "text": "Jadi kamu bisa kirim laporannya ke Budi besok",
+          "seconds": 4.67,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "id-self-correction",
+      "passed": 3,
+      "runs": [
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Rapatnya hari Rabu jam sepuluh",
+          "seconds": 4.69,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Rapatnya hari Rabu jam 10",
+          "seconds": 4.0,
+          "stderr": ""
+        },
+        {
+          "returncode": 0,
+          "ok": true,
+          "text": "Rapatnya hari Rabu jam 10.",
+          "seconds": 14.79,
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}
