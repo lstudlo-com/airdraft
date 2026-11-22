@@ -1,8 +1,10 @@
 # Local speech model catalogue
 
 `WhisperModelVariant` owns the seven v3 / distilled Core ML choices. `GGUFModelCatalog`
-owns the 69 GGUF variants from the reviewed Handy catalogue and transcribe.cpp
-v0.2.4. The bundled resource includes one quantization per variant, exact file
+owns 70 GGUF choices for transcribe.cpp v0.2.4. The original 69 variants come
+from the reviewed Handy catalogue. Oruk Fourier 2B is an English-only, optional
+Q8_0 download from [Oruk](https://huggingface.co/oruk/oruk-fourier-2b), for
+noncommercial use under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). The bundled resource includes one quantization per variant, exact file
 bytes, immutable Hugging Face revision, SHA-256, languages, creator and license.
 Models, Profiles and Transcribe resolve the same exact entry; unavailable stored
 IDs require setup rather than substituting a different model. Rows show the runtime

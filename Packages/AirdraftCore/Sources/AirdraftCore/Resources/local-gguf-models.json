@@ -1425,6 +1425,26 @@
     "documentation": "https://github.com/handy-computer/transcribe.cpp/blob/v0.2.4/docs/models/qwen3-asr.md"
   },
   {
+    "id": "oruk-fourier-2b",
+    "title": "Oruk Fourier 2B (noncommercial)",
+    "family": "qwen3_asr",
+    "creator": "Oruk",
+    "brand": "Oruk",
+    "repository": "oruk/oruk-fourier-2b",
+    "revision": "8bcce21695e4ba13569c48de6cedffcb8a7576f5",
+    "filename": "Fourier-2B-Q8_0.gguf",
+    "quantization": "Q8_0",
+    "bytes": 2185030848,
+    "sha256": "6a7c419bd571f7b0e21da2d5ab1e3a1a3938a83470d622be57427af98f322981",
+    "languages": [
+      "en"
+    ],
+    "automatic": true,
+    "manualControl": "forced",
+    "license": "cc-by-nc-4.0",
+    "documentation": "https://huggingface.co/oruk/oruk-fourier-2b"
+  },
+  {
     "id": "sensevoice-small",
     "title": "SenseVoice Small",
     "family": "sensevoice",
