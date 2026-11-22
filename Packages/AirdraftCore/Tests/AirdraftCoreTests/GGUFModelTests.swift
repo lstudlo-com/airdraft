@@ -8,12 +8,16 @@ final class GGUFModelTests: XCTestCase {
         // CatalogArtifactsArePinnedAndCoverCompetitorFamilies
         do {
             let models = GGUFModelCatalog.models
-            XCTAssertEqual(models.count, 69)
+            XCTAssertEqual(models.count, 70)
             XCTAssertEqual(Set(models.map(\.id)).count, models.count)
             // Rows of the same runtime are told apart by title alone.
             let titles = Dictionary(grouping: models, by: \.title).filter { $0.value.count > 1 }.keys.sorted()
             XCTAssertEqual(titles, [], "Duplicate GGUF titles")
             XCTAssertEqual(GGUFModelCatalog.model("cohere-transcribe-arabic-07-2026")?.title, "Cohere Transcribe Arabic")
+            let fourier = try XCTUnwrap(GGUFModelCatalog.model("oruk-fourier-2b"))
+            XCTAssertEqual(fourier.supportedLanguages, ["en"])
+            XCTAssertEqual(fourier.license, "cc-by-nc-4.0")
+            XCTAssertEqual(fourier.repository, "oruk/oruk-fourier-2b")
             for model in models {
                 XCTAssertNotNil(model.revision.range(of: "^[a-f0-9]{40}$", options: .regularExpression), model.id)
                 XCTAssertNotNil(model.sha256.range(of: "^[a-f0-9]{64}$", options: .regularExpression), model.id)
